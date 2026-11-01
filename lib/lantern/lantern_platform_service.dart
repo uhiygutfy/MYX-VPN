@@ -1,0 +1,1975 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:flutter/services.dart' hide Uint8List;
+import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/common/common.dart' hide DeveloperMode;
+import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/app_data_event.dart';
+import 'package:lantern/core/models/app_event.dart';
+import 'package:lantern/core/models/available_servers.dart';
+import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/macos_extension_state.dart';
+import 'package:lantern/core/models/plan_data.dart';
+import 'package:lantern/core/models/private_server_status.dart';
+import 'package:lantern/core/models/referral_attach_response.dart';
+import 'package:lantern/core/models/restore_subscription_response.dart';
+import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/models/user_message.dart';
+import 'package:lantern/core/services/app_purchase.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/utils/app_data_utils.dart';
+import 'package:lantern/core/utils/enabled_apps.dart';
+import 'package:lantern/core/utils/radiance_environment.dart';
+import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
+import 'package:lantern/lantern/lantern_core_service.dart';
+import 'package:lantern/lantern/lantern_ffi_service.dart';
+
+import '../core/models/lantern_status.dart';
+import '../core/services/injection_container.dart' show sl;
+
+class LanternPlatformService implements LanternCoreService {
+  LanternPlatformService();
+
+  static const channelPrefix = 'org.getlantern.lantern';
+  static const MethodChannel _methodChannel = MethodChannel(
+    '$channelPrefix/method',
+  );
+  static const logsChannel = EventChannel("$channelPrefix/logs");
+  static const EventChannel statusChannel = EventChannel(
+    "$channelPrefix/status",
+    JSONMethodCodec(),
+  );
+  static const EventChannel systemExtensionStatusChannel = EventChannel(
+    "$channelPrefix/system_extension_status",
+    JSONMethodCodec(),
+  );
+  static const privateServerStatusChannel = EventChannel(
+    "$channelPrefix/private_server_status",
+    JSONMethodCodec(),
+  );
+  static const appEventStatusChannel = EventChannel(
+    "$channelPrefix/app_events",
+    JSONMethodCodec(),
+  );
+  static const EventChannel appStreamChannel = EventChannel(
+    "$channelPrefix/app_stream",
+    JSONMethodCodec(),
+  );
+  static final RegExp _newlineRegex = RegExp(r'\r?\n');
+
+  late final Stream<LanternStatus> _status;
+  late final Stream<PrivateServerStatus> _privateServerStatus;
+  late final Stream<MacOSExtensionState> _systemExtensionStatus;
+  late final Stream<AppEvent> _appEventStatus;
+
+  final Map<String, AppData> _androidAppCache = <String, AppData>{};
+
+  @override
+  Future<void> init() async {
+    appLogger.info(' LanternPlatformService');
+    _status = statusChannel.receiveBroadcastStream().map(
+      (event) => LanternStatus.fromJson(event),
+    );
+    _privateServerStatus = privateServerStatusChannel
+        .receiveBroadcastStream()
+        .map((event) => PrivateServerStatus.fromJson(jsonDecode(event)));
+
+    _appEventStatus = appEventStatusChannel.receiveBroadcastStream().map(
+      (event) => AppEvent.fromJson(event),
+    );
+
+    if (PlatformUtils.isMacOS) {
+      _systemExtensionStatus = systemExtensionStatusChannel
+          .receiveBroadcastStream()
+          .map(MacOSExtensionState.fromEvent);
+      await _methodChannel.invokeMethod<void>(
+        'setupRadiance',
+        await radianceEnvironment(),
+      );
+    }
+    // _enabledApps starts as EnabledAppsSnapshot.empty() and is refreshed
+    // lazily inside installedAppsStream / addSplitTunnelItem / etc.
+    // Loading it here would block service init with 3 platform calls before
+    // the first frame is drawn.
+  }
+
+  @override
+  Stream<AppEvent> watchAppEvents() {
+    return _appEventStatus;
+  }
+
+  @override
+  Future<Either<Failure, UserMessage?>> currentUserMessage() async {
+    try {
+      final encoded = await _methodChannel.invokeMethod<String>(
+        'currentUserMessage',
+      );
+      return right(UserMessage.tryParse(encoded ?? 'null'));
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> refreshUserMessages() async {
+    try {
+      await _methodChannel.invokeMethod<void>('refreshUserMessages');
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(
+    String displayId,
+    String accountId,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod<void>('acknowledgeUserMessage', {
+        'displayId': displayId,
+        'accountId': accountId,
+      });
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUserMessageActivity(bool active) async {
+    try {
+      await _methodChannel.invokeMethod<void>('setUserMessageActivity', active);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  Future<void> waitForRadiance() async {
+    await _methodChannel.invokeMethod<void>('waitForRadiance');
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateLocal(String locale) async {
+    try {
+      final _ = await _methodChannel.invokeMethod('updateLocale', locale);
+      return Right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  /// Android only: copies [text] with ClipDescription's IS_SENSITIVE extra.
+  Future<void> copySensitiveText(String text) =>
+      _methodChannel.invokeMethod('copySensitiveText', {'text': text});
+
+  /// Android only: opens the system share sheet for [paths] with read-only
+  /// URI grants (share_plus grants read+write to every resolvable package).
+  Future<void> shareFiles(
+    List<String> paths, {
+    String? title,
+    String? text,
+  }) async {
+    await _methodChannel.invokeMethod<void>('shareFiles', {
+      'paths': paths,
+      'title': title,
+      'text': text,
+    });
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateTimeZone(String timeZone) async {
+    try {
+      await _methodChannel.invokeMethod('updateTimeZone', timeZone);
+      return Right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<void> updateWidgetLocation({
+    required String city,
+    required String country,
+    required String countryCode,
+    required String displayName,
+    required String serverName,
+  }) async {
+    try {
+      await _methodChannel.invokeMethod('updateWidgetLocation', {
+        'serverName': serverName,
+        'city': city,
+        'country': country,
+        'countryCode': countryCode,
+        'displayName': displayName,
+      });
+    } catch (e, stackTrace) {
+      // Cosmetic: the widget just keeps its previous label.
+      appLogger.error('Error updating widget location', e, stackTrace);
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) async {
+    try {
+      final _ = await _methodChannel.invokeMethod(
+        'updateTelemetryEvents',
+        consent,
+      );
+      return Right(unit);
+    } catch (e) {
+      appLogger.error('Error updating telemetry events', e);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setRoutingMode(bool mode) async {
+    try {
+      final _ = await _methodChannel.invokeMethod('setRoutingMode', mode);
+      return Right(unit);
+    } catch (e) {
+      appLogger.error('Error setting routing mode', e);
+      return Left(e.toFailure());
+    }
+  }
+
+  /// VPN methods
+  @override
+  Future<Either<Failure, String>> startVPN() async {
+    try {
+      final message = await _methodChannel.invokeMethod<String>('startVPN');
+      return Right(message!);
+    } on PlatformException catch (ple) {
+      return Left(
+        Failure(
+          error: ple.toString(),
+          localizedErrorMessage: ple.localizedDescription,
+        ),
+      );
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting VPN Flutter', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> connectToServer(
+    String location,
+    String tag,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod('connectToServer', {
+        'location': location,
+        'serverName': tag,
+      });
+      return Right("ok");
+    } catch (e) {
+      appLogger.debug('Error setting private server');
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<bool> isTagAvailable(String tag) async {
+    try {
+      final result = await _methodChannel.invokeMethod<bool>(
+        'isTagAvailable',
+        tag,
+      );
+      return result ?? true;
+    } catch (e) {
+      appLogger.error('Error checking if tag is available', e);
+      return true;
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> stopVPN() async {
+    try {
+      final _ = await _methodChannel.invokeMethod<String>('stopVPN');
+      return Right('VPN stopped');
+    } on PlatformException catch (ple) {
+      return Left(ple.toFailure());
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Stream<LanternStatus> watchVPNStatus() {
+    return _status;
+  }
+
+  @override
+  Stream<List<String>> watchLogs(String path) =>
+      logsChannel.receiveBroadcastStream().map(_coerceLogBatch);
+
+  List<String> _coerceLogBatch(dynamic event) {
+    if (event is List) {
+      return event
+          .whereType<String>()
+          .expand((s) => s.split(_newlineRegex))
+          .where((s) => s.isNotEmpty)
+          .toList(growable: false);
+    }
+
+    if (event is String) {
+      return event
+          .split(_newlineRegex)
+          .where((s) => s.isNotEmpty)
+          .toList(growable: false);
+    }
+
+    return const <String>[];
+  }
+
+  @override
+  Stream<List<AppData>> appsDataStream() async* {
+    if (Platform.isAndroid) {
+      yield* androidAppsDataStream();
+    } else if (Platform.isMacOS) {
+      yield* macAppsDataStream();
+    } else {
+      throw UnimplementedError();
+    }
+  }
+
+  @override
+  Future<Uint8List?> loadInstalledAppIconBytes({
+    required String appPath,
+    required String iconPath,
+  }) async {
+    return null;
+  }
+
+  @override
+  Future<Either<Failure, bool>> isVPNConnected() async {
+    try {
+      final connected = await _methodChannel.invokeMethod<bool>(
+        'isVPNConnected',
+      );
+      final isConnected = connected ?? false;
+      return Right(isConnected);
+    } catch (e, stackTrace) {
+      appLogger.error('Error waking up LanternPlatformService', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<bool> checkVpnConflict() async {
+    if (!Platform.isAndroid && !Platform.isMacOS) return false;
+    try {
+      final result = await _methodChannel
+          .invokeMethod<bool>('checkVpnConflict')
+          .timeout(const Duration(seconds: 5));
+      appLogger.info('checkVpnConflict returned $result');
+      return result ?? false;
+    } on TimeoutException catch (e, stackTrace) {
+      appLogger.error('checkVpnConflict timed out', e, stackTrace);
+      return false;
+    } catch (e, stackTrace) {
+      appLogger.error('checkVpnConflict failed', e, stackTrace);
+      return false;
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) async {
+    try {
+      await _methodChannel.invokeMethod('setBlockAdsEnabled', {
+        'enabled': enabled,
+      });
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setBlockAdsEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isBlockAdsEnabled() async {
+    try {
+      final res = await _methodChannel.invokeMethod<bool>('isBlockAdsEnabled');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isBlockAdsEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled) async {
+    try {
+      await _methodChannel.invokeMethod('setPeerProxyEnabled', {
+        'enabled': enabled,
+      });
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setPeerProxyEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isPeerProxyEnabled() async {
+    try {
+      final res = await _methodChannel.invokeMethod<bool>('isPeerProxyEnabled');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isPeerProxyEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  // Manual port forward setting — wired through MethodChannel to the
+  // platform-specific handler. macOS / iOS Swift and Android Kotlin
+  // each delegate to Mobile.SetPeerManualPort via the gomobile binding.
+  @override
+  Future<Either<Failure, Unit>> setPeerManualPort(int port) async {
+    try {
+      await _methodChannel.invokeMethod('setPeerManualPort', {'port': port});
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setPeerManualPort failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getPeerManualPort() async {
+    try {
+      final res = await _methodChannel.invokeMethod<int>('getPeerManualPort');
+      return right(res ?? 0);
+    } catch (e, st) {
+      appLogger.error('getPeerManualPort failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getPeerStatusJSON() async {
+    try {
+      final res = await _methodChannel.invokeMethod<String>('getPeerStatus');
+      return right(res ?? '');
+    } catch (e, st) {
+      appLogger.error('getPeerStatusJSON failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  ) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>('helperCall', {
+        'op': op,
+        'args': jsonEncode(args),
+      });
+      return right(result ?? '');
+    } catch (e, st) {
+      appLogger.error('helperCall failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  // Unbounded toggle wired through MethodChannel to the platform-specific
+  // handler. macOS / iOS Swift and Android Kotlin each delegate to
+  // Mobile.SetUnboundedEnabled via the gomobile binding.
+  @override
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
+    try {
+      await _methodChannel.invokeMethod('setUnboundedEnabled', {
+        'enabled': enabled,
+      });
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setUnboundedEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isUnboundedEnabled() async {
+    try {
+      final res = await _methodChannel.invokeMethod<bool>('isUnboundedEnabled');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isUnboundedEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> probeUPnP() async {
+    try {
+      // The Swift / Kotlin side calls Mobile.ProbeUPnP, which blocks
+      // up to ~6s on the M-SEARCH multicast scan. The MethodChannel
+      // call hops to a platform thread, so the Dart UI isolate isn't
+      // pinned during the wait.
+      final res = await _methodChannel.invokeMethod<bool>('probeUPnP');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('probeUPnP failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
+    try {
+      final res = await _methodChannel.invokeMethod<bool>(
+        'isSmartRoutingEnabled',
+      );
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isSmartRoutingEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isTelemetryEnabled() async {
+    try {
+      final res = await _methodChannel.invokeMethod<bool>('isTelemetryEnabled');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isTelemetryEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isOAuthLogin() async {
+    try {
+      final res = await _methodChannel.invokeMethod<bool>('isOAuthLogin');
+      return right(res ?? false);
+    } catch (e, st) {
+      appLogger.error('isOAuthLogin failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getOAuthProvider() async {
+    try {
+      final res = await _methodChannel.invokeMethod<String>('getOAuthProvider');
+      return right(res ?? '');
+    } catch (e, st) {
+      appLogger.error('getOAuthProvider failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  List<AppData> _mapToAppData(
+    Iterable<Map<String, dynamic>> rawApps, {
+    required EnabledAppsSnapshot enabled,
+  }) {
+    return rawApps.map((raw) {
+      final bundleId = (raw["bundleId"] ?? raw["package"] ?? "")
+          .toString()
+          .trim();
+      final name = (raw["name"] ?? raw["label"] ?? bundleId).toString().trim();
+      final lastUpdateTime = (raw["lastUpdateTime"] as num?)?.toInt() ?? 0;
+      final removed = raw["removed"] == true || raw["isRemoved"] == true;
+
+      final key = bundleId.isNotEmpty ? bundleId : name;
+
+      return AppData(
+        bundleId: bundleId,
+        name: name,
+        appPath: (raw["appPath"] ?? "").toString(),
+        iconPath: (raw["iconPath"] ?? "").toString(),
+        iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
+        lastUpdateTime: lastUpdateTime,
+        removed: removed,
+        isEnabled: enabled.contains(key: key, name: name),
+        isBrowser: raw["isBrowser"] == true,
+        wrappedBundle: (raw["wrappedBundle"] ?? "").toString(),
+      );
+    }).toList();
+  }
+
+  Stream<List<AppData>> androidAppsDataStream() async* {
+    if (!Platform.isAndroid) throw UnimplementedError();
+
+    Stream<dynamic>? nativeStream;
+    try {
+      nativeStream = appStreamChannel.receiveBroadcastStream({"sizePx": 96});
+    } on MissingPluginException {
+      nativeStream = null;
+    } catch (_) {
+      nativeStream = null;
+    }
+
+    if (nativeStream == null) {
+      try {
+        final String? json = await _methodChannel.invokeMethod<String>(
+          'installedApps',
+        );
+        if (json == null) {
+          yield [];
+          return;
+        }
+        final decoded = jsonDecode(json) as List<dynamic>;
+        final rawApps = decoded.cast<Map<String, dynamic>>();
+        await _refreshEnabledAppsSnapshot();
+        final enabled = enabledAppsSnapshot;
+
+        for (final a in _mapToAppData(rawApps, enabled: enabled)) {
+          _androidAppCache[a.bundleId] = a;
+        }
+        yield _sortedCache();
+      } catch (e, st) {
+        appLogger.error("Failed to fetch installed apps", e, st);
+        yield [];
+      }
+      return;
+    }
+
+    try {
+      await for (final ev in nativeStream) {
+        if (ev is! Map) continue;
+        final e = AppDataEvent.fromMap(ev);
+        await _refreshEnabledAppsSnapshot();
+        final enabled = enabledAppsSnapshot;
+        _applyAppDataEvent(
+          type: e.type,
+          items: e.items.map((a) {
+            final key = a.bundleId.isNotEmpty ? a.bundleId : a.name;
+            return a.copyWith(
+              isEnabled: enabled.contains(key: key, name: a.name),
+            );
+          }).toList(),
+          removed: e.removed,
+        );
+
+        yield _sortedCache();
+      }
+    } catch (e, st) {
+      appLogger.error("App stream failed", e, st);
+      yield _sortedCache();
+    }
+  }
+
+  List<AppData> _applyAppDataEvent({
+    required AppDataEventType type,
+    required List<AppData> items,
+    required List<String> removed,
+  }) {
+    // remove
+    for (final id in removed) {
+      _androidAppCache.remove(id);
+    }
+    // upsert
+    if (type == AppDataEventType.iconReady) {
+      for (final a in items) {
+        final prev = _androidAppCache[a.bundleId];
+        if (prev != null) {
+          _androidAppCache[a.bundleId] = prev.copyWith(
+            iconPath: a.iconPath,
+            iconBytes: a.iconBytes,
+          );
+        } else {
+          _androidAppCache[a.bundleId] = a;
+        }
+      }
+    } else {
+      for (final a in items) {
+        _androidAppCache[a.bundleId] = a;
+      }
+    }
+
+    final list = _androidAppCache.values.toList();
+    list.sort((a, b) => a.name.compareTo(b.name));
+    return list;
+  }
+
+  List<AppData> _sortedCache() {
+    final list = _androidAppCache.values.toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return list;
+  }
+
+  Stream<List<AppData>> macAppsDataStream() async* {
+    Stream<dynamic>? nativeStream;
+    try {
+      nativeStream = appStreamChannel.receiveBroadcastStream({"sizePx": 96});
+    } on MissingPluginException {
+      nativeStream = null;
+    } catch (_) {
+      nativeStream = null;
+    }
+
+    // If stream exists, consume it
+    if (nativeStream != null) {
+      final cache = <String, AppData>{};
+
+      try {
+        await for (final ev in nativeStream) {
+          if (ev is! Map) continue;
+          final e = AppDataEvent.fromMap(ev);
+          await _refreshEnabledAppsSnapshot();
+          final enabled = enabledAppsSnapshot;
+
+          for (final id in e.removed) {
+            cache.remove(id);
+          }
+          for (final a in e.items) {
+            final key = a.bundleId.isNotEmpty ? a.bundleId : a.appPath;
+            cache[key] = a.copyWith(
+              isEnabled: enabled.contains(key: key, name: a.name),
+            );
+          }
+
+          final list = cache.values.toList()
+            ..sort(
+              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+            );
+          yield list;
+        }
+      } catch (e, st) {
+        appLogger.error("mac app stream failed", e, st);
+        final list = cache.values.toList()
+          ..sort(
+            (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+          );
+        yield list;
+      }
+      return;
+    }
+
+    // Fallback: old method channel snapshot
+    try {
+      final String? json = await _methodChannel.invokeMethod<String>(
+        "installedApps",
+      );
+      if (json == null) {
+        yield [];
+        return;
+      }
+      final decoded = jsonDecode(json) as List<dynamic>;
+      await _refreshEnabledAppsSnapshot();
+      final enabled = enabledAppsSnapshot;
+      final rawApps = decoded.cast<Map<String, dynamic>>();
+      yield _mapToAppData(rawApps, enabled: enabled);
+    } catch (e, st) {
+      appLogger.error("Failed to fetch installed apps", e, st);
+      yield [];
+    }
+  }
+
+  ///Split tunneling methods
+  @override
+  Future<Either<Failure, Unit>> addSplitTunnelItem(
+    SplitTunnelFilterType type,
+    String value,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod('addSplitTunnelItem', {
+        'filterType': type.value,
+        'value': value,
+      });
+      await _refreshEnabledAppsSnapshot();
+      return right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removeSplitTunnelItem(
+    SplitTunnelFilterType type,
+    String value,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod('removeSplitTunnelItem', {
+        'filterType': type.value,
+        'value': value,
+      });
+      await _refreshEnabledAppsSnapshot();
+      return right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) async {
+    try {
+      await _methodChannel.invokeMethod('setSplitTunnelingEnabled', {
+        'enabled': enabled,
+      });
+      return Right(unit);
+    } catch (e, st) {
+      appLogger.error('setSplitTunnelingEnabled failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isSplitTunnelingEnabled() async {
+    try {
+      final enabled = await _methodChannel.invokeMethod<bool>(
+        'isSplitTunnelingEnabled',
+      );
+      return Right(enabled ?? false);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> addAllItems(
+    SplitTunnelFilterType type,
+    List<String> items,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod('addAllItems', {
+        'filterType': type.value,
+        'value': items.join(','),
+      });
+      appLogger.debug('Added all items');
+      return right(unit);
+    } catch (e) {
+      appLogger.error('Error adding all items', e);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removeAllItems(
+    SplitTunnelFilterType type,
+    List<String> value,
+  ) async {
+    try {
+      appLogger.debug('Removing all items: ${value.length} items');
+      await _methodChannel.invokeMethod('removeAllItems', {
+        'filterType': type.value,
+        'value': value.join(','),
+      });
+      appLogger.debug('Removed all items');
+      return right(unit);
+    } catch (e) {
+      appLogger.error('Error removing all items', e);
+      return Left(e.toFailure());
+    }
+  }
+
+  /// In-App Purchase and Subscription methods
+  @override
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow({
+    required String planId,
+    required PaymentSuccessCallback onSuccess,
+    required PaymentErrorCallback onError,
+    String couponCode = '',
+  }) async {
+    try {
+      await sl<AppPurchase>().startSubscription(
+        plan: planId,
+        onSuccess: onSuccess,
+        onError: onError,
+        couponCode: couponCode,
+      );
+      return Right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect({
+    required BillingType type,
+    required String planId,
+    required String email,
+    required String idempotencyKey,
+    String couponCode = '',
+  }) async {
+    if (!PlatformUtils.isMacOS) {
+      return left(
+        Failure(
+          error: 'Not supported',
+          localizedErrorMessage: 'This is only supported on macOS',
+        ),
+      );
+    }
+    try {
+      final redirectUrl = await _methodChannel
+          .invokeMethod<String>('stripeSubscriptionPaymentRedirect', {
+            "type": type.name,
+            "planId": planId,
+            "email": email,
+            "idempotencyKey": idempotencyKey,
+            "couponCode": couponCode,
+          });
+      if (redirectUrl == null || redirectUrl.isEmpty) {
+        return Left(
+          Exception(
+            'No subscription payment redirect URL returned',
+          ).toFailure(),
+        );
+      }
+      return Right(redirectUrl);
+    } catch (e) {
+      return Left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription({
+    required String planId,
+    required String email,
+    String couponCode = '',
+  }) async {
+    try {
+      final subData = await _methodChannel.invokeMethod<String>(
+        'stripeSubscription',
+        {"planId": planId, "email": email, "couponCode": couponCode},
+      );
+      final map = jsonDecode(subData!);
+      return Right(map);
+    } catch (e) {
+      return Left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> stripeBillingPortal() async {
+    try {
+      final url = await _methodChannel.invokeMethod<String>(
+        'stripeBillingPortal',
+      );
+      return Right(url!);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, PlansData>> plans() async {
+    try {
+      final channel = isStoreVersion() ? 'store' : 'non-store';
+      final subData = await _methodChannel.invokeMethod<String>(
+        'plans',
+        channel,
+      );
+      final map = jsonDecode(subData!);
+      final plans = PlansData.fromJson(map)..sortPlansAndProviders();
+      return Right(plans);
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching plans', e, stackTrace);
+      return Left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> paymentRedirect({
+    required String provider,
+    required String planId,
+    required String email,
+    required String idempotencyKey,
+    String couponCode = '',
+  }) async {
+    if (PlatformUtils.isIOS) {
+      throw UnimplementedError("This not supported on IOS");
+    }
+    try {
+      final redirectUrl = await _methodChannel
+          .invokeMethod<String>('paymentRedirect', {
+            'provider': provider,
+            'planId': planId,
+            'email': email,
+            'idempotencyKey': idempotencyKey,
+            'couponCode': couponCode,
+          });
+      if (redirectUrl == null || redirectUrl.isEmpty) {
+        return Left(Exception('No payment redirect URL returned').toFailure());
+      }
+      return Right(redirectUrl);
+    } catch (e, stackTrace) {
+      appLogger.error('Error getting payment redirect URL', e, stackTrace);
+      return Left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription,
+        ),
+      );
+    }
+  }
+
+  /// Only supported in IOS
+  @override
+  Future<Either<Failure, Unit>> showManageSubscriptions() async {
+    try {
+      await _methodChannel.invokeMethod('showManageSubscriptions');
+      return Right(unit);
+    } catch (e) {
+      return Left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> acknowledgeInAppPurchase({
+    required String purchaseToken,
+    required String planId,
+    String couponCode = '',
+  }) async {
+    try {
+      await _methodChannel.invokeMethod('acknowledgeInAppPurchase', {
+        'purchaseToken': purchaseToken,
+        'planId': planId,
+        'couponCode': couponCode,
+      });
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Error acknowledging in-app purchase ${e.toString()} ',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, RestoreSubscriptionResponse>> restoreInAppPurchase({
+    required String purchaseToken,
+  }) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod<Uint8List>(
+        'restoreInAppPurchase',
+        {'purchaseToken': purchaseToken},
+      );
+      if (bytes == null) {
+        appLogger.error(
+          'restoreInAppPurchase returned null bytes from native side',
+        );
+        return Left(
+          Exception('Empty response from restore purchase').toFailure(),
+        );
+      }
+      return Right(
+        RestoreSubscriptionResponse.fromJson(jsonDecode(utf8.decode(bytes))),
+      );
+    } catch (e, stackTrace) {
+      appLogger.error('Error restoring in-app purchase', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getOAuthLoginUrl(String provider) async {
+    try {
+      final loginUrl = await _methodChannel.invokeMethod<String>(
+        'oauthLoginUrl',
+        provider,
+      );
+      return Right(loginUrl!);
+    } catch (e) {
+      return Left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(
+    String token,
+  ) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod(
+        'oauthLoginCallback',
+        token,
+      );
+      final map = jsonDecode(utf8.decode(bytes));
+      return Right(UserResponseModel.fromJson(map));
+    } catch (e, stackTrace) {
+      appLogger.error('Error handling OAuth login callback', e, stackTrace);
+      return Left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(String token) async {
+    try {
+      await _methodChannel.invokeMethod<String>(
+        'oauthDeviceLimitCallback',
+        token,
+      );
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Error handling OAuth device-limit callback',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
+    }
+  }
+
+  ///App related methods
+  ///
+  /// Get user data from local storage
+  @override
+  Future<Either<Failure, UserResponseModel>> getUserData() async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('getUserData');
+      final map = jsonDecode(utf8.decode(bytes));
+      return Right(UserResponseModel.fromJson(map));
+    } catch (e, stackTrace) {
+      appLogger.error('Error while getUserData user data', e, stackTrace);
+      return Left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription,
+        ),
+      );
+    }
+  }
+
+  /// Fetch user data from server
+  @override
+  Future<Either<Failure, UserResponseModel>> fetchUserData() async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('fetchUserData');
+      final map = jsonDecode(utf8.decode(bytes));
+      return Right(UserResponseModel.fromJson(map));
+    } catch (e, stackTrace) {
+      appLogger.error("error fetching user data", e, stackTrace);
+      return Left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e as Exception).localizedDescription,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, DataCapUsageResponse>> getDataCapInfo() async {
+    try {
+      appLogger.debug('Fetching data cap info from platform service');
+      final json = await _methodChannel.invokeMethod('getDataCapInfo');
+      appLogger.debug('Raw data cap info JSON: $json');
+      final map = jsonDecode(json!);
+      final dataCap = DataCapUsageResponse.fromJson(map);
+      return Right(dataCap);
+    } catch (e, st) {
+      appLogger.error('fetchDataCapInfo failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> featureFlag() async {
+    try {
+      final featureFlag = await _methodChannel.invokeMethod<String>(
+        'featureFlag',
+      );
+      return Right(featureFlag!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching feature flag', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> deviceRemove({
+    required String deviceId,
+  }) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>('removeDevice', {
+        'deviceId': deviceId,
+      });
+      return Right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error removing device', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+    String device,
+    String model,
+    String logFilePath,
+    List<ReportIssueAttachment> attachments,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod('reportIssue', {
+        'email': email,
+        'issueType': issueType,
+        'description': description,
+        'device': device,
+        'model': model,
+        'logFilePath': logFilePath,
+        'attachments': attachments
+            .map((attachment) => attachment.toJson())
+            .toList(growable: false),
+      });
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error reporting issue', e, stackTrace);
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> diagnosticLogFiles() async {
+    try {
+      final files = await _methodChannel.invokeListMethod<String>(
+        'diagnosticLogFiles',
+      );
+      return Right(
+        (files ?? const <String>[]).where((path) => path.isNotEmpty).toList(),
+      );
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching iOS diagnostic log files', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  /// Authentication methods
+  @override
+  Future<Either<Failure, UserResponseModel>> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('login', {
+        'email': email,
+        'password': password,
+      });
+      final map = jsonDecode(utf8.decode(bytes));
+      return Right(UserResponseModel.fromJson(map));
+    } catch (e, stackTrace) {
+      appLogger.error('Error logging in', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponseModel>> logout(String email) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('logout', email);
+      final map = jsonDecode(utf8.decode(bytes));
+      return Right(UserResponseModel.fromJson(map));
+    } catch (e, stackTrace) {
+      appLogger.error('Error logging out', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> startRecoveryByEmail(String email) async {
+    try {
+      await _methodChannel.invokeMethod('startRecoveryByEmail', {
+        'email': email,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting recovery by email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> validateRecoveryCode({
+    required String email,
+    required String code,
+  }) async {
+    try {
+      await _methodChannel.invokeMethod('validateRecoveryCode', {
+        'email': email,
+        'code': code,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error validating recovery code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> completeRecoveryByEmail({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      await _methodChannel.invokeMethod('completeRecoveryByEmail', {
+        'email': email,
+        'code': code,
+        'newPassword': newPassword,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error completing change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> signUp({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      await _methodChannel.invokeMethod('signUp', {
+        'email': email,
+        'password': password,
+      });
+
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error signing up', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponseModel>> deleteAccount({
+    required String email,
+    required String password,
+    bool isSSO = false,
+  }) async {
+    try {
+      final bytes = await _methodChannel.invokeMethod('deleteAccount', {
+        'email': email,
+        'password': password,
+        'isSSO': isSSO,
+      });
+      final map = jsonDecode(utf8.decode(bytes));
+      return Right(UserResponseModel.fromJson(map));
+    } catch (e, stackTrace) {
+      appLogger.error('Error deleting account', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> activationCode({
+    required String email,
+    required String resellerCode,
+  }) async {
+    try {
+      await _methodChannel.invokeMethod('activationCode', {
+        'email': email,
+        'resellerCode': resellerCode,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error activating code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> verifyPassword(
+    String email,
+    String password,
+  ) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>(
+        'verifyPassword',
+        {'email': email, 'password': password},
+      );
+      return Right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error verifying password', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> startChangeEmail(
+    String newEmail,
+    String password,
+  ) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>(
+        'startChangeEmail',
+        {'newEmail': newEmail, 'password': password},
+      );
+      return Right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> completeChangeEmail({
+    required String newEmail,
+    required String password,
+    required String code,
+  }) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>(
+        'completeChangeEmail',
+        {'newEmail': newEmail, 'password': password, 'code': code},
+      );
+      return right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error completing change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  /// Private server methods
+  @override
+  Future<Either<Failure, Unit>> digitalOceanPrivateServer() async {
+    try {
+      await _methodChannel.invokeMethod('digitalOcean');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error activating code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> googleCloudPrivateServer() async {
+    try {
+      await _methodChannel.invokeMethod('googleCloud');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error activating code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Stream<PrivateServerStatus> watchPrivateServerStatus() {
+    return _privateServerStatus;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> validateSession() async {
+    try {
+      await _methodChannel.invokeMethod("validateSession");
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error validating session', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUserInput({
+    required PrivateServerInput methodType,
+    required String input,
+  }) async {
+    try {
+      await _methodChannel.invokeMethod(methodType.name, input);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error setting user input', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> startDeployment({
+    required String location,
+    required String serverName,
+  }) async {
+    try {
+      await _methodChannel.invokeMethod('startDeployment', {
+        'location': location,
+        'serverName': serverName,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> cancelDeployment() async {
+    try {
+      await _methodChannel.invokeMethod('cancelDeployment');
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error canceling deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> addServerManually({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String serverName,
+  }) async {
+    try {
+      await _methodChannel.invokeMethod('addServerManually', {
+        'ip': ip,
+        'port': port,
+        'accessToken': accessToken,
+        'serverName': serverName,
+      });
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error canceling deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> addServerBasedOnURLs({
+    required String urls,
+  }) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>(
+        'addServerBasedOnURLs',
+        {
+          'urls': urls,
+          'skipValidation': false,
+          'serverName': '',
+        },
+      );
+      final tags = (jsonDecode(result ?? '[]') as List).cast<String>();
+      return Right(tags);
+    } catch (e, stackTrace) {
+      appLogger.error('Error adding server based on URLs', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> inviteToServerManagerInstance({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String inviteName,
+  }) async {
+    try {
+      final inviteCode = await _methodChannel.invokeMethod<String>(
+        'inviteToServerManagerInstance',
+        {
+          'ip': ip,
+          'port': port,
+          'accessToken': accessToken,
+          'inviteName': inviteName,
+        },
+      );
+      return Right(inviteCode!);
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Error inviting to server manager instance',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> revokeServerManagerInstance({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String inviteName,
+  }) async {
+    try {
+      final _ = await _methodChannel.invokeMethod<String>(
+        'revokeServerManagerInstance',
+        {
+          'ip': ip,
+          'port': port,
+          'accessToken': accessToken,
+          'inviteName': inviteName,
+        },
+      );
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error revoking server manager instance', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  ///Server location methods
+  @override
+  Future<Either<Failure, Server>> getAutoServerLocation() async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>(
+        'getAutoServerLocation',
+      );
+      return right(Server.fromJson(jsonDecode(result!)));
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching auto server location', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>(
+        'getSelectedServerJSON',
+      );
+      // Normalize a missing selection to an empty JSON object so callers
+      // fall into the "auto" branch below instead of throwing.
+      final raw = (result == null || result.isEmpty) ? '{}' : result;
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      final serverJson = json['server'] as Map<String, dynamic>?;
+      if (serverJson == null) {
+        return Right(
+          ServerLocation(
+            serverType: ServerLocationType.auto.name,
+            serverName: '',
+          ),
+        );
+      }
+      final server = Server.fromJson(serverJson);
+      return Right(ServerLocation.selected(server));
+    } catch (e, stackTrace) {
+      appLogger.error('Error fetching selected server', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, AvailableServers>> getLanternAvailableServers() async {
+    try {
+      final result = await _methodChannel.invokeMethod(
+        'getLanternAvailableServers',
+      );
+      final servers = AvailableServers.fromJson(
+        jsonDecode(result) as List<dynamic>,
+      );
+      appLogger.info("Loaded ${servers.servers.length} available servers");
+      return Right(servers);
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Error fetching Lantern available servers',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> deletePrivateServerByName(
+    String serverName,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod<String>(
+        'deletePrivateServerByName',
+        serverName,
+      );
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error deleting private server', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  /// macOS System Extension methods
+  @override
+  Future<Either<Failure, String>> triggerSystemExtension() async {
+    if (!PlatformUtils.isMacOS) {
+      return left(
+        Failure(
+          error: 'Not supported',
+          localizedErrorMessage: 'This is not supported only on macOS',
+        ),
+      );
+    }
+    try {
+      final result = await _methodChannel.invokeMethod<String>(
+        'triggerSystemExtension',
+      );
+      appLogger.info('Trigger system extension result: $result');
+      return right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error triggering system extension', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> openSystemExtension() async {
+    try {
+      final _ = await _methodChannel.invokeMethod<String>(
+        'openSystemExtensionSetting',
+      );
+      appLogger.info('Open System Extension Setting');
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error opening system extension setting', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Stream<MacOSExtensionState> watchSystemExtensionStatus() {
+    if (!PlatformUtils.isMacOS) {
+      throw UnimplementedError("This is only supported on macOS");
+    }
+    return _systemExtensionStatus;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> isSystemExtensionInstalled() async {
+    try {
+      final _ = await _methodChannel.invokeMethod<String>(
+        'isSystemExtensionInstalled',
+      );
+      appLogger.info('Check if system extension is installed');
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Error checking if system extension is installed',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> attachReferralCode(String code) async {
+    try {
+      final result = await _methodChannel.invokeMethod<String>(
+        'attachReferralCode',
+        code,
+      );
+      return right(result!);
+    } catch (e, stackTrace) {
+      appLogger.error('Error attaching referral code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, ReferralAttachV2Response>> attachReferralCodeV2(
+    String code,
+  ) async {
+    try {
+      final distributionChannel = isStoreVersion() ? 'store' : 'non-store';
+      final result = await _methodChannel.invokeMethod<String>(
+        'attachReferralCodeV2',
+        {'code': code, 'distributionChannel': distributionChannel},
+      );
+      final response = ReferralAttachV2Response.fromJson(jsonDecode(result!));
+      return right(response);
+    } catch (e, stackTrace) {
+      appLogger.error('Error attaching referral code v2', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  EnabledAppsSnapshot _enabledApps = const EnabledAppsSnapshot.empty();
+
+  EnabledAppsSnapshot get enabledAppsSnapshot => _enabledApps;
+
+  /// Pull enabled apps from native/Go
+  Future<void> _refreshEnabledAppsSnapshot() async {
+    final keys = <String>{};
+
+    Future<void> collect(SplitTunnelFilterType type) async {
+      final result = await getSplitTunnelItems(type);
+      result.match((_) {}, (items) {
+        for (final item in items) {
+          final normalized = item.trim();
+          if (normalized.isNotEmpty) {
+            keys.add(normalized);
+          }
+        }
+      });
+    }
+
+    await Future.wait([
+      collect(SplitTunnelFilterType.packageName),
+      collect(SplitTunnelFilterType.processPath),
+      collect(SplitTunnelFilterType.processPathRegex),
+    ]);
+
+    _enabledApps = EnabledAppsSnapshot(keys: keys, names: const <String>{});
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> getSplitTunnelItems(
+    SplitTunnelFilterType type,
+  ) async {
+    try {
+      final itemsJson = await _methodChannel.invokeMethod<String>(
+        'getSplitTunnelItems',
+        {'filterType': type.value},
+      );
+
+      if (itemsJson == null || itemsJson.trim().isEmpty) {
+        return right(<String>[]);
+      }
+
+      final decoded = jsonDecode(itemsJson);
+      if (decoded is! List) {
+        return right(<String>[]);
+      }
+
+      final list = decoded
+          .whereType<String>()
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList(growable: false);
+      return right(list);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updatePrivateServerName(
+    String oldName,
+    String newName,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod<String>('updatePrivateServerName', {
+        'oldName': oldName,
+        'newName': newName,
+      });
+      return right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error updating private server name', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> patchSettings(
+    Map<String, dynamic> updates,
+  ) async {
+    try {
+      await _methodChannel.invokeMethod('patchSettings', jsonEncode(updates));
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('patchSettings error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getSettings() async {
+    try {
+      final json = await _methodChannel.invokeMethod<String>('getSettings');
+      final decoded = jsonDecode(json ?? '{}');
+      if (decoded is! Map) return right(<String, dynamic>{});
+      return right(Map<String, dynamic>.from(decoded));
+    } catch (e, st) {
+      appLogger.error('getSettings error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, String>>> patchEnvVars(
+    Map<String, String> updates,
+  ) async {
+    try {
+      final json = await _methodChannel.invokeMethod<String>(
+        'patchEnvVars',
+        jsonEncode(updates),
+      );
+      final decoded = jsonDecode(json ?? '{}');
+      if (decoded is! Map) return right(<String, String>{});
+      return right(
+        decoded.map((k, v) => MapEntry(k.toString(), v?.toString() ?? '')),
+      );
+    } catch (e, st) {
+      appLogger.error('patchEnvVars error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, String>>> getEnvVars() async {
+    try {
+      final json = await _methodChannel.invokeMethod<String>('getEnvVars');
+      final decoded = jsonDecode(json ?? '{}');
+      if (decoded is! Map) return right(<String, String>{});
+      return right(
+        decoded.map((k, v) => MapEntry(k.toString(), v?.toString() ?? '')),
+      );
+    } catch (e, st) {
+      appLogger.error('getEnvVars error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> runURLTests() async {
+    try {
+      await _methodChannel.invokeMethod('runURLTests');
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('runURLTests error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> sendConfigRequest() async {
+    try {
+      await _methodChannel.invokeMethod('sendConfigRequest');
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('sendConfigRequest error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> clearTunnelCache() async {
+    try {
+      await _methodChannel.invokeMethod('clearTunnelCache');
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('clearTunnelCache error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+}

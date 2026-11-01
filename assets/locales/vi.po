@@ -1,0 +1,2331 @@
+# Translators:
+# Ngoc Hoang <ngocit09@gmail.com>, 2025
+# Nathan Tran, 2025
+# Yen Le Van <yenlevanbk@gmail.com>, 2026
+# e2f <projects@e2f.com>, 2026
+# Anh Phan <vietnamesel10n@gmail.com>, 2026
+# Lantern, 2026
+# e2f_vi r1 <tx_e2f_vi_r1@ate2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
+# 
+msgid ""
+msgstr ""
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
+"Language-Team: Vietnamese (https://app.transifex.com/lantern-1/teams/94371/vi/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: vi\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "app_name"
+msgstr "MYX-VPN"
+
+msgid "upgrade_to_pro"
+msgstr "Nâng cấp lên Pro"
+
+msgid "settings"
+msgstr "Cài đặt"
+
+msgid "report_an_issue"
+msgstr "Báo cáo sự cố"
+
+msgid "report_issue_add_screenshots"
+msgstr "Thêm ảnh chụp màn hình"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG hoặc GIF — tối đa 15 MB tổng cộng"
+
+msgid "report_issue_add_images"
+msgstr "Thêm hình ảnh"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "Chỉ hỗ trợ hình ảnh PNG, JPG và GIF."
+
+msgid "report_issue_attachments_too_many"
+msgstr "Bạn có thể đính kèm tối đa 3 hình ảnh."
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "Tổng dung lượng tệp đính kèm phải dưới 15 MB."
+
+msgid "report_issue_attachments_duplicate"
+msgstr "Hình ảnh đó đã được đính kèm."
+
+msgid "report_issue_attachments_unreadable"
+msgstr "Chúng tôi không thể đọc một trong những tệp đó."
+
+msgid "send_without_email_title"
+msgstr "Gửi mà không có email?"
+
+msgid "send_without_email_body"
+msgstr ""
+"Bạn chưa nhập địa chỉ email, nên chúng tôi sẽ không thể trả lời hoặc theo "
+"dõi báo cáo này."
+
+msgid "send_without_email"
+msgstr "Gửi không cần email"
+
+msgid "invite_friends"
+msgstr "Mời bạn bè"
+
+msgid "your_referral_code"
+msgstr "Mã giới thiệu của bạn"
+
+msgid "share_referral_code"
+msgstr "Chia sẻ mã giới thiệu"
+
+msgid "invite_friends_description"
+msgstr ""
+"Khi một người bạn nâng cấp lên Lantern Pro bằng mã giới thiệu của bạn, cả "
+"hai đều nhận được 1 tháng miễn phí."
+
+msgid "month_earned"
+msgstr "Đã nhận %s tháng"
+
+msgid "months_earned"
+msgstr "Đã nhận %s tháng"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Bao gồm %s tháng miễn phí từ giới thiệu"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Bao gồm %s tháng miễn phí từ giới thiệu"
+
+msgid "referral_converted_title"
+msgstr "Một người bạn đã nâng cấp lên Pro"
+
+msgid "referral_converted_message"
+msgstr ""
+"Cả hai bạn đều nhận được %s Lantern Pro miễn phí. Đến nay bạn đã nhận được "
+"%s. Hãy tiếp tục chia sẻ mã của bạn để nhận thêm."
+
+msgid "month_count"
+msgstr "%s tháng"
+
+msgid "months_count"
+msgstr "%s tháng"
+
+msgid "done"
+msgstr "Xong"
+
+msgid "view_account"
+msgstr "Xem tài khoản"
+
+msgid "show_download_links"
+msgstr "Hiện liên kết tải xuống"
+
+msgid "get_lantern"
+msgstr "Tải MYX-VPN"
+
+msgid "send_friend_download_link"
+msgstr "Gửi cho bạn bè liên kết tải xuống này:"
+
+msgid "scan_to_install"
+msgstr "Quét bằng ứng dụng máy ảnh để cài đặt MYX-VPN"
+
+msgid "remind_use_code"
+msgstr "Nhắc họ dùng mã %s khi nâng cấp!"
+
+msgid "unbounded"
+msgstr "Action Mode"
+
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
+
+msgid "vpn_settings"
+msgstr "Cài đặt VPN"
+
+msgid "split_tunneling"
+msgstr "Định tuyến phân tách"
+
+msgid "server_locations"
+msgstr "Vị trí máy chủ"
+
+msgid "lantern_pro_email"
+msgstr "Email Lantern Pro:"
+
+msgid "pro_account_expiration"
+msgstr "Ngày hết hạn tài khoản Pro"
+
+msgid "manage_subscription"
+msgstr "Quản lý gói đăng ký"
+
+msgid "lantern_pro_devices"
+msgstr "Thiết bị Lantern Pro"
+
+msgid "remove"
+msgstr "Xóa"
+
+msgid "danger_zone"
+msgstr "Vùng nguy hiểm:"
+
+msgid "delete_account"
+msgstr "Xóa tài khoản"
+
+msgid "delete"
+msgstr "Xóa"
+
+msgid "account"
+msgstr "Tài khoản"
+
+msgid "delete_account_?"
+msgstr "Xóa tài khoản của bạn?"
+
+msgid "delete_account_message"
+msgstr ""
+"Việc xóa tài khoản là vĩnh viễn. Bạn sẽ mất quyền truy cập trên tất cả các "
+"thiết bị, và thời gian đăng ký Pro còn lại sẽ bị hủy mà không được hoàn "
+"tiền."
+
+msgid "delete_account_message_two"
+msgstr "Để xác nhận xóa, vui lòng nhập mật khẩu của bạn bên dưới"
+
+msgid "confirm_deletion"
+msgstr "Xác nhận xóa"
+
+msgid "cancel"
+msgstr "Hủy"
+
+msgid "daily_data_usage"
+msgstr "Lưu lượng dữ liệu hàng ngày"
+
+msgid "mb"
+msgstr "MB"
+
+msgid "vpn_status"
+msgstr "Trạng thái VPN"
+
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "Theo dõi chúng tôi"
+
+msgid "server_selection"
+msgstr "Chọn máy chủ"
+
+msgid "smart_location"
+msgstr "Vị trí thông minh"
+
+msgid "pro_locations"
+msgstr "Vị trí Pro:"
+
+msgid "language"
+msgstr "Ngôn ngữ"
+
+msgid "sign_in"
+msgstr "Đăng nhập"
+
+msgid "check_for_updates"
+msgstr "Kiểm tra cập nhật"
+
+msgid "update_available"
+msgstr "Có bản cập nhật"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"MYX-VPN %s đã có sẵn. MYX-VPN sẽ tải xuống và xác minh tệp APK trước khi mở "
+"trình cài đặt của Android."
+
+msgid "allow_unknown_app_installs"
+msgstr "Cho phép cài đặt ứng dụng"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Android cần quyền để cài đặt bản cập nhật từ MYX-VPN. Hãy bật Cho phép từ "
+"nguồn này, sau đó kiểm tra cập nhật lại."
+
+msgid "error_install_update"
+msgstr "Không thể cài đặt bản cập nhật"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"MYX-VPN không thể xác minh hoặc cài đặt bản cập nhật này. Vui lòng thử lại "
+"sau."
+
+msgid "support"
+msgstr "Hỗ trợ"
+
+msgid "download_links"
+msgstr "Liên kết tải xuống"
+
+msgid "get_30_days_of_pro_free"
+msgstr "Nhận 30 ngày Pro miễn phí"
+
+msgid "share_message_referral_code"
+msgstr ""
+"Để nhận một tháng Lantern Pro miễn phí, hãy sử dụng mã giới thiệu này: %s ; "
+"Bạn có thể tải xuống từ đây: https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "Gửi báo cáo sự cố"
+
+msgid "select_an_issue"
+msgstr "Chọn một sự cố"
+
+msgid "cannot_access_blocked_sites"
+msgstr "Không thể truy cập các trang web bị chặn"
+
+msgid "cannot_complete_purchase"
+msgstr "Không thể hoàn tất thanh toán"
+
+msgid "cannot_sign_in"
+msgstr "Không thể đăng nhập"
+
+msgid "spinner_loads_endlessly"
+msgstr "Biểu tượng tải quay mãi không dừng"
+
+msgid "slow"
+msgstr "Chậm"
+
+msgid "cannot_link_devices"
+msgstr "Không thể liên kết thiết bị"
+
+msgid "split_tunnel"
+msgstr "Split tunneling không hoạt động"
+
+msgid "smart_routing_not_working"
+msgstr "Định tuyến thông minh không hoạt động"
+
+msgid "server_selection_not_working"
+msgstr "Chọn máy chủ không hoạt động"
+
+msgid "upgrade_fail"
+msgstr "Nâng cấp Lantern Pro không thành công"
+
+msgid "application_crashes"
+msgstr "Ứng dụng bị lỗi"
+
+msgid "other"
+msgstr "Khác"
+
+msgid "issue_description"
+msgstr "Mô tả sự cố của bạn"
+
+msgid "enter_password_to_confirm"
+msgstr "Nhập mật khẩu để xác nhận"
+
+msgid "apps_split_tunneling"
+msgstr "Định tuyến phân tách ứng dụng"
+
+msgid "website_split_tunneling"
+msgstr "Định tuyến phân tách trang web"
+
+msgid "add"
+msgstr "Thêm"
+
+msgid "enabled"
+msgstr "Đã bật"
+
+msgid "disabled"
+msgstr "Đã tắt"
+
+msgid "automatic"
+msgstr "Tự động"
+
+msgid "automatic_mode"
+msgstr "Chế độ tự động"
+
+msgid "manual"
+msgstr "Thủ công"
+
+msgid "enter_url_or_ip"
+msgstr "Nhập URL hoặc địa chỉ IP"
+
+msgid "installed_apps"
+msgstr "Ứng dụng đã cài đặt"
+
+msgid "search_apps"
+msgstr "Tìm kiếm ứng dụng"
+
+msgid "search_websites"
+msgstr "Tìm kiếm trang web"
+
+msgid "mode"
+msgstr "Chế độ"
+
+msgid "use_commas"
+msgstr "Sử dụng dấu phẩy để phân tách nhiều URL"
+
+msgid "deep_link_expired"
+msgstr "Liên kết này đã hết hạn. Vui lòng yêu cầu liên kết mới."
+
+msgid "invalid_deep_link"
+msgstr "Liên kết này không hợp lệ. Vui lòng yêu cầu liên kết mới."
+
+msgid "apps_bypassing_vpn"
+msgstr "Ứng dụng bỏ qua VPN (%d)"
+
+msgid "websites_bypassing_vpn"
+msgstr "Trang web bỏ qua VPN (%d)"
+
+msgid "logs_share_message"
+msgstr "Đây là nhật ký chẩn đoán của tôi từ MYX-VPN."
+
+msgid "payment_options"
+msgstr "Phương thức thanh toán"
+
+msgid "add_your_email"
+msgstr "Thêm email của bạn"
+
+msgid "continue"
+msgstr "Tiếp tục"
+
+msgid "continue_with_google"
+msgstr "Tiếp tục với Google"
+
+msgid "continue_with_apple"
+msgstr "Tiếp tục với Apple"
+
+msgid "continue_without_email"
+msgstr "Tiếp tục mà không cần email"
+
+msgid "confirm_email"
+msgstr "Xác nhận email"
+
+msgid "add_your_email_message"
+msgstr "Thêm email để truy cập gói đăng ký trên bất kỳ thiết bị nào."
+
+msgid "confirm_email_code"
+msgstr "Mã xác nhận"
+
+msgid "confirm_email_code_message_part_one"
+msgstr "Chúng tôi đã gửi mã đến "
+
+msgid "confirm_email_code_message_part_two"
+msgstr ""
+" Nhập mã bên dưới. Nếu không thấy trong hộp thư đến, hãy kiểm tra thư mục "
+"spam."
+
+msgid "resend_email"
+msgstr "Gửi lại email"
+
+msgid "create_password"
+msgstr "Tạo mật khẩu"
+
+msgid "sign_in_to_lantern_pro"
+msgstr "Đăng nhập vào MYX-VPN"
+
+msgid "sign_in_with_email"
+msgstr "Đăng nhập bằng email"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "Nhập thông tin tài khoản MYX-VPN của bạn."
+
+msgid "email"
+msgstr "Email"
+
+msgid "enter_password"
+msgstr "Nhập mật khẩu"
+
+msgid "forgot_password"
+msgstr "Quên mật khẩu?"
+
+msgid "reset_your_password"
+msgstr "Đặt lại mật khẩu"
+
+msgid "enter_your_lantern_pro_account_email"
+msgstr "Nhập email tài khoản MYX-VPN của bạn."
+
+msgid "reset_password"
+msgstr "Đặt lại mật khẩu"
+
+msgid "confirm_new_password"
+msgstr "Xác nhận mật khẩu mới"
+
+msgid "create_new_password"
+msgstr "Tạo mật khẩu mới"
+
+msgid "confirm_password"
+msgstr "Xác nhận mật khẩu"
+
+msgid "confirm_password_required"
+msgstr "Yêu cầu xác nhận mật khẩu"
+
+msgid "passwords_do_not_match"
+msgstr "Mật khẩu không khớp"
+
+msgid "activate_lantern_pro"
+msgstr "Kích hoạt Lantern Pro"
+
+msgid "invalid_email"
+msgstr "Địa chỉ email không hợp lệ"
+
+msgid "purchase_already_owned"
+msgstr "Bạn đã sở hữu gói mua này, hãy thử khôi phục gói mua"
+
+msgid "stripe_payment"
+msgstr "Thanh toán Stripe"
+
+msgid "split_tunneling_description"
+msgstr ""
+"MYX-VPN định tuyến lưu lượng internet một cách thông minh dựa trên vị trí "
+"của bạn, đảm bảo truy cập an toàn đồng thời giữ kết nối nhanh chóng bằng "
+"cách chỉ sử dụng VPN khi cần thiết."
+
+msgid "region_specific_rules"
+msgstr "Quy tắc theo khu vực"
+
+msgid "location_based_rules"
+msgstr ""
+"MYX-VPN sử dụng các quy tắc định tuyến khác nhau tùy theo vị trí của bạn:"
+
+msgid "censored_regions"
+msgstr "Ở các khu vực bị kiểm duyệt:"
+
+msgid "blocked_sites_proxied"
+msgstr ""
+"Các trang web và ứng dụng bị chặn (tin tức, nhắn tin, dịch vụ bị hạn chế) "
+"được định tuyến qua proxy."
+
+msgid "unblocked_sites_bypass"
+msgstr ""
+"Hầu hết các trang web không bị chặn sẽ bỏ qua VPN để duyệt web nhanh hơn."
+
+msgid "uncensored_regions"
+msgstr "Ở các khu vực không bị kiểm duyệt:"
+
+msgid "trusted_sites_bypass"
+msgstr ""
+"Chỉ các trang web và dịch vụ đáng tin cậy mới bỏ qua VPN theo mặc định."
+
+msgid "examples_of_bypassed_sites"
+msgstr ""
+"Bao gồm các trang web được mã hóa HTTPS với nội dung công khai hoặc không "
+"nhạy cảm như mua sắm, thời tiết và cập nhật phần mềm."
+
+msgid "routing_rules_vary"
+msgstr ""
+"Các quy tắc này khác nhau theo quốc gia và được cập nhật thường xuyên."
+
+msgid "view_the_full_list"
+msgstr "Xem danh sách đầy đủ các quy tắc định tuyến."
+
+msgid "welcome_to_lantern_pro"
+msgstr "Chào mừng đến với Lantern Pro!"
+
+msgid "welcome_to_lantern"
+msgstr "Chào mừng đến với MYX-VPN!"
+
+msgid "lantern_pro_description"
+msgstr ""
+"Các tính năng Pro của bạn đã được mở khóa—tận hưởng dữ liệu không giới hạn, "
+"tốc độ nhanh hơn và máy chủ cao cấp."
+
+msgid "purchase_restored_title"
+msgstr "Đã khôi phục giao dịch mua"
+
+msgid "purchase_restored_description"
+msgstr "Gói đăng ký Lantern Pro của bạn hiện đã hoạt động trên thiết bị này."
+
+msgid "no_purchase_found_title"
+msgstr "Không tìm thấy giao dịch mua"
+
+msgid "no_purchase_found_body_ios"
+msgstr "Không có gói đăng ký đang hoạt động nào gắn với Apple ID này."
+
+msgid "no_purchase_found_body_android"
+msgstr "Không có gói đăng ký đang hoạt động nào gắn với tài khoản Google này."
+
+msgid "authorize_device_for_pro"
+msgstr "Ủy quyền thiết bị cho Pro"
+
+msgid "device_linking_replaced_title"
+msgstr "Mã liên kết thiết bị đã được thay thế"
+
+msgid "device_linking_replaced_body"
+msgstr "MYX-VPN phiên bản 10 trở lên không còn sử dụng mã liên kết thiết bị. Giờ đây bạn đăng nhập vào tài khoản Lantern Pro bằng email và mật khẩu."
+
+msgid "device_linking_replaced_body_two"
+msgstr "Nếu bạn có tài khoản Lantern Pro nhưng chưa có mật khẩu, hãy thêm mật khẩu ngay để đăng nhập trên thiết bị này."
+
+msgid "add_an_account_password"
+msgstr "Thêm mật khẩu tài khoản"
+
+msgid "have_a_password_sign_in"
+msgstr "Đã có mật khẩu? Đăng nhập"
+
+msgid "plans_fetch_error"
+msgstr "Lỗi khi tải gói dịch vụ. Vui lòng thử lại sau."
+
+msgid "best_value"
+msgstr "Giá trị tốt nhất!"
+
+msgid "choose_payment_method"
+msgstr "Chọn phương thức thanh toán"
+
+msgid "purchase_not_completed"
+msgstr ""
+"Giao dịch mua chưa hoàn tất. Bạn có thể thử lại bất kỳ lúc nào hoặc liên hệ "
+"bộ phận hỗ trợ nếu cần giúp đỡ"
+
+msgid "are_you_sure"
+msgstr "Bạn có chắc chắn?"
+
+msgid "continue_without_email_message"
+msgstr ""
+"Nếu bạn chọn tiếp tục mà không thêm email, bạn sẽ không thể dùng gói đăng ký"
+" trên thiết bị khác."
+
+msgid "add_email"
+msgstr "Thêm email"
+
+msgid "block_ads"
+msgstr "Chặn quảng cáo"
+
+msgid "only_active"
+msgstr "Chỉ hoạt động khi VPN được kết nối"
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "Giới thiệu về Action Mode"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "Trạng thái"
+
+msgid "smc_status_off"
+msgstr "Đã tắt"
+
+msgid "smc_status_configuring"
+msgstr "Đang cấu hình mạng"
+
+msgid "smc_status_error_with_message"
+msgstr "Không thể chia sẻ: %s"
+
+msgid "smc_status_error_generic"
+msgstr "Không thể chia sẻ — hãy thử tắt rồi bật lại"
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "Đang giúp một người mới ở %s"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "Đang chờ kết nối..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "Chào mừng đến với Action Mode"
+
+msgid "unbounded_welcome_body_1"
+msgstr ""
+"Khi bạn bật Action Mode, thiết bị của bạn trở thành một phần của mạng lưới "
+"'cầu nối kỹ thuật số' đến internet mở. Người dùng bị kiểm duyệt kết nối đến "
+"những cầu nối này, giúp họ vượt qua các hạn chế do chính phủ áp đặt và tiếp "
+"cận thông tin họ cần."
+
+msgid "unbounded_welcome_body_2"
+msgstr ""
+"Nỗ lực tập thể này khiến việc kiểm duyệt khó thực thi hơn, mở rộng khả năng "
+"tiếp cận internet mở."
+
+msgid "unbounded_welcome_body_3"
+msgstr ""
+"Bạn có thể gỡ Action Mode khỏi giao diện bất cứ lúc nào trong Cài đặt."
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "Nâng cao"
+
+msgid "smc_advanced_subtitle"
+msgstr "Dành cho người dùng có router không hỗ trợ UPnP"
+
+msgid "smc_manual_port"
+msgstr "Chuyển tiếp cổng thủ công"
+
+msgid "smc_manual_port_description"
+msgstr ""
+"Nếu router của bạn không hỗ trợ UPnP, hãy cấu hình chuyển tiếp cổng trên "
+"router và nhập số cổng vào đây. MYX-VPN sẽ dùng nó làm cổng ngoài thay vì dò"
+" UPnP. Để trống để dùng UPnP (mặc định)."
+
+msgid "smc_manual_port_label"
+msgstr "Cổng"
+
+msgid "smc_manual_port_hint"
+msgstr "vd: 5698"
+
+msgid "smc_manual_port_save"
+msgstr "Lưu"
+
+msgid "smc_manual_port_currently_set"
+msgstr ""
+"Hiện đang đặt ở cổng %d. Tắt rồi bật lại Action Mode để thay đổi có hiệu "
+"lực."
+
+msgid "smc_manual_port_out_of_range"
+msgstr "Cổng phải nằm trong khoảng 1 đến 65535"
+
+msgid "smc_manual_port_cleared"
+msgstr "Đã xóa cổng thủ công — đang dùng UPnP"
+
+msgid "smc_manual_port_saved"
+msgstr "Đã đặt cổng thủ công thành %d"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Cài đặt Action Mode"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "Tự động bật Action Mode"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "Bật khi mở MYX-VPN"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "Ẩn Action Mode"
+
+msgid "hide_unbounded_subtitle"
+msgstr "Gỡ Action Mode khỏi giao diện"
+
+msgid "vpn_connected"
+msgstr "MYX-VPN đã được kết nối."
+
+msgid "vpn_disconnected"
+msgstr "MYX-VPN đã ngắt kết nối."
+
+msgid "open_notification"
+msgstr "Mở thông báo"
+
+msgid "logout"
+msgstr "Đăng xuất"
+
+msgid "logout_message"
+msgstr ""
+"Đăng xuất sẽ chuyển MYX-VPN về phiên bản miễn phí. Để truy cập tài khoản của"
+" bạn lại, bạn sẽ cần đăng nhập lại."
+
+msgid "logout_message_expired"
+msgstr "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản của mình không?"
+
+msgid "not_now"
+msgstr "Để sau"
+
+msgid "billed_once"
+msgstr "Thanh toán một lần"
+
+msgid "subscription"
+msgstr "Gói đăng ký"
+
+msgid "subscribe"
+msgstr "Đăng ký"
+
+msgid "checkout"
+msgstr "Thanh toán"
+
+msgid "vpn_may_be_needed"
+msgstr "Có thể cần VPN"
+
+msgid "google_and_apple_sign_in_blocked"
+msgstr ""
+"Đăng nhập bằng Google và Apple có thể bị chặn ở khu vực này. Để hoàn tất "
+"thiết lập tài khoản, vui lòng bật VPN trước."
+
+msgid "continue_without_vpn"
+msgstr "Tiếp tục mà không có VPN"
+
+msgid "turn_on_vpn"
+msgstr "Bật VPN"
+
+msgid "server_setup_do"
+msgstr "Thiết lập sử dụng DigitalOcean"
+
+msgid "server_setup_do_price"
+msgstr "Chỉ %s/tháng thông qua DigitalOcean"
+
+msgid "server_setup_gcp"
+msgstr "Thiết lập sử dụng Google Cloud Platform"
+
+msgid "continue_with_do"
+msgstr "Tiếp tục với DigitalOcean"
+
+msgid "server_setup_gcp_price"
+msgstr "Chỉ %s/tháng thông qua GCP"
+
+msgid "continue_with_gcp"
+msgstr "Tiếp tục với Google"
+
+msgid "server_setup_manual"
+msgstr "Thiết lập thủ công"
+
+msgid "seamless_integration"
+msgstr "Tích hợp liền mạch với MYX-VPN"
+
+msgid "one_month_included"
+msgstr "%d TB/tháng dữ liệu đi kèm"
+
+msgid "easiest_setup_process"
+msgstr "Quy trình thiết lập dễ nhất"
+
+msgid "setup_a_private_server"
+msgstr "Thiết lập máy chủ riêng"
+
+msgid "setup_private_server"
+msgstr "Thiết lập máy chủ riêng"
+
+msgid "previous"
+msgstr "Quay lại"
+
+msgid "next"
+msgstr "Tiếp theo"
+
+msgid "error"
+msgstr "Lỗi"
+
+msgid "signup_error_user_exists"
+msgstr ""
+"Có vẻ đã xảy ra lỗi khi đăng ký. Vui lòng thử lại hoặc đăng nhập nếu bạn đã "
+"có tài khoản"
+
+msgid "user_not_found"
+msgstr ""
+"Không nhận diện được người dùng. Vui lòng kiểm tra thông tin đăng nhập và "
+"thử lại. Nếu bạn tiếp tục gặp vấn đề, vui lòng liên hệ nhóm hỗ trợ của chúng"
+" tôi để được trợ giúp."
+
+msgid "invalid_code"
+msgstr "Mã không đúng hoặc có thể đã hết hạn. Vui lòng thử gửi lại"
+
+msgid "email_resend_message"
+msgstr "Mã xác nhận mới của bạn đã được gửi"
+
+msgid "password_has_been_updated"
+msgstr "Mật khẩu đã được cập nhật"
+
+msgid "password_has_been_updated_message"
+msgstr "Mật khẩu của bạn đã được đặt lại thành công"
+
+msgid "update_pro_account"
+msgstr "Cập nhật tài khoản Pro"
+
+msgid "update_pro_account_message"
+msgstr ""
+"Để quản lý tài khoản hoặc đăng nhập vào thiết bị khác, vui lòng thêm email "
+"và mật khẩu vào tài khoản của bạn trước."
+
+msgid "subscription_cancelled"
+msgstr "Gói đăng ký của bạn đã bị hủy."
+
+msgid "subscription_updated"
+msgstr "Gói đăng ký của bạn đã được cập nhật."
+
+msgid "subscription_renewed"
+msgstr "Gói đăng ký của bạn đã được gia hạn."
+
+msgid "got_it"
+msgstr "Đã hiểu"
+
+msgid "server_location"
+msgstr "Vị trí máy chủ"
+
+msgid "choose"
+msgstr "Chọn"
+
+msgid "choose_your_account"
+msgstr "Chọn tài khoản của bạn"
+
+msgid "choose_your_project"
+msgstr "Chọn dự án của bạn"
+
+msgid "billing_account"
+msgstr "Tài khoản thanh toán"
+
+msgid "server_name"
+msgstr "Tên máy chủ"
+
+msgid "change"
+msgstr "Thay đổi"
+
+msgid "choose_location"
+msgstr "Chọn vị trí"
+
+msgid "choose_your_location"
+msgstr "Chọn vị trí của bạn"
+
+msgid "start_deployment"
+msgstr "Bắt đầu triển khai"
+
+msgid "private_server_setup_in_progress"
+msgstr ""
+"Vui lòng đợi! Máy chủ riêng của bạn đang được thiết lập. Quá trình này có "
+"thể mất vài phút, vui lòng giữ màn hình này mở."
+
+msgid "cancel_server_deployment"
+msgstr "Hủy triển khai máy chủ"
+
+msgid "close"
+msgstr "Đóng"
+
+msgid "connect_now"
+msgstr "Kết nối ngay"
+
+msgid "server_setup_failed"
+msgstr "Thiết lập máy chủ thất bại"
+
+msgid "server_setup_failed_message"
+msgstr ""
+"Đã xảy ra lỗi khi thiết lập máy chủ riêng của bạn. Bạn có thể thử lại hoặc "
+"thử lại sau."
+
+msgid "exit"
+msgstr "Thoát"
+
+msgid "retry"
+msgstr "Thử lại"
+
+msgid "private_server_ready"
+msgstr "Máy chủ riêng đã sẵn sàng!"
+
+msgid "private_server_ready_message"
+msgstr ""
+"Máy chủ (%s) đã được thiết lập và thêm vào danh sách máy chủ của bạn. Bạn đã"
+" sẵn sàng để kết nối!"
+
+msgid "set_up_your_server"
+msgstr "Thiết lập máy chủ của bạn"
+
+msgid "view_instructions_github"
+msgstr "Xem hướng dẫn trên GitHub"
+
+msgid "server_access_key"
+msgstr "Khóa truy cập máy chủ"
+
+msgid "access_key"
+msgstr "Khóa truy cập"
+
+msgid "name_your_server"
+msgstr "Đặt tên cho máy chủ"
+
+msgid "how_server_appears"
+msgstr "Cách máy chủ sẽ xuất hiện trong danh sách chọn máy chủ"
+
+msgid "server_nickname"
+msgstr "Biệt danh máy chủ"
+
+msgid "verify_server"
+msgstr "Xác minh máy chủ"
+
+msgid "vpn_client_not_setup"
+msgstr "Vui lòng bật ứng dụng VPN."
+
+msgid "join_a_private_server"
+msgstr "Tham gia máy chủ riêng"
+
+msgid "join_private_server"
+msgstr "Tham gia máy chủ riêng"
+
+msgid "join_server"
+msgstr "Tham gia máy chủ"
+
+msgid "private_server_usage_message"
+msgstr ""
+"Lưu lượng sử dụng máy chủ riêng không được tính vào hạn mức dữ liệu hàng "
+"ngày của MYX-VPN."
+
+msgid "my_servers"
+msgstr "Máy chủ của tôi"
+
+msgid "joined_servers"
+msgstr "Máy chủ đã tham gia"
+
+msgid "access_key_expiration"
+msgstr ""
+"Mỗi khóa truy cập là duy nhất và hết hạn sau 1 ngày. Bạn có thể tạo khóa mới"
+" bất kỳ lúc nào."
+
+msgid "share_access_key"
+msgstr "Chia sẻ khóa truy cập"
+
+msgid "rename_server"
+msgstr "Đổi tên máy chủ"
+
+msgid "rename"
+msgstr "Đổi tên"
+
+msgid "selected_location"
+msgstr "Vị trí đã chọn"
+
+msgid "remove_server_?"
+msgstr "Xóa máy chủ?"
+
+msgid "remove_server_message"
+msgstr ""
+"Xóa %s? Việc này chỉ xóa nó khỏi ứng dụng của bạn, nó sẽ không xóa máy chủ "
+"khỏi nhà cung cấp dịch vụ đám mây của bạn."
+
+msgid "generate_access_key"
+msgstr "Tạo khóa truy cập"
+
+msgid "trust_server_operator"
+msgstr "Tin tưởng người vận hành máy chủ"
+
+msgid "trust_server_operator_message_one"
+msgstr ""
+"Máy chủ riêng được lưu trữ và vận hành bởi cá nhân hoặc tổ chức bên ngoài "
+"MYX-VPN. Khi bạn kết nối với một máy chủ, bạn đang tin tưởng người vận hành "
+"nó để quản lý an toàn và sử dụng có trách nhiệm."
+
+msgid "trust_server_operator_message_two"
+msgstr ""
+"MYX-VPN không quản lý hoặc giám sát máy chủ riêng. Hãy chắc chắn bạn biết và"
+" tin tưởng người vận hành máy chủ trước khi tham gia."
+
+msgid "trust_server_operator_message_three"
+msgstr ""
+"Nếu bạn không chắc ai đang vận hành máy chủ hoặc nó được cấu hình như thế "
+"nào, chúng tôi khuyên bạn nên sử dụng một trong các máy chủ MYX-VPN mặc định"
+" có sẵn trong danh sách máy chủ của bạn."
+
+msgid "lantern_servers"
+msgstr "Máy chủ MYX-VPN"
+
+msgid "private_servers"
+msgstr "Máy chủ riêng"
+
+msgid "fastest_server"
+msgstr "Máy chủ nhanh nhất"
+
+msgid "latency_testing"
+msgstr "Đang kiểm tra…"
+
+msgid "latency_unreachable"
+msgstr "Không thể kết nối"
+
+msgid "join_my_private_server"
+msgstr "Tham gia máy chủ riêng MYX-VPN của tôi"
+
+msgid "your_server"
+msgstr "Máy chủ của bạn:"
+
+msgid "no_private_server_setup_yet"
+msgstr "Bạn chưa thiết lập máy chủ riêng. Nhấn vào nút bên dưới để bắt đầu."
+
+msgid "connect"
+msgstr "Kết nối"
+
+msgid "disconnect"
+msgstr "Ngắt kết nối"
+
+msgid "show"
+msgstr "Hiển thị"
+
+msgid "status_on"
+msgstr "Đã kết nối"
+
+msgid "status_off"
+msgstr "Đã ngắt kết nối"
+
+msgid "select_location"
+msgstr "Chọn vị trí"
+
+msgid "select_your_server_location"
+msgstr "Chọn vị trí máy chủ của bạn"
+
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "Tốc độ nhanh hơn & băng thông không giới hạn"
+
+msgid "premium_servers_less_congestion"
+msgstr "Máy chủ cao cấp ít tắc nghẽn hơn"
+
+msgid "advanced_anti_censorship"
+msgstr "Công nghệ chống kiểm duyệt tiên tiến"
+
+msgid "connect_up_to_five_devices"
+msgstr "Kết nối tối đa 5 thiết bị"
+
+msgid "built_in_ad_blocking"
+msgstr "Chặn quảng cáo tích hợp sẵn"
+
+msgid "get_lantern_pro"
+msgstr "Nhận Lantern Pro"
+
+msgid "connected_to_private_server"
+msgstr "Đã kết nối với máy chủ riêng"
+
+msgid "server_already_selected"
+msgstr "Bạn đã kết nối với máy chủ này rồi."
+
+msgid "device_limit_reached"
+msgstr "Đã đạt giới hạn thiết bị"
+
+msgid "device_limit_reached_message"
+msgstr ""
+"Bạn đã đạt giới hạn 5 thiết bị. Vui lòng xóa một thiết bị để tiếp tục."
+
+msgid "remove_device_and_sign_in"
+msgstr "Xóa thiết bị và đăng nhập"
+
+msgid "cancel_sign_in"
+msgstr "Hủy đăng nhập"
+
+msgid "change_email"
+msgstr "Đổi email"
+
+msgid "change_email_message"
+msgstr ""
+"Đây sẽ trở thành email đăng nhập mới của bạn. Bạn sẽ cần xác minh nó trước "
+"khi thay đổi có hiệu lực."
+
+msgid "email_must_be_different"
+msgstr "Vui lòng nhập một địa chỉ email khác."
+
+msgid "enter_new_email"
+msgstr "Nhập email mới của bạn"
+
+msgid "confirm_password_to_continue"
+msgstr "Để tiếp tục, vui lòng xác nhận mật khẩu của bạn."
+
+msgid "email_updated"
+msgstr "Email của bạn đã được cập nhật."
+
+msgid "enable_network_extension"
+msgstr "Bật tiện ích mở rộng mạng"
+
+msgid "enable_network_extension_message"
+msgstr ""
+"Để sử dụng MYX-VPN, chúng tôi cần cài đặt tiện ích mở rộng mạng cho Mac của "
+"bạn."
+
+msgid "install_now"
+msgstr "Cài đặt ngay"
+
+msgid "learn_more"
+msgstr "Tìm hiểu thêm"
+
+msgid "network_extension_required"
+msgstr "Yêu cầu tiện ích mở rộng mạng"
+
+msgid "click"
+msgstr "Nhấn"
+
+msgid "open_system_settings"
+msgstr "Mở cài đặt hệ thống"
+
+msgid "when_prompted"
+msgstr "khi được nhắc."
+
+msgid "activate_extension"
+msgstr "Kích hoạt tiện ích mở rộng"
+
+msgid "email_optional"
+msgstr "Email (tùy chọn)"
+
+msgid "please_enter_valid_email"
+msgstr "Vui lòng nhập email hợp lệ"
+
+msgid "please_select_an_issue"
+msgstr "Vui lòng chọn một sự cố"
+
+msgid "thanks_for_feedback"
+msgstr "Cảm ơn phản hồi của bạn!"
+
+msgid "no_apps_selected"
+msgstr "Chưa chọn ứng dụng nào"
+
+msgid "deselect_all"
+msgstr "Bỏ chọn tất cả"
+
+msgid "select_all"
+msgstr "Chọn tất cả"
+
+msgid "no_websites_selected"
+msgstr "Chưa chọn trang web nào"
+
+msgid "restore_purchase"
+msgstr "Khôi phục gói mua"
+
+msgid "already_purchased"
+msgstr "Đã mua trước đó?"
+
+msgid "do_private_server_setup"
+msgstr "Thiết lập máy chủ riêng DO"
+
+msgid "private_server_note"
+msgstr ""
+"Chọn khu vực cho máy chủ riêng của bạn. Vị trí gần hơn có thể cải thiện tốc "
+"độ và độ trễ."
+
+msgid "gcp_private_server_setup"
+msgstr "Thiết lập máy chủ riêng GCP"
+
+msgid "gcp_private_server_location"
+msgstr "Vị trí máy chủ riêng GCP"
+
+msgid "do_private_server_location"
+msgstr "Vị trí máy chủ riêng DO"
+
+msgid "confirm"
+msgstr "Xác nhận"
+
+msgid "private_server_warning"
+msgstr "Chỉ thêm máy chủ do người bạn tin tưởng vận hành "
+
+msgid "go_to_server_locations"
+msgstr "Đi tới vị trí máy chủ"
+
+msgid "lantern_io"
+msgstr "MYX-VPN.io"
+
+msgid "alternative_download_links"
+msgstr "Liên kết tải xuống thay thế"
+
+msgid "github_download_page"
+msgstr "Trang tải xuống GitHub"
+
+msgid "telegram_bot"
+msgstr "Bot Telegram"
+
+msgid "if_you_cannot_access_website"
+msgstr ""
+"Nếu bạn gặp bất kỳ vấn đề nào khi truy cập trang web của chúng tôi, bạn có "
+"thể tải xuống MYX-VPN từ các liên kết ở trên."
+
+msgid "available_on"
+msgstr "Có sẵn trên:"
+
+msgid "subscription_renewal_date"
+msgstr "Ngày gia hạn gói đăng ký"
+
+msgid "pro_access_until"
+msgstr "Quyền truy cập Pro đến %s"
+
+msgid "diagnostic_logs"
+msgstr "Nhật ký chẩn đoán"
+
+msgid "lantern_user_forum"
+msgstr "Diễn đàn người dùng MYX-VPN"
+
+msgid "frequently_asked_questions"
+msgstr "Câu hỏi thường gặp"
+
+msgid "privacy_policy"
+msgstr "Chính sách bảo mật"
+
+msgid "terms_of_service"
+msgstr "Điều khoản dịch vụ"
+
+msgid "get_unlimited_data"
+msgstr "Nhận dữ liệu không giới hạn và tốc độ nhanh hơn!"
+
+msgid "private_server_options"
+msgstr "Tùy chọn máy chủ riêng"
+
+msgid "lantern_version"
+msgstr "Phiên bản MYX-VPN"
+
+msgid "quit"
+msgstr "Thoát"
+
+msgid "device_removed"
+msgstr "Đã xóa thiết bị"
+
+msgid "set_server_alias"
+msgstr "Đặt biệt danh máy chủ"
+
+msgid "this_name_pre_filled"
+msgstr ""
+"Tên này sẽ được điền sẵn cho người dùng được mời để giúp họ xác định máy "
+"chủ. Họ có thể thay đổi sau này."
+
+msgid "server_alias"
+msgstr "Biệt danh máy chủ"
+
+msgid "add_referral_code"
+msgstr "Thêm mã giới thiệu"
+
+msgid "referral_code"
+msgstr "Mã giới thiệu"
+
+msgid "scan_qr_code"
+msgstr "Quét mã QR"
+
+msgid "choose_your_server_location"
+msgstr "Chọn vị trí máy chủ của bạn"
+
+msgid "we_handle_configuration"
+msgstr "Chúng tôi xử lý cấu hình, bạn chỉ cần đăng ký."
+
+msgid "90_day_free_trial"
+msgstr "Dùng thử miễn phí 90 ngày"
+
+msgid "server_alias_cannot_be_empty"
+msgstr "Biệt danh máy chủ không được để trống"
+
+msgid "referral_code_applied"
+msgstr "Mã giới thiệu của bạn đã được áp dụng!"
+
+msgid "discount_applied"
+msgstr "Đã áp dụng giảm giá %s"
+
+msgid "referral_message_1y"
+msgstr "+ 15 ngày bổ sung miễn phí"
+
+msgid "referral_code_invalid"
+msgstr ""
+"Mã giới thiệu/khuyến mãi bạn nhập không hợp lệ. Vui lòng kiểm tra mã và thử "
+"lại."
+
+msgid "referral_code_own_invalid"
+msgstr ""
+"Bạn không thể sử dụng mã giới thiệu của chính mình. Vui lòng nhập mã khác."
+
+msgid "free"
+msgstr "Miễn phí"
+
+msgid "lantern_pro_license"
+msgstr "Giấy phép Lantern Pro"
+
+msgid "lantern_pro_license_required"
+msgstr "Cần có giấy phép Lantern Pro"
+
+msgid "lantern_pro_license_invalid"
+msgstr "Giấy phép Lantern Pro không hợp lệ"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "Giấy phép Lantern Pro phải có 25 ký tự"
+
+msgid "create_an_account"
+msgstr "Tạo tài khoản"
+
+msgid "no_projects_found"
+msgstr "Không tìm thấy dự án"
+
+msgid "no_projects_found_desc"
+msgstr ""
+"Không tìm thấy dự án. Vui lòng tạo dự án trong tài khoản nhà cung cấp đám "
+"mây của bạn trước."
+
+msgid "add_billing_details"
+msgstr "Thêm thông tin thanh toán"
+
+msgid "do_billing_details_message"
+msgstr "DigitalOcean yêu cầu thông tin thanh toán để tạo máy chủ."
+
+msgid "1"
+msgstr "1"
+
+msgid "2"
+msgstr "2"
+
+msgid "3"
+msgstr "3"
+
+msgid "add_payment_method"
+msgstr "Thêm phương thức thanh toán (thẻ tín dụng hoặc PayPal)"
+
+msgid "return_to_lantern"
+msgstr "Quay lại MYX-VPN và nhấn \"Tiếp tục\" để tiếp tục thiết lập"
+
+msgid "how_to_add_billing_details"
+msgstr "Cách thêm thông tin thanh toán:"
+
+msgid "ok"
+msgstr "OK"
+
+msgid "could_not_open_url"
+msgstr "Không thể mở URL"
+
+msgid "new_to_lantern_pro"
+msgstr "Mới với MYX-VPN?"
+
+msgid "an_error_occurred"
+msgstr "Đã xảy ra lỗi. Vui lòng thử lại sau."
+
+msgid "developer_mode"
+msgstr "Chế độ nhà phát triển"
+
+msgid "developer_mode_note"
+msgstr ""
+"Chế độ nhà phát triển chỉ dành cho các nhà phát triển MYX-VPN để kiểm tra "
+"tính năng trong quá trình phát triển."
+
+msgid "error_while_vpn_connection"
+msgstr "Đã xảy ra lỗi khi thiết lập kết nối VPN. Vui lòng thử lại."
+
+msgid "help_improve_lantern"
+msgstr "Giúp cải thiện MYX-VPN"
+
+msgid "share_anonymous_usage_data"
+msgstr ""
+"Chia sẻ dữ liệu sử dụng ẩn danh để giúp cải thiện tốc độ và độ tin cậy."
+
+msgid "data_we_collect"
+msgstr ""
+"Chúng tôi không bao giờ thu thập lịch sử duyệt web, điểm đến lưu lượng truy "
+"cập, truy vấn DNS hoặc nhật ký kết nối."
+
+msgid "you_can_change_anytime"
+msgstr "Bạn có thể thay đổi điều này bất cứ lúc nào trong Cài đặt VPN."
+
+msgid "dont_allow"
+msgstr "Không cho phép"
+
+msgid "allow"
+msgstr "Cho phép"
+
+msgid "anonymous_usage_data"
+msgstr "Dữ liệu sử dụng ẩn danh"
+
+msgid "helps_improve_lantern_performance"
+msgstr "Giúp cải thiện hiệu suất của MYX-VPN"
+
+msgid "email_deliverability_notice"
+msgstr "Thông báo về khả năng gửi email"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"Email gửi đến địa chỉ 163.com, 126.com, qq.com và sina.com đôi khi bị chặn "
+"và có thể không đến được"
+
+msgid "email_deliverability_notice_message_two"
+msgstr ""
+"Nếu bạn không nhận được mã xác nhận, hãy cân nhắc sử dụng nhà cung cấp email"
+" khác."
+
+msgid "continue_anyway"
+msgstr "Vẫn tiếp tục"
+
+msgid "routing_mode"
+msgstr "Chế độ Định tuyến"
+
+msgid "smart_routing"
+msgstr "Định tuyến Thông minh"
+
+msgid "full_tunnel"
+msgstr "Đường hầm Đầy đủ"
+
+msgid "region_optimized_routing"
+msgstr "Định tuyến dựa trên quy tắc được tối ưu hóa cho khu vực của bạn"
+
+msgid "all_traffic_through_vpn"
+msgstr "Toàn bộ lưu lượng qua VPN"
+
+msgid "smart_routing_description"
+msgstr ""
+"Định tuyến Thông minh sử dụng các quy tắc cụ thể theo khu vực để tự động gửi"
+" lưu lượng cần VPN qua MYX-VPN. Tất cả lưu lượng khác sẽ kết nối trực tiếp "
+"để có tốc độ và độ tin cậy cao hơn."
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "Thêm ứng dụng và trang web để bỏ qua VPN"
+
+msgid "lantern_pro_license_applied"
+msgstr ""
+"Giấy phép Lantern Pro của bạn sẽ được áp dụng cho tài khoản hiện có của bạn"
+
+msgid "daily_data_cap_reached"
+msgstr "Đã đạt giới hạn dữ liệu hàng ngày"
+
+msgid "daily_data_cap_reached_message"
+msgstr "Tốc độ giảm xuống 128 kb/s - Đặt lại vào lúc %s."
+
+msgid "subscription_renewal_info"
+msgstr ""
+"Thanh toán được tính vào Apple ID của bạn khi mua. Gói đăng ký tự động gia "
+"hạn trừ khi được hủy ít nhất 24 giờ trước khi kết thúc chu kỳ hiện tại."
+
+msgid "failed_to_update_routing_mode"
+msgstr "Không thể cập nhật chế độ định tuyến. Vui lòng thử lại."
+
+msgid "apps"
+msgstr "Ứng dụng"
+
+msgid "websites"
+msgstr "Trang web"
+
+msgid "main_channel"
+msgstr "Kênh chính"
+
+msgid "data_cap_channel"
+msgstr "Cảnh báo sử dụng dữ liệu"
+
+msgid "mb_free_data_remaining"
+msgstr "Còn %d MB dữ liệu miễn phí"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"Dữ liệu của bạn sẽ được đặt lại lúc %s. Nâng cấp lên Pro để có dữ liệu tốc "
+"độ cao không giới hạn."
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"Nếu bạn chưa từng đặt mật khẩu Lantern Pro trước đây, hãy chọn tùy chọn "
+"'quên mật khẩu?' bên dưới."
+
+msgid "pro_subscription_expired"
+msgstr "Gói đăng ký Pro của bạn đã hết hạn"
+
+msgid "renew_pro_subscription"
+msgstr "Gia hạn Gói đăng ký Pro"
+
+msgid "subscription_expired"
+msgstr "Gói đăng ký Đã hết hạn"
+
+msgid "pro"
+msgstr "Pro"
+
+msgid "set_account_password"
+msgstr "Đặt Mật khẩu Tài khoản"
+
+msgid "set_password"
+msgstr "Đặt Mật khẩu"
+
+msgid "set_account_password_message"
+msgstr ""
+"Để quản lý tài khoản của bạn hoặc đăng nhập trên các thiết bị khác, bây giờ bạn cần đặt mật khẩu cho tài khoản Lantern Pro của mình.\n"
+"\n"
+"Chúng tôi sẽ gửi mã xác minh qua email để bạn tạo mật khẩu."
+
+msgid "expired"
+msgstr "Đã hết hạn"
+
+msgid "lantern_pro_tagline"
+msgstr "Truy cập internet nhanh, đáng tin cậy và riêng tư"
+
+msgid "what_makes_lantern_different"
+msgstr "Điều gì làm MYX-VPN khác biệt"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "Được xây dựng cho quyền riêng tư, tốc độ và tự do"
+
+msgid "smart_routing_mode"
+msgstr "Chế độ định tuyến thông minh"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"Các quy tắc theo vùng chỉ định tuyến những gì cần VPN, giữ kết nối của bạn "
+"luôn nhanh."
+
+msgid "advanced_protocols"
+msgstr "Giao thức nâng cao"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"Nhiều giao thức hơn các VPN khác để đạt độ tin cậy tối đa. AnyTLS, "
+"Hysteria2, VLESS, Kindling, WATER và nhiều hơn nữa."
+
+msgid "private_servers_description"
+msgstr "Kết nối máy chủ riêng của bạn để kiểm soát hoàn toàn kết nối."
+
+msgid "nonprofit_mission"
+msgstr "Sứ mệnh phi lợi nhuận"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"Được xây dựng bởi tổ chức phi lợi nhuận với hơn 12 năm kinh nghiệm thúc đẩy "
+"tự do internet"
+
+msgid "choose_your_routing_mode"
+msgstr "Chọn chế độ định tuyến"
+
+msgid "fastest"
+msgstr "Nhanh nhất"
+
+msgid "traditional_vpn_mode"
+msgstr "Chế độ VPN truyền thống"
+
+msgid "traditional_vpn_mode_description"
+msgstr "Định tuyến tất cả lưu lượng qua MYX-VPN, dù cần thiết hay không."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "Thay đổi bất cứ lúc nào trong Cài đặt chế độ định tuyến"
+
+msgid "get_started"
+msgstr "Bắt đầu"
+
+msgid "skip_connect_now"
+msgstr "Bỏ qua - Kết nối ngay"
+
+msgid "renew_pro"
+msgstr "Gia hạn Pro"
+
+msgid "payment"
+msgstr "Thanh toán"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"Có vẻ đã xảy ra lỗi. Nếu bạn đã thanh toán nhưng không thấy gói đăng ký được"
+" kích hoạt, vui lòng đợi vài giờ và kiểm tra lại."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"Gói Pro của bạn được mua qua Google Play. Vui lòng quản lý đăng ký từ cài "
+"đặt tài khoản Google Play của bạn."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"Gói Pro của bạn được mua qua Apple App Store. Vui lòng quản lý đăng ký từ "
+"cài đặt tài khoản Apple ID của bạn."
+
+msgid "create_account_error"
+msgstr "Lỗi tạo tài khoản"
+
+msgid "appearance"
+msgstr "Giao diện"
+
+msgid "light"
+msgstr "Sáng"
+
+msgid "dark"
+msgstr "Tối"
+
+msgid "system"
+msgstr "Hệ thống"
+
+msgid "lantern_email"
+msgstr "Email của MYX-VPN"
+
+msgid "confirm_with_account"
+msgstr ""
+"Để xác nhận xóa, vui lòng xác minh bằng tài khoản %s của bạn bên dưới:"
+
+msgid "oauth_different_account"
+msgstr ""
+"Tài khoản bạn đang cố đăng nhập không khớp với tài khoản liên kết với email "
+"này. Vui lòng đăng nhập bằng tài khoản đúng hoặc chọn email khác."
+
+msgid "account_deleted"
+msgstr "Tài khoản đã Xóa"
+
+msgid "account_deleted_message"
+msgstr "Tài khoản của bạn đã bị xóa vĩnh viễn."
+
+msgid "verify_with"
+msgstr "Xác minh với %s"
+
+msgid "renew"
+msgstr "Làm mới"
+
+msgid "vpn_conflict_title"
+msgstr "Phát hiện xung đột VPN"
+
+msgid "vpn_conflict_body"
+msgstr ""
+"Một VPN khác đang chạy trên thiết bị của bạn. MYX-VPN hoạt động tốt nhất khi"
+" là VPN duy nhất đang hoạt động. Để có kết quả tốt nhất, vui lòng ngắt kết "
+"nối VPN đó trước khi dùng MYX-VPN."
+
+msgid "vpn_conflict_dismiss"
+msgstr "Đã nhận được"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Vẫn kết nối"
+
+msgid "err_check_connection"
+msgstr "Không thể kết nối. Kiểm tra kết nối internet của bạn."
+
+msgid "err_service_unavailable"
+msgstr "Dịch vụ tạm thời không khả dụng. Đang thử lại..."
+
+msgid "err_connection_failed"
+msgstr "Kết nối thất bại. Vui lòng thử lại."
+
+msgid "err_ruleset_failed"
+msgstr "Không thể tải cấu hình định tuyến. Đang thử lại..."
+
+msgid "update_now"
+msgstr "Cập nhật ngay"
+
+msgid "later"
+msgstr "Để sau"
+
+msgid "update_ready_to_install"
+msgstr "MYX-VPN %s đã sẵn sàng để cài đặt"
+
+msgid "up_to_date"
+msgstr "Đã cập nhật"
+
+msgid "running_latest_version"
+msgstr "Bạn đang dùng phiên bản mới nhất của MYX-VPN %s"
+
+msgid "couldnt_check_for_updates"
+msgstr "Không thể kiểm tra cập nhật"
+
+msgid "check_connection_and_retry"
+msgstr "Kiểm tra kết nối của bạn và thử lại"
+
+msgid "refresh_configuration"
+msgstr "Làm mới cấu hình"
+
+msgid "configuration_cleared"
+msgstr "Đã xóa cấu hình"
+
+msgid "turn_off_vpn"
+msgstr "Tắt VPN"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"VPN cần được tắt trước khi bạn có thể làm mới cấu hình. Hãy tắt VPN rồi thử "
+"lại."
+
+msgid "configuration_message"
+msgstr ""
+"Cấu hình cũ của bạn đã được xóa. Bật VPN để tự động tải xuống cấu hình mới "
+"nhất."
+
+msgid "promo_referral_code"
+msgstr "Mã khuyến mãi / giới thiệu"
+
+msgid "promo_code"
+msgstr "Mã khuyến mãi"
+
+msgid "promo_code_with"
+msgstr "Mã khuyến mãi (%s)"
+
+msgid "order_total"
+msgstr "Tổng đơn hàng"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"Vị trí thông minh chọn máy chủ nhanh nhất và tự động chuyển đổi khi tìm thấy"
+" tuyến tốt hơn."
+
+# Share consent dialog (shown once before any sharing starts, covers both
+# modes)
+msgid "share_consent_title"
+msgstr "Chia sẻ kết nối của bạn?"
+
+msgid "share_consent_body_what"
+msgstr ""
+"Khi chia sẻ đang bật, mọi người ở các quốc gia bị kiểm duyệt định tuyến lưu "
+"lượng của họ qua kết nối của bạn để đến internet mở."
+
+msgid "share_consent_body_ip"
+msgstr ""
+"Nếu router của bạn hỗ trợ chuyển tiếp cổng, kết nối tại nhà của bạn được "
+"dùng làm lối ra và địa chỉ IP của bạn sẽ xuất hiện trong nhật ký của đích "
+"đến khi bạn đang chia sẻ. Nếu không, lưu lượng đó sẽ được chuyển tiếp qua "
+"máy chủ của MYX-VPN, và IP của bạn không bị lộ theo cách đó."
+
+msgid "share_consent_body_safety"
+msgstr ""
+"Trong cả hai trường hợp, MYX-VPN chặn các đích đến bị biết là lạm dụng, dải "
+"mạng riêng và các cổng dễ bị lạm dụng, luân chuyển thông tin xác thực, và "
+"hoạt động như một \"kênh truyền dẫn thuần túy\" (mere conduit) theo DMCA § "
+"512(a)."
+
+msgid "share_consent_decline"
+msgstr "Để sau"
+
+msgid "share_consent_accept"
+msgstr "Bật chia sẻ"
+
+msgid "bypass_browser_warning_title"
+msgstr "Thêm %s vào danh sách bỏ qua?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s sẽ kết nối trực tiếp, không có sự bảo vệ của MYX-VPN. Ở các quốc gia chặn"
+" một số trang web nhất định, một số trang sẽ không tải được nữa."
+
+msgid "add_anyway"
+msgstr "Vẫn thêm"
+
+msgid "bypass_all_warning_title"
+msgstr "Thêm tất cả ứng dụng vào danh sách bỏ qua?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Bao gồm cả các trình duyệt như %s. Ứng dụng trong danh sách bỏ qua kết nối "
+"trực tiếp, không có sự bảo vệ của MYX-VPN. Ở các quốc gia chặn một số trang "
+"web nhất định, một số trang sẽ không tải được nữa."
+
+msgid "add_all_except_browsers"
+msgstr "Thêm tất cả trừ trình duyệt"
+
+msgid "add_all_anyway"
+msgstr "Vẫn thêm tất cả"
+
+msgid "bypass_app_first_time_title"
+msgstr "Bỏ qua VPN cho ứng dụng này?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s sẽ kết nối trực tiếp, không có sự bảo vệ của MYX-VPN. Nếu ứng dụng này bị"
+" chặn ở quốc gia của bạn, nó có thể ngừng hoạt động."
+
+msgid "bypass_website_first_time_title"
+msgstr "Bỏ qua VPN cho trang web này?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s sẽ kết nối trực tiếp, không có sự bảo vệ của MYX-VPN. Nếu trang web này "
+"bị chặn ở quốc gia của bạn, nó có thể ngừng hoạt động."
+
+msgid "upsell_upgrade_suffix"
+msgstr "Nhanh hơn, dữ liệu không giới hạn!"
+
+msgid "upsell_expired_suffix"
+msgstr "Thời gian Pro của bạn đã hết hạn"
+
+msgid "pro_expires_days_left"
+msgstr "Pro hết hạn %s, còn %s ngày"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro hết hạn %s, còn 1 ngày"
+
+msgid "renewing_adds_time"
+msgstr "Gia hạn sẽ cộng thêm thời gian vào ngày kết thúc hiện tại của bạn"
+
+msgid "pro_ends_today"
+msgstr "Thời gian Pro kết thúc hôm nay, %s"
+
+msgid "renew_now_keep_data"
+msgstr "Gia hạn ngay để giữ dữ liệu không giới hạn và các tính năng Pro"
+
+msgid "pro_expired_on"
+msgstr "Thời gian Pro của bạn đã hết hạn vào %s"
+
+msgid "renew_now_get_back_data"
+msgstr "Gia hạn ngay để lấy lại dữ liệu không giới hạn"
+
+msgid "days_left"
+msgstr "Còn %s ngày"
+
+msgid "one_day_left"
+msgstr "Còn 1 ngày"
+
+msgid "expires_today"
+msgstr "Hết hạn hôm nay"
+
+msgid "pro_time_expired_message"
+msgstr ""
+"Thời gian Lantern Pro đã hết. Gia hạn để khôi phục dữ liệu không giới hạn và"
+" các tính năng Pro."
+
+msgid "pro_expires_today_title"
+msgstr "Pro hết hạn hôm nay"
+
+msgid "pro_expires_today_popup_message"
+msgstr ""
+"Tài khoản Pro của bạn kết thúc hôm nay. Gia hạn ngay để giữ quyền truy cập "
+"Lantern Pro."
+
+msgid "renew_now"
+msgstr "Gia hạn ngay"
+
+msgid "dismiss"
+msgstr "Đóng"
+
+msgid "unbounded_status_waiting"
+msgstr "Đang chờ khởi động"
+
+msgid "affiliate_offer_unavailable"
+msgstr "Không thể tải các gói giảm giá từ cửa hàng. Vui lòng thử lại."
+
+msgid "action_mode_helping_now"
+msgstr "Đang giúp đỡ"
+
+msgid "action_mode_total_helped"
+msgstr "Tổng số người đã được giúp đỡ"
+
+msgid "show_license"
+msgstr "Hiển thị giấy phép"
+
+msgid "hide_license"
+msgstr "Ẩn giấy phép"
+
+msgid "share_logs_warning_title"
+msgstr "Chia sẻ nhật ký chẩn đoán?"
+
+msgid "share_logs_warning_body"
+msgstr "Nhật ký này có thể chứa email, địa chỉ IP, mã định danh thiết bị của bạn và các máy chủ MYX-VPN bạn đã kết nối. Chúng không còn được bảo vệ khi rời khỏi ứng dụng, nên bất kỳ ai nhận được đều có thể đọc. Chỉ gửi chúng cho bộ phận hỗ trợ của MYX-VPN tại support@lantern.io."
+
+msgid "share_logs_anyway"
+msgstr "Chia sẻ nhật ký"
+
+msgid "widget"
+msgstr "Tiện ích"
+
+msgid "add_lantern_widget"
+msgstr "Thêm tiện ích MYX-VPN"
+
+msgid "add_lantern_widget_description"
+msgstr "Kết nối từ màn hình chính của điện thoại mà không cần mở ứng dụng."
+
+msgid "widget_step_1"
+msgstr "Chạm và giữ vào một chỗ trống trên màn hình chính của điện thoại."
+
+msgid "widget_step_2"
+msgstr "Chạm vào Sửa, sau đó chạm vào Thêm tiện ích."
+
+msgid "widget_step_3"
+msgstr "Tìm MYX-VPN, chọn kích cỡ và chạm vào Thêm tiện ích."
+
+msgid "people_helped_title"
+msgstr "Những người bạn đã giúp"
+
+msgid "people_helped_subtitle"
+msgstr "Đã giúp %s đến nay · %s ngay lúc này"
+
+msgid "advanced_stats_by_country"
+msgstr "Theo quốc gia, mọi thời gian"
+
+msgid "advanced_stats_relayed"
+msgstr "Đã chuyển tiếp %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "Dữ liệu đã chuyển tiếp"
+
+msgid "advanced_stats_this_session"
+msgstr "Phiên này"
+
+msgid "advanced_stats_all_time_short"
+msgstr "Từ trước đến nay"
+
+msgid "advanced_stats_current_speed"
+msgstr "Tốc độ hiện tại"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "Đã gửi %s · Đã nhận %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "Chưa có ai được giúp. Các quốc gia sẽ hiện ở đây khi có người kết nối qua bạn."
+
+msgid "advanced_stats_unknown_country"
+msgstr "Không xác định"
+
+msgid "advanced_stats_one_person"
+msgstr "1 người"
+
+msgid "advanced_stats_people"
+msgstr "%s người"
+
+msgid "share_mode_smc"
+msgstr "Kết nối trực tiếp"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "Chế độ chia sẻ"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "Không có kết nối trực tiếp: %s"
+
+msgid "view_advanced_stats"
+msgstr "Xem thống kê nâng cao"
+
+msgid "error_occurred"
+msgstr "Đã xảy ra lỗi. Vui lòng thử lại."
+
+msgid "unknown_error_occurred"
+msgstr "Đã xảy ra lỗi không xác định."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "Chúng tôi đang gặp sự cố kỹ thuật. Vui lòng thử lại sau."
+
+msgid "proxy_error"
+msgstr "Không thể kết nối qua proxy. Vui lòng kiểm tra kết nối của bạn và thử lại."
+
+msgid "err_while_sending_code"
+msgstr "Không thể gửi mã xác minh. Vui lòng thử lại."
+
+msgid "recovery_not_found"
+msgstr "Không tìm thấy tài khoản nào để khôi phục với thông tin này."
+
+msgid "wrong_link_code"
+msgstr "Mã liên kết thiết bị không đúng. Vui lòng kiểm tra và thử lại."
+
+msgid "wrong_seller_code"
+msgstr "Mã đại lý không đúng. Vui lòng kiểm tra và thử lại."
+
+msgid "purchase_not_found"
+msgstr "Chúng tôi không tìm thấy giao dịch mua nào cho tài khoản này."
+
+msgid "purchase_restored_error"
+msgstr "Không thể khôi phục giao dịch mua của bạn. Vui lòng thử lại."
+
+msgid "empty_url"
+msgstr "Không thể mở trang thanh toán. Vui lòng thử lại."
+
+msgid "please_enter_referral_code"
+msgstr "Vui lòng nhập mã giới thiệu."
+
+msgid "access_token_missing"
+msgstr "Thiếu mã truy cập. Vui lòng đăng nhập lại vào nhà cung cấp đám mây của bạn."
+
+msgid "private_server_setup_error"
+msgstr "Chúng tôi không thể thiết lập máy chủ riêng của bạn. Vui lòng thử lại."
+
+msgid "logs"
+msgstr "Nhật ký"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "Nhấn %s bên dưới để đi đến DigitalOcean"
+
+msgid "network_extension_disabled_message"
+msgstr "Tiện ích mở rộng mạng của MYX-VPN đang tắt trong Cài đặt hệ thống. Hãy bật trong Mục đăng nhập & tiện ích mở rộng > Tiện ích mở rộng mạng, sau đó quay lại MYX-VPN."
+
+msgid "oauth_error_sign_in_failed"
+msgstr "Đăng nhập không thành công. Vui lòng thử lại."
+
+msgid "oauth_error_session_expired"
+msgstr "Phiên đăng nhập của bạn đã hết hạn. Vui lòng thử lại."
+
+msgid "oauth_error_provider_failed"
+msgstr "Không thể đăng nhập bằng tài khoản đó. Vui lòng thử lại."
+
+msgid "oauth_error_no_email"
+msgstr "Tài khoản đó không chia sẻ địa chỉ email. Vui lòng cho phép truy cập email và thử lại."
+
+msgid "oauth_error_add_device"
+msgstr "Không thể liên kết thiết bị này với tài khoản của bạn. Vui lòng liên hệ bộ phận hỗ trợ."
+
+msgid "helper_error_disabled"
+msgstr "Tính năng giúp bạn bè chưa có trên thiết bị này."
+
+msgid "helper_error_not_found"
+msgstr "Lời mời hoặc người trợ giúp này không còn tồn tại."
+
+msgid "helper_error_unavailable"
+msgstr "Không thể kết nối tới MYX-VPN. Hãy kiểm tra kết nối và thử lại."
+
+msgid "helper_error_too_many_invites"
+msgstr "Bạn đã gửi số lời mời tối đa cho lúc này. Hãy thử lại vào ngày mai."
+
+msgid "helper_error_too_many_pairings"
+msgstr "Bạn đã đạt giới hạn 20 người."
+
+msgid "helper_error_no_pending_claim"
+msgstr "Lời mời này đã được quyết định."
+
+msgid "helper_error_bad_name"
+msgstr "Nhập tên mà bạn của bạn sẽ nhận ra, tối đa 60 ký tự."
+
+msgid "helper_error_keystore"
+msgstr "Thiết bị này không thể lưu tên một cách an toàn nên tính năng giúp bạn bè đã tắt. Trên Linux, hãy khởi động một keyring như GNOME Keyring."
+
+msgid "helper_error_keystore_reset"
+msgstr "Bộ nhớ an toàn của thiết bị này đã bị đặt lại nên không thể đọc tên người trợ giúp và lời mời của bạn. Người trợ giúp vẫn hoạt động; hãy mời lại để xem tên của họ."
+
+msgid "helper_error_copy"
+msgstr "Không thể sao chép liên kết. Hãy dùng Chia sẻ liên kết."
+
+msgid "helpers_your_name_label"
+msgstr "Tên của bạn mà bạn bè biết"
+
+msgid "helpers_your_name_hint"
+msgstr "Ví dụ: Sara"
+
+msgid "helper_online"
+msgstr "Trực tuyến"
+
+msgid "helper_offline"
+msgstr "Ngoại tuyến"
+
+msgid "helper_unnamed"
+msgstr "Người giúp của bạn"
+
+msgid "helper_remove_confirm_title"
+msgstr "Xóa %s?"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s sẽ ngừng giúp bạn. Bạn có thể mời lại sau."
+
+msgid "helpers_remove_all"
+msgstr "Xóa tất cả người giúp"
+
+msgid "helpers_remove_all_body"
+msgstr "Tất cả người giúp sẽ ngừng giúp bạn và tên của họ sẽ bị xóa khỏi thiết bị này."
+
+msgid "manage_private_locations"
+msgstr "Quản lý vị trí riêng"
+
+msgid "invite_personal_proxy"
+msgstr "Mời proxy cá nhân"
+
+msgid "personal_proxies_tab"
+msgstr "Proxy cá nhân"
+
+msgid "invite_another"
+msgstr "Mời thêm người khác"
+
+msgid "helpers_nudge_second"
+msgstr "Nếu proxy cá nhân của bạn ngoại tuyến, kết nối của bạn qua proxy đó cũng bị ngắt. Hãy mời thêm một người bạn thứ hai để luôn được kết nối."
+
+msgid "personal_proxy_banner_title"
+msgstr "Nhận proxy cá nhân"
+
+msgid "personal_proxy_banner_body"
+msgstr "Một người bạn ở nước ngoài có thể giúp bạn luôn kết nối."
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Bạn của bạn đang chờ"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Hãy so sánh mã và chấp thuận."
+
+msgid "personal_proxy_nickname_label"
+msgstr "Tên trên thiết bị này"
+
+msgid "invite_share_message"
+msgstr "%s muốn bạn giúp để có thể tiếp tục truy cập mạng. %s"
+
+msgid "invite_share_button"
+msgstr "Chia sẻ liên kết"
+
+msgid "invite_copy_link"
+msgstr "Sao chép liên kết"
+
+msgid "invite_link_copied"
+msgstr "Đã sao chép liên kết"
+
+msgid "invite_qr_hint"
+msgstr "Bạn của bạn có thể quét mã này bằng MYX-VPN."
+
+msgid "invite_waiting"
+msgstr "Đang chờ bạn của bạn mở liên kết"
+
+msgid "invite_trust_warning"
+msgstr "Người bạn mời sẽ biết bạn dùng MYX-VPN và có thể thấy khi nào bạn kết nối qua họ. Lưu lượng của bạn đi qua kết nối internet của họ, nên họ có thể biết bạn truy cập những trang nào, nhưng không biết bạn làm gì trên các trang bảo mật (https). Chỉ mời người bạn tin tưởng."
+
+msgid "invite_expires"
+msgstr "Hết hạn sau %s giờ"
+
+msgid "invite_gone"
+msgstr "Lời mời này đã được sử dụng hoặc đã hết hạn."
+
+msgid "invite_claimed_title"
+msgstr "Có người đã mở lời mời của bạn"
+
+msgid "invite_compare_codes"
+msgstr "So sánh mã"
+
+msgid "personal_proxy"
+msgstr "Proxy cá nhân"
+
+msgid "private_locations"
+msgstr "Vị trí riêng"
+
+msgid "personal_proxies"
+msgstr "Proxy cá nhân"
+
+msgid "your_personal_proxies"
+msgstr "Proxy cá nhân của bạn"
+
+msgid "help_friend_link_label"
+msgstr "Liên kết mời"
+
+msgid "help_friend_paste"
+msgstr "Dán liên kết bạn bè đã gửi"
+
+msgid "help_friend_scan"
+msgstr "Quét mã QR của bạn bè"
+
+msgid "help_friend_approved"
+msgstr "Bạn hiện đang giúp đỡ %s."
+
+msgid "help_friend_no_longer_pending"
+msgstr "Yêu cầu này không còn chờ xử lý. Hãy xin bạn bè của bạn một lời mời mới."
+
+msgid "help_friend_done"
+msgstr "Xong"
+
+msgid "help_friend_already_claimed_title"
+msgstr "Lời mời này đã được sử dụng"
+
+msgid "help_friend_already_claimed_body"
+msgstr "Người khác đã mở liên kết này trước, hoặc liên kết đã hết hạn. Hãy xin bạn của bạn một lời mời mới và cho họ biết lời mời này có thể đã bị người khác xem."
+
+msgid "help_friend_already_helping"
+msgstr "Bạn đang giúp người bạn này rồi."
+
+msgid "help_friend_already_helping_named"
+msgstr "Bạn đang giúp %s rồi."
+
+msgid "help_friend_bad_link"
+msgstr "Đây không phải là liên kết mời người trợ giúp."
+
+msgid "help_friend_own_invite"
+msgstr "Đây là lời mời của chính bạn. Hãy gửi nó cho người bạn mà bạn muốn nhờ giúp đỡ."
+
+msgid "helping_since"
+msgstr "Từ %s"
+
+msgid "helping_unnamed"
+msgstr "Người được bạn giúp"
+
+msgid "helping_sharing_off_warning"
+msgstr "Chia sẻ đang tắt, nên những người được bạn giúp không thể kết nối qua bạn."
+
+msgid "helping_remove"
+msgstr "Ngừng giúp"
+
+msgid "helping_remove_confirm"
+msgstr "Ngừng giúp %s ? Họ sẽ cần lời mời mới để kết nối lại qua bạn."
+
+msgid "help_others_too"
+msgstr "Giúp cả người khác"
+
+msgid "help_others_too_body"
+msgstr "Chia sẻ dung lượng dư cho những người khác đang bị kiểm duyệt; MYX-VPN chỉ cho họ truy cập các trang được phép, giúp bảo vệ kết nối của bạn khỏi bị lạm dụng."
+
+msgid "help_others_too_note"
+msgstr "Thay đổi tùy chọn này sẽ khiến những người bạn đang giúp kết nối lại trong giây lát."
+
+msgid "helping_duration_hm"
+msgstr "%s giờ %s phút"
+
+msgid "helping_duration_m"
+msgstr "%s phút"
+
+msgid "invite_share_title"
+msgstr "Chia sẻ liên kết này với người bạn tin tưởng ở ngoài nước"
+
+msgid "invite_share_steps"
+msgstr "Người đó mở liên kết, cài MYX-VPN nếu cần và nhập tên. Bạn sẽ chấp thuận bằng cách kiểm tra mã 4 chữ số, sau đó có thể kết nối thông qua họ."
+
+msgid "invite_link_label"
+msgstr "Liên kết mời của bạn"
+
+msgid "invite_link_expiry"
+msgstr "Chỉ dùng được một lần và hết hạn sau 48 giờ."
+
+msgid "approve_title"
+msgstr "%s muốn làm proxy cá nhân của bạn"
+
+msgid "approve_body"
+msgstr "Hỏi %s mã 4 chữ số mà MYX-VPN hiển thị cho họ, qua cuộc gọi hoặc trong ứng dụng khác với ứng dụng bạn đã gửi liên kết. Chỉ chấp thuận nếu mã trùng khớp."
+
+msgid "approve_codes_match"
+msgstr "Mã trùng khớp, chấp thuận"
+
+msgid "approve_reject"
+msgstr "Từ chối"
+
+msgid "personal_proxy_fallback_group"
+msgstr "Hiện không thể kết nối tới %s. Đã chuyển sang Proxy cá nhân của bạn."
+
+msgid "personal_proxy_fallback_auto"
+msgstr "Hiện không thể kết nối tới %s. Đã chuyển sang Vị trí thông minh."
+
+msgid "become_means_title"
+msgstr "Làm proxy cá nhân nghĩa là gì"
+
+msgid "become_means_traffic"
+msgstr "Một người bạn đã nhờ bạn giúp đỡ. Khi Action Mode đang chạy, họ có thể truy cập internet mở qua kết nối của bạn. Tùy vào bộ định tuyến của bạn, lưu lượng của họ đi ra từ mạng của bạn hoặc được chuyển tiếp qua máy chủ của MYX-VPN. MYX-VPN không cho bạn thấy họ làm gì trên mạng."
+
+msgid "become_means_seen"
+msgstr "Họ có thể thấy khi nào bạn đang kết nối. Chỉ chấp nhận lời mời từ người bạn quen biết."
+
+msgid "become_means_remove"
+msgstr "Gỡ kết nối bất cứ lúc nào."
+
+msgid "help_friend_form_title"
+msgstr "Dán liên kết từ người mà bạn đang giúp"
+
+msgid "help_friend_link_hint"
+msgstr "Nếu bạn đã mở liên kết trên thiết bị này, mục này sẽ được điền sẵn"
+
+msgid "help_friend_name_label"
+msgstr "Tên của bạn mà bạn bè biết"
+
+msgid "help_friend_name_hint"
+msgstr "Đây là cách bạn hiển thị trong MYX-VPN của bạn bè"
+
+msgid "help_friend_become"
+msgstr "Trở thành proxy cá nhân của bạn bè"
+
+msgid "help_friend_tell_code"
+msgstr "Cho bạn bè biết mã này"
+
+msgid "help_friend_code_check"
+msgstr "Họ sẽ kiểm tra xem mã có khớp với mã trên điện thoại của họ không, rồi phê duyệt bạn."
+
+msgid "help_friend_waiting_approval"
+msgstr "Đang chờ phê duyệt"
+
+msgid "help_friend_code_note"
+msgstr "Hãy đọc mã qua cuộc gọi hoặc trong một ứng dụng khác với ứng dụng đã nhận liên kết mời. Người đã thấy liên kết không được thấy cả mã."
+
+msgid "become_personal_proxy"
+msgstr "Trở thành proxy cá nhân"
+
+msgid "become_personal_proxy_body"
+msgstr "Giúp người quen của bạn truy cập mạng"
+
+msgid "helping_connections_title"
+msgstr "Kết nối Personal Proxy của bạn"
+
+msgid "helping_friends_one"
+msgstr "1 người bạn"
+
+msgid "helping_friends_count"
+msgstr "%s người bạn"
+
+msgid "helping_connected_named"
+msgstr "%s hiện đã kết nối"
+
+msgid "helping_connected_count"
+msgstr "Hiện có %s người đã kết nối"
+
+msgid "helping_sheet_title"
+msgstr "Bạn bè bạn đang giúp"
+
+msgid "helping_your_friends"
+msgstr "Bạn bè của bạn"
+
+msgid "helping_connected"
+msgstr "Đã kết nối"
+
+msgid "helping_not_connected"
+msgstr "Chưa kết nối"
+
+msgid "helping_paste_another"
+msgstr "Dán liên kết mời khác"
+
+msgid "helping_data_relayed"
+msgstr "Dữ liệu đã chuyển tiếp hôm nay"
+
+msgid "helping_active_today"
+msgstr "Hoạt động %s"
+
+msgid "myx_tap_to_connect"
+msgstr "Tap to connect"
+
+msgid "myx_protected"
+msgstr "Protected"
+
+msgid "myx_not_protected"
+msgstr "Not protected"
+
+msgid "myx_connecting"
+msgstr "Securing connection"
+
+msgid "myx_disconnecting"
+msgstr "Disconnecting"
+
+msgid "myx_session"
+msgstr "Session"
+
+msgid "myx_update_title"
+msgstr "New version available"
+
+msgid "myx_update_body"
+msgstr "MYX-VPN %s is ready. You are using %s."
+
+msgid "myx_update_now"
+msgstr "Update now"
+
+msgid "myx_update_later"
+msgstr "Later"
+
+msgid "myx_whats_new"
+msgstr "What's new"

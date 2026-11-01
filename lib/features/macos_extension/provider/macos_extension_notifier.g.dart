@@ -1,0 +1,63 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'macos_extension_notifier.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(MacosExtensionNotifier)
+final macosExtensionProvider = MacosExtensionNotifierProvider._();
+
+final class MacosExtensionNotifierProvider
+    extends $NotifierProvider<MacosExtensionNotifier, MacOSExtensionState> {
+  MacosExtensionNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'macosExtensionProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$macosExtensionNotifierHash();
+
+  @$internal
+  @override
+  MacosExtensionNotifier create() => MacosExtensionNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(MacOSExtensionState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<MacOSExtensionState>(value),
+    );
+  }
+}
+
+String _$macosExtensionNotifierHash() =>
+    r'7b678f457254f0d2be1b97db1ee0226a95958469';
+
+abstract class _$MacosExtensionNotifier extends $Notifier<MacOSExtensionState> {
+  MacOSExtensionState build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<MacOSExtensionState, MacOSExtensionState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<MacOSExtensionState, MacOSExtensionState>,
+              MacOSExtensionState,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

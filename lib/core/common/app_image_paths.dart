@@ -1,0 +1,368 @@
+class AppImagePaths {
+  static const actionMode = 'assets/images/action_mode.svg';
+  static const actionModeAuto = 'assets/images/action_mode_auto.svg';
+  static const actionModePerson = 'assets/images/action_mode_person.svg';
+  static const actionModePeople = 'assets/images/action_mode_people.svg';
+  static const lanternLogo = 'assets/images/lantern_logo.svg';
+  static const menu = 'assets/images/menu.svg';
+  static const crown = 'assets/images/crown.svg';
+  static const callSpilt = 'assets/images/call_split.svg';
+  static const location = 'assets/images/location.svg';
+  static const blockAds = 'assets/images/block_ads.svg';
+  static const signIn = 'assets/images/sign_in.svg';
+  static const translate = 'assets/images/translate.svg';
+  static const theme = 'assets/images/theme.svg';
+  static const support = 'assets/images/support.svg';
+  static const supportIllustration = 'assets/images/support_illustration.svg';
+  static const star = 'assets/images/star.svg';
+  static const update = 'assets/images/update.svg';
+  static const thumb = 'assets/images/thumb.svg';
+  static const desktop = 'assets/images/desktop.svg';
+  static const glob = 'assets/images/glob.svg';
+  static const email = 'assets/images/email.svg';
+  static const lanternLogoRounded = 'assets/images/lantern_logo_round.svg';
+  static const outsideBrowser = 'assets/images/outside_brower.svg';
+  static const globIllustration = 'assets/images/glob_illustration.png';
+  static const github = 'assets/images/github.svg';
+  static const telegram = 'assets/images/telegram.svg';
+  static const android = 'assets/images/android.svg';
+  static const ios = 'assets/images/ios.svg';
+  static const macos = 'assets/images/macos.svg';
+  static const windows = 'assets/images/windows.svg';
+  static const linux = 'assets/images/linux.svg';
+  static const startIllustration = 'assets/images/start_illustration.svg';
+  static const copy = 'assets/images/copy.svg';
+  static const share = 'assets/images/share.svg';
+  static const upArrow = 'assets/images/up_arrow.svg';
+  static const info = 'assets/images/info.svg';
+  static const delete = 'assets/images/delete.svg';
+  static const lock = 'assets/images/lock.svg';
+  static const lanternPro = 'assets/images/lantern_pro.svg';
+  static const dataUsage = 'assets/images/data_usage.svg';
+  static const vpnConnected = 'assets/images/vpn_connected.svg';
+  static const vpnDisconnected = 'assets/images/vpn_disconnected.svg';
+  static const vpnConnecting = 'assets/images/vpn_connecting.svg';
+  static const blot = 'assets/images/bolt.svg';
+  static const verticalDots = 'assets/images/vertical_dots.svg';
+  static const instagram = 'assets/images/instagram.svg';
+  static const x = 'assets/images/x.svg';
+  static const close = 'assets/images/close.svg';
+  static const appIcon = 'assets/images/lantern_app_icon.png';
+  static const appIconSVG = 'assets/images/app_icon.svg';
+
+  // split tunneling
+  static const plus = 'assets/images/plus.svg';
+  static const minus = 'assets/images/minus.svg';
+  static const search = 'assets/images/search.svg';
+  static const arrowForward = 'assets/images/arrow_forward.svg';
+  static const arrowBack = 'assets/images/arrow_back.svg';
+  static const bypassList = 'assets/images/bypass_list.svg';
+  // app icons for testing
+  static const appleMusicIcon = 'assets/images/app_icon_apple_music.svg';
+  static const googleChatIcon = 'assets/images/app_icon_google_chat.svg';
+  static const instagramIcon = 'assets/images/app_icon_instagram.svg';
+
+  static const lanternConnectedIco = 'assets/images/lantern_connected.ico';
+  static const lanternConnected = 'assets/images/lantern_connected.png';
+  static const lanternDisconnectedIco =
+      'assets/images/lantern_disconnected.ico';
+  static const lanternDisconnected = 'assets/images/lantern_disconnected.png';
+  static const lanternDarkDisconnected =
+      'assets/images/tray_dark_disconnected.png';
+  static const lanternDarkConnected = 'assets/images/tray_dark_connected.png';
+  static const adBlock = 'assets/images/ad_block.svg';
+  static const connectDevice = 'assets/images/connect_device.svg';
+  static const eyeHide = 'assets/images/eye_hide.svg';
+  static const eye = 'assets/images/eye.svg';
+  static const premium = 'assets/images/premium.svg';
+  static const roundCorrect = 'assets/images/round_correct.svg';
+  static const keypad = 'assets/images/keypad.svg';
+  static const restorePurchase = 'assets/images/restore_purchase.svg';
+  static const google = 'assets/images/google.svg';
+  static const apple = 'assets/images/apple.svg';
+  static const number = 'assets/images/number.svg';
+  static const security = 'assets/images/security.svg';
+  static const server = 'assets/images/server.svg';
+  static const serverRack = 'assets/images/server_rack.svg';
+  static const digitalOceanIcon = 'assets/images/digital_ocean_icon.svg';
+  static const checkmark = 'assets/images/checkmark.svg';
+  static const personAdd = 'assets/images/person_add.svg';
+  static const digitalOcean = 'assets/images/digital_ocean.svg';
+  static const googleCloud = 'assets/images/google_cloud.svg';
+  static const creditCard = 'assets/images/credit_card.svg';
+  static const accountCircle = 'assets/images/account_circle.svg';
+  static const success = 'assets/images/green_checkmark.svg';
+  static const errorIcon = 'assets/images/error_icon.svg';
+  static const key = 'assets/images/key.svg';
+  static const unbounded = 'assets/images/unbounded.svg';
+  static const unboundedWordmark = 'assets/images/unbounded_wordmark.svg';
+  static const qrCodeScanner = 'assets/images/qr_code_scanner.svg';
+  static const settingServer = 'assets/images/setting_server.svg';
+  static const joinServer = 'assets/images/join_server.svg';
+  static const warning = 'assets/images/warning.svg';
+  static const account = 'assets/images/account.svg';
+  static const accountSetting = 'assets/images/account_setting.svg';
+  static const sysDialog = 'assets/images/sys_dialog.svg';
+  static const web = 'assets/images/web.svg';
+  static const greenCheck = 'assets/images/green_check.svg';
+  static const shareV2 = 'assets/images/share_v2.svg';
+  static const autoRenew = 'assets/images/auto_renew.svg';
+  static const assessment = 'assets/images/assessment.svg';
+  static const route = 'assets/images/route.svg';
+  static const world = 'assets/images/world.svg';
+  static const advanceProtocol = 'assets/images/advance_protocol.svg';
+  static const nonProfit = 'assets/images/non_profit.svg';
+  static const privateServerIntro = 'assets/images/private_server_intro.svg';
+  static const smartRouteMode = 'assets/images/smart_route_mode.svg';
+  static const automatic = 'assets/images/automatic.svg';
+  static const lightMode = 'assets/images/light_mode.svg';
+  static const darkMode = 'assets/images/dark_mode.svg';
+
+  // Material Symbols (Outlined), sourced from google/material-design-icons
+  // to pixel-match the Figma library — Flutter's bundled classic Material
+  // Icons font is a visually different icon set (bolder/extra strokes).
+  static const handshake = 'assets/images/handshake.svg';
+  static const handshakeFill = 'assets/images/handshake_fill.svg';
+  static const vpnKey = 'assets/images/vpn_key.svg';
+  static const vpnKeyFill = 'assets/images/vpn_key_fill.svg';
+  static const autoMode = 'assets/images/auto_mode.svg';
+  static const groups2 = 'assets/images/groups_2.svg';
+  static const person = 'assets/images/person.svg';
+  static const languageGlobe = 'assets/images/language.svg';
+  static const visibilityOff = 'assets/images/visibility_off.svg';
+  static const globGrid = 'assets/images/glob_grid.svg';
+  static const widgets = 'assets/images/widgets.svg';
+  static const widgetPreview = 'assets/images/widget_preview.svg';
+
+  /// Validates and returns a safe flag path for the given country code.
+  /// Returns null if the country code is invalid or the flag asset doesn't exist.
+  ///
+  /// Valid country codes:
+  /// - Must be exactly 2 characters long (ISO 3166-1 alpha-2 format)
+  /// - Must contain only letters (a-z, A-Z)
+  /// - Must have a corresponding flag asset
+  static String? safeFlagPath(String? countryCode) {
+    if (countryCode == null || countryCode.isEmpty) {
+      return null;
+    }
+
+    // Validate country code format (2-letter ISO code)
+    final normalized = countryCode.trim().toLowerCase();
+    if (normalized.length != 2 || !RegExp(r'^[a-z]{2}$').hasMatch(normalized)) {
+      return null;
+    }
+
+    // List of available flag assets (2-letter ISO 3166-1 alpha-2 codes)
+    // This list should match the flags available in assets/images/flags/
+    // NOTE: This is a hardcoded list for validation purposes. While it creates
+    // a maintenance burden, it's preferable to runtime asset scanning (not easily
+    // supported in Flutter) for this security-critical validation. A future
+    // improvement could use build-time code generation to auto-generate this list.
+    const availableFlags = {
+      'ad',
+      'ae',
+      'af',
+      'ag',
+      'al',
+      'am',
+      'ao',
+      'ar',
+      'at',
+      'au',
+      'az',
+      'ba',
+      'bb',
+      'bd',
+      'be',
+      'bf',
+      'bg',
+      'bh',
+      'bi',
+      'bj',
+      'bn',
+      'bo',
+      'br',
+      'bs',
+      'bt',
+      'bw',
+      'by',
+      'bz',
+      'ca',
+      'cd',
+      'cf',
+      'cg',
+      'ch',
+      'ci',
+      'cl',
+      'cm',
+      'cn',
+      'co',
+      'cr',
+      'cu',
+      'cv',
+      'cy',
+      'cz',
+      'de',
+      'dj',
+      'dk',
+      'dm',
+      'do',
+      'dz',
+      'ec',
+      'ee',
+      'eg',
+      'er',
+      'es',
+      'et',
+      'fi',
+      'fj',
+      'fm',
+      'fr',
+      'ga',
+      'gb',
+      'gd',
+      'ge',
+      'gh',
+      'gm',
+      'gn',
+      'gq',
+      'gr',
+      'gt',
+      'gw',
+      'gy',
+      'hk',
+      'hn',
+      'hr',
+      'ht',
+      'hu',
+      'id',
+      'ie',
+      'il',
+      'in',
+      'iq',
+      'ir',
+      'is',
+      'it',
+      'jm',
+      'jo',
+      'jp',
+      'ke',
+      'kg',
+      'kh',
+      'ki',
+      'km',
+      'kn',
+      'kp',
+      'kr',
+      'kw',
+      'kz',
+      'la',
+      'lb',
+      'lc',
+      'li',
+      'lk',
+      'lr',
+      'ls',
+      'lt',
+      'lu',
+      'lv',
+      'ly',
+      'ma',
+      'mc',
+      'md',
+      'me',
+      'mg',
+      'mh',
+      'mk',
+      'ml',
+      'mm',
+      'mn',
+      'mo',
+      'mr',
+      'mt',
+      'mu',
+      'mv',
+      'mw',
+      'mx',
+      'my',
+      'mz',
+      'na',
+      'ne',
+      'ng',
+      'ni',
+      'nl',
+      'no',
+      'np',
+      'nr',
+      'nz',
+      'om',
+      'pa',
+      'pe',
+      'pg',
+      'ph',
+      'pk',
+      'pl',
+      'pt',
+      'pw',
+      'py',
+      'qa',
+      'ro',
+      'rs',
+      'ru',
+      'rw',
+      'sa',
+      'sb',
+      'sc',
+      'sd',
+      'se',
+      'sg',
+      'si',
+      'sk',
+      'sl',
+      'sm',
+      'sn',
+      'so',
+      'sr',
+      'ss',
+      'st',
+      'sv',
+      'sy',
+      'sz',
+      'td',
+      'tg',
+      'th',
+      'tj',
+      'tl',
+      'tm',
+      'tn',
+      'to',
+      'tr',
+      'tt',
+      'tv',
+      'tw',
+      'tz',
+      'ua',
+      'ug',
+      'us',
+      'uy',
+      'uz',
+      'va',
+      'vc',
+      've',
+      'vn',
+      'vu',
+      'ws',
+      'ye',
+      'za',
+      'zm',
+      'zw',
+    };
+
+    // Check if flag asset exists
+    if (!availableFlags.contains(normalized)) {
+      return null;
+    }
+
+    return 'assets/images/flags/$normalized.png';
+  }
+}

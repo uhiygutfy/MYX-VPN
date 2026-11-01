@@ -1,0 +1,62 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'vpn_notifier.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(VpnNotifier)
+final vpnProvider = VpnNotifierProvider._();
+
+final class VpnNotifierProvider
+    extends $NotifierProvider<VpnNotifier, VPNStatus> {
+  VpnNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'vpnProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$vpnNotifierHash();
+
+  @$internal
+  @override
+  VpnNotifier create() => VpnNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(VPNStatus value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<VPNStatus>(value),
+    );
+  }
+}
+
+String _$vpnNotifierHash() => r'c4c58f347511cd4b076957f76199985041f704c2';
+
+abstract class _$VpnNotifier extends $Notifier<VPNStatus> {
+  VPNStatus build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<VPNStatus, VPNStatus>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<VPNStatus, VPNStatus>,
+              VPNStatus,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

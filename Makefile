@@ -1,0 +1,1446 @@
+.PHONY: gen macos
+
+# Flutter builds directory
+BUILD_DIR := build
+# Go builds directory
+BIN_DIR := bin
+DIST_OUT := dist
+
+APP ?= lantern
+INSTALLER_NAME ?= lantern-installer
+CAPITALIZED_APP := Lantern
+LANTERN_LIB_NAME := liblantern
+LANTERN_CORE := lantern-core
+RADIANCE_REPO := github.com/getlantern/radiance
+FFI_DIR := $(LANTERN_CORE)/ffi
+## APP_VERSION is the full version from pubspec.yaml (e.g. 9.0.25+459).
+## Precedence: environment > pubspec.yaml. CI must export APP_VERSION — on
+## Windows CI, `$(shell …)` runs under cmd.exe which mangles the Unix-style
+## quoting in the grep|sed pipeline and returns empty, producing an empty
+## `common.Version` ldflag and a 400 "missing app version" at /v1/config-new.
+## Local builds fall back to reading pubspec.yaml directly, with a PowerShell
+## branch so Windows devs without Git Bash / WSL still get a working build.
+##
+## Caveat: pubspec.yaml's `version:` is a hardcoded literal that lags the real
+## release line — it is only rewritten to the authoritative version in CI (by
+## release.yml, from scripts/ci/version.sh). A local build still resolves its Go
+## deps from go.mod (current code) but would stamp that stale literal, so
+## sideload/dev builds get mislabeled (e.g. 9.0.28) in telemetry and support
+## tickets. Outside CI, derive the version from git tags first; the pubspec
+## fallback below only applies if that yields nothing (e.g. a checkout with no
+## tags). In CI, GITHUB_ACTIONS is set, so we skip this and trust the rewritten
+## pubspec. The version.sh derivation lives in the non-Windows branch only: it's
+## a bash script and `2>/dev/null` is a POSIX redirection, neither of which
+## behaves under cmd.exe, so Windows devs fall through to the PowerShell read.
+ifeq ($(OS),Windows_NT)
+APP_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '(Select-String -Path "pubspec.yaml" -Pattern "^version:\s*(.+)$$").Matches[0].Groups[1].Value.Trim()')
+else
+## Only derive when the caller hasn't already supplied APP_VERSION (env or
+## command line). This honors the documented precedence (environment > pubspec)
+## and avoids both the cost of running version.sh and a misleading fallback
+## warning when the value is overridden.
+ifndef APP_VERSION
+ifndef GITHUB_ACTIONS
+## Capture into a temp so we only set APP_VERSION when version.sh actually
+## produced output. A bare `APP_VERSION ?= $(shell …)` would *define*
+## APP_VERSION as empty when version.sh fails (no tags, shallow clone, a sort
+## without -V, …), turning the pubspec fallback below into a no-op and tripping
+## the "is empty" $(error). On empty: warn and fall through to pubspec.
+LANTERN_DERIVED_VERSION := $(shell ./scripts/ci/version.sh generate nightly 2>/dev/null)
+ifneq ($(strip $(LANTERN_DERIVED_VERSION)),)
+APP_VERSION := $(LANTERN_DERIVED_VERSION)
+else
+$(warning could not derive version from scripts/ci/version.sh; falling back to pubspec.yaml — the build version may be stale)
+endif
+endif
+endif
+APP_VERSION ?= $(shell grep '^version:' pubspec.yaml | sed 's/version: //;s/ //g')
+endif
+## Freeze APP_VERSION after resolution. `?=` leaves it recursively expanded, so
+## every later $(APP_VERSION) reference would re-run the $(shell …) — and
+## version.sh embeds a timestamp, so the value could drift between recipe
+## invocations (e.g. the deb/rpm/arch packages built sequentially in
+## linux-release-ci). The `:=` self-assignment evaluates it exactly once, here.
+APP_VERSION := $(APP_VERSION)
+## Strip the +buildnumber for the Go linker. Done with Make built-ins so no
+## shell tools are required — this is the part that has to work in every
+## environment `make` might invoke the linker in.
+APP_VERSION_PUBSPEC := $(firstword $(subst +, ,$(APP_VERSION)))
+## Android can retain prerelease suffixes. CI's shared pubspec is numeric for
+## Apple/Windows, so prefer its full release VERSION for Android package metadata.
+## Local builds without VERSION retain the resolved APP_VERSION (without +build).
+ANDROID_VERSION_NAME := $(or $(strip $(VERSION)),$(APP_VERSION_PUBSPEC))
+## Fail loudly at parse time if we couldn't resolve a version — this was the
+## exact failure mode of the bug this file fixes, where an empty value silently
+## produced a broken binary that 400s at /v1/config-new.
+ifeq ($(strip $(APP_VERSION_PUBSPEC)),)
+$(error APP_VERSION_PUBSPEC is empty; export APP_VERSION (e.g. "9.0.25+459") or ensure pubspec.yaml contains a `version:` line)
+endif
+## Stamp build time + commit (radiance logs them at startup in every build, so a
+## shipped binary is self-describing). `:=` so one make invocation stamps one
+## consistent value across all artifacts it builds.
+ifeq ($(OS),Windows_NT)
+BUILD_TIME := $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command "[DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')")
+else
+BUILD_TIME := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+endif
+## Fall back to a sentinel so common.Commit is never empty (e.g. a build from a
+## source tree with no .git); an empty -X value would drop the build-identity
+## signal from logs.
+GIT_REVISION := $(or $(strip $(shell git rev-parse --short=7 HEAD)),unknown)
+EXTRA_LDFLAGS ?= -X '$(RADIANCE_REPO)/common.Version=$(APP_VERSION_PUBSPEC)' -X '$(RADIANCE_REPO)/common.BuildTime=$(BUILD_TIME)' -X '$(RADIANCE_REPO)/common.Commit=$(GIT_REVISION)'
+## The Soar DNS-tunnel server kindling falls back to. CI sets SOAR_ZONE (a secret, kept out of
+## this public repo and its logs) and SOAR_PUBLIC_KEY (a variable); without them it's left out.
+SOAR_LDFLAGS := $(if $(SOAR_ZONE),-X '$(RADIANCE_REPO)/kindling/soar.Zone=$(SOAR_ZONE)' -X '$(RADIANCE_REPO)/kindling/soar.PublicKey=$(SOAR_PUBLIC_KEY)')
+EXTRA_LDFLAGS += $(SOAR_LDFLAGS)
+STEALTH_GO_IMPORT_PATH := github.com/getlantern/lantern/lantern-core
+STEALTH_GO_LOG_LEVEL ?= warn
+# Stealth can be activated via a stealth BUILD_TYPE or via STEALTH_MODE/STEALTH_PROFILE
+# (which leave BUILD_TYPE=production), so gate stealth flags on all three signals.
+STEALTH_ACTIVE := $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE))
+STEALTH_GO_LDFLAGS := $(if $(STEALTH_ACTIVE),-X '$(STEALTH_GO_IMPORT_PATH).StealthBuild=true' -X '$(STEALTH_GO_IMPORT_PATH).StealthLogLevel=$(STEALTH_GO_LOG_LEVEL)')
+GO_EXTRA_LDFLAGS := $(strip $(EXTRA_LDFLAGS) $(STEALTH_GO_LDFLAGS))
+LANTERND_EXTRA_LDFLAGS := $(EXTRA_LDFLAGS)
+
+DARWIN_APP_NAME := $(CAPITALIZED_APP).app
+DARWIN_LIB := $(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_AMD64 := $(BIN_DIR)/macos-amd64/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_ARM64 := $(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).dylib
+DARWIN_LIB_BUILD := $(BIN_DIR)/macos/$(DARWIN_LIB)
+DARWIN_RELEASE_DIR := $(BUILD_DIR)/macos/Build/Products/Release
+DARWIN_DEBUG_BUILD := $(BUILD_DIR)/macos/Build/Products/Debug/$(DARWIN_APP_NAME)
+DARWIN_RELEASE_BUILD := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)
+DARWIN_PROFILE_DIR := $(BUILD_DIR)/macos/Build/Products/Profile
+DARWIN_PROFILE_BUILD := $(DARWIN_PROFILE_DIR)/$(DARWIN_APP_NAME)
+MACOS_ENTITLEMENTS := macos/Runner/Release.entitlements
+MACOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).dmg
+MACOS_DIR := macos/
+MACOS_FRAMEWORK := Liblantern.xcframework
+MACOS_FRAMEWORK_DIR := macos/Frameworks
+MACOS_FRAMEWORK_BUILD := $(BIN_DIR)/macos/$(MACOS_FRAMEWORK)
+MACOS_FRAMEWORK_OUTPUT := $(MACOS_FRAMEWORK_DIR)/$(MACOS_FRAMEWORK)
+MACOS_DEBUG_BUILD := $(BUILD_DIR)/macos/Runner.app
+MACOS_FFI_HEADER := $(BIN_DIR)/macos-arm64/$(LANTERN_LIB_NAME).h
+PACKET_TUNNEL_DIR := $(DARWIN_RELEASE_BUILD)/Contents/PlugIns/PacketTunnel.appex
+SYSTEM_EXTENSION_DIR := $(DARWIN_RELEASE_DIR)/$(DARWIN_APP_NAME)/Contents/Library/SystemExtensions/org.getlantern.lantern.PacketTunnel.systemextension
+PACKET_ENTITLEMENTS := macos/PacketTunnel/PacketTunnel.entitlements
+
+LINUX_LIB := $(LANTERN_LIB_NAME).so
+LINUX_LIB_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERN_LIB_NAME).so
+LINUX_LIB_BUILD := $(BIN_DIR)/linux/$(LINUX_LIB)
+LINUX_TARGET_ARCH ?= amd64
+LINUX_PACKAGE_ARCH_SUFFIX := $(if $(filter amd64,$(LINUX_TARGET_ARCH)),,-$(LINUX_TARGET_ARCH))
+LINUX_INSTALLER_DEB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))$(LINUX_PACKAGE_ARCH_SUFFIX).deb
+LINUX_INSTALLER_RPM := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))$(LINUX_PACKAGE_ARCH_SUFFIX).rpm
+LINUX_INSTALLER_ARCH := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))$(LINUX_PACKAGE_ARCH_SUFFIX).pkg.tar.zst
+LANTERND := lanternd
+LANTERND_SRC := $(RADIANCE_REPO)/cmd/lanternd
+LANTERND_SERVICE_LOG_LEVEL ?= $(if $(STEALTH_ACTIVE),warn,info)
+LANTERND_LINUX_AMD64 := $(BIN_DIR)/linux-amd64/$(LANTERND)
+LANTERND_LINUX_ARM64 := $(BIN_DIR)/linux-arm64/$(LANTERND)
+LINUX_BUNDLE_DIR_X64 := build/linux/x64/release/bundle
+LINUX_BUNDLE_DIR_ARM64 := build/linux/arm64/release/bundle
+LINUX_CC_AMD64 ?= x86_64-linux-gnu-gcc
+LINUX_CC_ARM64 ?= aarch64-linux-gnu-gcc
+LINUX_PKG_ROOT := linux/packaging
+
+ifeq ($(OS),Windows_NT)
+  PS := powershell -NoProfile -ExecutionPolicy Bypass -Command
+  MKDIR_P = $(PS) "New-Item -ItemType Directory -Force -Path '$(1)' | Out-Null"
+  COPY_FILE = $(PS) "Copy-Item -Force -LiteralPath '$(1)' -Destination '$(2)'"
+  RM_RF = $(PS) "Remove-Item -Recurse -Force -LiteralPath '$(1)'"
+  WRITE_TEXT_FILE = $(PS) "Set-Content -LiteralPath '$(2)' -Value '$(1)' -Encoding ASCII"
+else
+  MKDIR_P = mkdir -p -- '$(1)'
+  COPY_FILE = cp -f -- '$(1)' '$(2)'
+  RM_RF = rm -rf -- '$(1)'
+  WRITE_TEXT_FILE = printf '%s\n' '$(1)' > '$(2)'
+endif
+
+LANTERND_WINDOWS_AMD64 := $(BIN_DIR)/windows-amd64/$(LANTERND).exe
+LANTERND_WINDOWS_ARM64 := $(BIN_DIR)/windows-arm64/$(LANTERND).exe
+
+WINDOWS_LIB          := $(LANTERN_LIB_NAME).dll
+WINDOWS_LIB_AMD64    := $(BIN_DIR)/windows-amd64/$(WINDOWS_LIB)
+WINDOWS_LIB_ARM64    := $(BIN_DIR)/windows-arm64/$(WINDOWS_LIB)
+WINDOWS_LIB_BUILD    := $(BIN_DIR)/windows/$(WINDOWS_LIB)
+WINDOWS_DEBUG_DIR    := $(BUILD_DIR)/windows/x64/runner/Debug
+WINDOWS_PROFILE_DIR  := $(BUILD_DIR)/windows/x64/runner/Profile
+WINDOWS_RELEASE_DIR  := $(BUILD_DIR)/windows/x64/runner/Release
+LANTERND_WINDOWS_PROFILE := $(WINDOWS_PROFILE_DIR)/$(LANTERND).exe
+LANTERND_WINDOWS_PROFILE_ARM64 := $(WINDOWS_PROFILE_DIR)/arm64/$(LANTERND).exe
+LANTERND_WINDOWS_RELEASE := $(WINDOWS_RELEASE_DIR)/$(LANTERND).exe
+LANTERND_WINDOWS_RELEASE_ARM64 := $(WINDOWS_RELEASE_DIR)/arm64/$(LANTERND).exe
+
+
+ANDROID_LIB := $(LANTERN_LIB_NAME).aar
+ANDROID_LIBS_DIR := android/app/libs
+ANDROID_LIB_BUILD := $(BIN_DIR)/android/$(ANDROID_LIB)
+ANDROID_LIB_PATH := android/app/libs/$(LANTERN_LIB_NAME).aar
+ANDROID_DEBUG_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-debug.apk
+ANDROID_APK_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/flutter-apk/app-release.apk
+ANDROID_AAB_RELEASE_BUILD := $(BUILD_DIR)/app/outputs/bundle/release/app-release.aab
+# Shared native targets for gomobile, Flutter and Gradle.
+include android/abi-targets.properties
+override ANDROID_ABIS := $(android.abis)
+override ANDROID_TARGET_PLATFORMS := $(subst armeabi-v7a,android-arm,$(subst arm64-v8a,android-arm64,$(ANDROID_ABIS)))
+override ANDROID_APK_TARGET_PLATFORMS := $(ANDROID_TARGET_PLATFORMS)
+override ANDROID_AAB_TARGET_PLATFORMS := $(ANDROID_TARGET_PLATFORMS)
+ANDROID_ABI_STAMP := $(BIN_DIR)/android/.abis
+ANDROID_ABI_CHECK = $(PYTHON) scripts/ci/verify_android_abis.py --expected-abis $(ANDROID_ABIS)
+ANDROID_RELEASE_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).apk
+# Sideload APKs are per-ABI so arm64 users don't download 32-bit libraries;
+# the autoupdate server maps "-armv7" to arch=arm.
+ANDROID_RELEASE_APK_ARMV7 := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-armv7.apk
+ANDROID_RELEASE_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).aab
+ANDROID_STEALTH_NOVPN_APK := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-stealth-novpn.apk
+ANDROID_STEALTH_NOVPN_AAB := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE))-stealth-novpn.aab
+ANDROID_MAPPING_SRC := build/app/outputs/mapping/release/mapping.txt
+ANDROID_SYMBOLS_SRC := build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
+PYTHON ?= python3
+STEALTH_LEAKAGE_MODE ?= stealth
+STEALTH_LEAKAGE_CONFIG ?= scripts/stealth/forbidden_tokens.json
+STEALTH_LEAKAGE_PATHS ?= $(ANDROID_RELEASE_APK) $(ANDROID_RELEASE_APK_ARMV7) $(ANDROID_RELEASE_AAB) $(ANDROID_APK_RELEASE_BUILD) $(ANDROID_AAB_RELEASE_BUILD)
+STEALTH_LEAKAGE_MISSING_OK ?= 1
+ANDROID_NDK_VERSION          ?= 28.2.13676358
+ANDROID_CMAKE_VERSION        ?= 3.31.5
+ANDROID_BUILD_TOOLS_VERSION  ?= 35.0.0
+ANDROID_PLATFORM             ?= android-36
+ANDROID_SDK_ROOT             := $(or $(ANDROID_SDK_ROOT),$(ANDROID_HOME))
+# setup-android installs cmdline-tools under a revision directory and falls back
+# to cmdline-tools/latest only when the preinstalled revision already matches, so
+# "latest" is not necessarily the toolchain the workflow selected. It does always
+# put its choice on PATH. Take that, but only from inside this SDK: sdkmanager
+# installs relative to its own location, so an unrelated one would populate a
+# different SDK than the rest of the build uses.
+SDKMANAGER_IN_SDK            := $(filter $(ANDROID_SDK_ROOT)/%,$(shell command -v sdkmanager 2>/dev/null))
+SDKMANAGER                   := $(or $(SDKMANAGER_IN_SDK),$(ANDROID_SDK_ROOT)/cmdline-tools/latest/bin/sdkmanager)
+ANDROID_DEBUG_FLUTTER_FLAGS  ?= --verbose
+ANDROID_PAGE_SIZE ?= 16384
+# Android 15+ Play requirement: arm64 native libs must be linked for 16 KB page-size compatibility.
+ANDROID_GOMOBILE_LDFLAGS ?= -s -w -checklinkname=0 -extldflags=-Wl,-z,max-page-size=$(ANDROID_PAGE_SIZE),-z,common-page-size=$(ANDROID_PAGE_SIZE)
+ANDROID_STEALTH_IDENTITY ?= $(if $(strip $(filter stealth stealth-%,$(BUILD_TYPE))$(STEALTH_MODE)$(STEALTH_PROFILE)),1,0)
+ANDROID_GENERATE_IDENTITY_PROFILE ?= $(ANDROID_STEALTH_IDENTITY)
+ANDROID_GENERATED_IDENTITY_PROFILE := $(BUILD_DIR)/stealth/android-identity.properties
+ANDROID_IDENTITY_PROFILE ?= $(if $(filter 1 true yes,$(ANDROID_GENERATE_IDENTITY_PROFILE)),$(ANDROID_GENERATED_IDENTITY_PROFILE),)
+ANDROID_IDENTITY_ENV = $(if $(strip $(ANDROID_IDENTITY_PROFILE)),ANDROID_IDENTITY_PROFILE="$(abspath $(ANDROID_IDENTITY_PROFILE))",)
+ANDROID_AUTH_SCHEME = $(strip $(if $(ANDROID_IDENTITY_PROFILE),$(shell sed -n 's/^appAuthScheme=//p' "$(ANDROID_IDENTITY_PROFILE)" 2>/dev/null | tail -n 1),))
+ANDROID_IDENTITY_DART_DEFINES = $(if $(STEALTH_ENABLED),,$(if $(ANDROID_AUTH_SCHEME),--dart-define=APP_AUTH_SCHEME=$(ANDROID_AUTH_SCHEME)))
+PLAY_STORE_DART_DEFINE = $(if $(STEALTH_ACTIVE),,--dart-define=PLAY_STORE_BUILD=true)
+PLAY_STORE_GRADLE_FLAGS = $(if $(STEALTH_ACTIVE),,-Plantern.cleartextTraffic=false)
+
+IOS_INSTALLER := $(INSTALLER_NAME)$(if $(filter-out production,$(BUILD_TYPE)),-$(BUILD_TYPE)).ipa
+IOS_DIR := ios/
+IOS_FRAMEWORK := Liblantern.xcframework
+IOS_FRAMEWORK_DIR := ios/Frameworks
+IOS_FRAMEWORK_BUILD := $(BIN_DIR)/ios/$(IOS_FRAMEWORK)
+IOS_FRAMEWORK_OUTPUT := $(IOS_FRAMEWORK_DIR)/$(IOS_FRAMEWORK)
+IOS_DEBUG_BUILD := $(BUILD_DIR)/ios/iphoneos/Runner.app
+
+TAGS=with_gvisor,with_quic,with_wireguard,with_utls,with_grpc
+
+WINDOWS_CGO_LDFLAGS=-static-libgcc -static-libstdc++ -static -lwinpthread
+
+ifeq ($(OS),Windows_NT)
+GO_VERSION ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '$$line=(Select-String -Path "go.mod" -Pattern "^go\s+(.+)$$").Matches[0].Groups[1].Value.Trim(); Write-Output ("go"+$$line)')
+GO_SOURCES := go.mod go.sum
+UNAME_S := Windows
+else
+GO_VERSION ?= $(shell grep '^go ' go.mod | awk '{print "go" $$2}')
+GO_SOURCES := go.mod go.sum $(shell find . -type f -name '*.go' ! -name '*_test.go')
+UNAME_S := $(shell uname -s)
+endif
+# gomobile stores initialization data under the first GOPATH entry.
+ifeq ($(OS),Windows_NT)
+GOMOBILE_INIT_DIR = $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command 'Write-Output (((go env GOPATH) -split ";")[0] + "/pkg/gomobile")')
+else
+GOMOBILE_INIT_DIR = $(shell go env GOPATH | cut -d: -f1)/pkg/gomobile
+endif
+GOMOBILECACHE ?= $(GOMOBILE_INIT_DIR)
+# gomobile bind produces the same ABI set consumed by Flutter and Gradle.
+override GOMOBILE_ANDROID_TARGET := $(subst armeabi-v7a,android/arm,$(subst arm64-v8a,android/arm64,$(ANDROID_ABIS)))
+# Pinned, not "latest". gomobile and gobind are the toolchain that builds the
+# mobile frameworks, so a release has to be reproducible in them -- with "latest"
+# a shipped binary is built by whatever resolved that morning, and nothing
+# records which. This is the version "latest" resolved to for the last green
+# release on all of android, macos and ios, so pinning it changes nothing today.
+GOMOBILE_VERSION ?= v0.0.0-20260908204917-8b95e45f8d3e
+GOMOBILE_INIT_STAMP = $(GOMOBILE_INIT_DIR)/.init-$(GO_VERSION)-$(GOMOBILE_VERSION)
+
+# CI builds only the runner's architecture and uses stable version metadata.
+GOMOBILE_MACOS_TARGET := macos
+GOMOBILE_IOS_TARGET := ios
+APPLE_FRAMEWORK_LDFLAGS = $(GO_EXTRA_LDFLAGS)
+SWIFT_CHECK_XCODE_ARGS :=
+SWIFT_CHECK_MACOS_DESTINATION := platform=macOS
+ifeq ($(SWIFT_CHECK),1)
+ifeq ($(SWIFT_CHECK_ARCH),arm64)
+SWIFT_CHECK_XCODE_ARCH := arm64
+else ifeq ($(SWIFT_CHECK_ARCH),amd64)
+SWIFT_CHECK_XCODE_ARCH := x86_64
+else
+$(error SWIFT_CHECK_ARCH must be arm64 or amd64 when SWIFT_CHECK=1)
+endif
+GOMOBILE_MACOS_TARGET := macos/$(SWIFT_CHECK_ARCH)
+GOMOBILE_IOS_TARGET := iossimulator/$(SWIFT_CHECK_ARCH)
+APPLE_FRAMEWORK_LDFLAGS = -X '$(RADIANCE_REPO)/common.Version=0.0.0-swift-ci' -X '$(RADIANCE_REPO)/common.BuildTime=1970-01-01T00:00:00Z' -X '$(RADIANCE_REPO)/common.Commit=swift-ci' $(STEALTH_GO_LDFLAGS)
+SWIFT_CHECK_XCODE_ARGS := ARCHS=$(SWIFT_CHECK_XCODE_ARCH) ONLY_ACTIVE_ARCH=YES
+SWIFT_CHECK_MACOS_DESTINATION := platform=macOS,arch=$(SWIFT_CHECK_XCODE_ARCH)
+SWIFT_CHECK_FRAMEWORK_STAMP := swift-check-v1-$(SWIFT_CHECK_ARCH)-$(GO_VERSION)-$(GOMOBILE_VERSION)
+endif
+
+GOMOBILE_REPOS = \
+	github.com/sagernet/sing-box/experimental/libbox \
+	./lantern-core/mobile \
+	./lantern-core/utils
+# novpn now ships the FULL app over SOCKS (not the minimal proxy stub), so it
+# binds the same packages as the regular/vpn build: libbox (sing-box, required by
+# the real MainActivity's Libbox init + the SOCKS data path), mobile, utils.
+GOMOBILE_REPOS_STEALTH_NOVPN = \
+	github.com/sagernet/sing-box/experimental/libbox \
+	./lantern-core/mobile \
+	./lantern-core/utils
+
+GARBLE ?= garble
+GARBLE_VERSION ?= v0.16.0
+GARBLE_SEED ?= $(STEALTH_GARBLE_SEED)
+GARBLE_FLAGS ?= -literals
+STEALTH_GOGARBLE_PACKAGES := github.com/getlantern/lantern,github.com/getlantern/radiance,github.com/getlantern/common,github.com/getlantern/lantern-box,github.com/getlantern/kindling,github.com/getlantern/netx,github.com/getlantern/flashlight,github.com/getlantern/golog,github.com/getlantern/sing-box-minimal,github.com/getlantern/amp,github.com/getlantern/broflake,github.com/getlantern/samizdat,github.com/getlantern/domainfront,github.com/getlantern/semconv,github.com/getlantern/publicip,github.com/getlantern/soar,github.com/getlantern/keepcurrent,github.com/getlantern/algeneva,github.com/getlantern/lantern-water,github.com/getlantern/water,github.com/getlantern/wazero,github.com/getlantern/wireguard-go,github.com/getlantern/sing,github.com/getlantern/osversion,github.com/getlantern/timezone,github.com/getlantern/pluriconfig,github.com/getlantern/appdir,github.com/getlantern/context,github.com/getlantern/fronted,github.com/getlantern/lantern-server-provisioner,github.com/getlantern/ops
+GARBLE_GOGARBLE ?= $(if $(STEALTH_ENABLED),$(STEALTH_GOGARBLE_PACKAGES),github.com/getlantern/lantern)
+GARBLE_LDFLAGS ?= -w -s -buildid=
+
+ifeq ($(OS),Windows_NT)
+GARBLE_REAL_GO ?= $(shell powershell -NoProfile -ExecutionPolicy Bypass -Command '(Get-Command go -ErrorAction SilentlyContinue).Source')
+GARBLE_ENV = $(if $(GARBLE_GOGARBLE),set GOGARBLE=$(GARBLE_GOGARBLE)&& ,set GOGARBLE=&& )
+else
+GARBLE_REAL_GO ?= $(shell command -v go 2>/dev/null)
+GARBLE_ENV = $(if $(GARBLE_GOGARBLE),GOGARBLE="$(GARBLE_GOGARBLE)",env -u GOGARBLE)
+endif
+GARBLE_BUILD = $(GARBLE) $(GARBLE_FLAGS) -seed="$(GARBLE_SEED)" build
+
+SIGN_ID="Developer ID Application: Brave New Software Project, Inc (ACZRKC3LQ9)"
+
+get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
+APPDMG    := $(call get-command,appdmg)
+
+AUTO_UPDATE_E2E_DART_DEFINE := $(if $(filter true 1 yes,$(AUTO_UPDATE_E2E)),--dart-define=AUTO_UPDATE_E2E=true,)
+DART_DEFINES := --dart-define=BUILD_TYPE=$(BUILD_TYPE) $(if $(VERSION),--dart-define=VERSION=$(VERSION),) $(if $(RADIANCE_ENV),--dart-define=RADIANCE_ENV=$(RADIANCE_ENV),) $(AUTO_UPDATE_E2E_DART_DEFINE)
+FLUTTER_TARGET_ARG := $(if $(FLUTTER_TARGET),--target=$(FLUTTER_TARGET),)
+MACOS_CONNECT_SMOKE_DEFINES := $(if $(filter true,$(RUN_CONNECT_SMOKE)),--dart-define=DISABLE_SYSTEM_TRAY=true --dart-define=ENABLE_IP_CHECK=$(ENABLE_IP_CHECK) --dart-define=SMOKE_FORCE_FULL_TUNNEL=$(FORCE_FULL_TUNNEL) --dart-define=VPN_LIFECYCLE_SMOKE=$(VPN_LIFECYCLE_SMOKE),)
+STEALTH_NOVPN_BUILD_VARS := BUILD_TYPE=stealth-novpn STEALTH_MODE=stealth-novpn STEALTH_LEAKAGE_MODE=stealth-novpn
+STEALTH_VPN_BUILD_VARS   := BUILD_TYPE=stealth-vpn  STEALTH_MODE=stealth-vpn  STEALTH_LEAKAGE_MODE=stealth-vpn
+STEALTH_ICON_SEED ?=
+STEALTH_ICON_RES_DIR ?= android/app/build/generated/icons/res
+export STEALTH_ICON_SEED
+
+STEALTH_PROFILE_SCRIPT := scripts/stealth/generate_profile.py
+STEALTH_PROFILE_TOOL := $(PYTHON) $(STEALTH_PROFILE_SCRIPT)
+STEALTH_FLUTTER_BUILD_SCRIPT := scripts/stealth/run_flutter_build.py
+STEALTH_ANDROID_ARTIFACT_SANITIZER := scripts/stealth/sanitize_android_artifact.py
+STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS := $(if $(filter 1 true yes,$(STEALTH_ALLOW_DEBUG_KEYSTORE)),--allow-debug-keystore,)
+# De-branded copy of the REAL Android Kotlin + res, compiled in place of the
+# legacy foundation.bridge stub source set so stealth ships the real native bridge.
+STEALTH_DEBRAND_KOTLIN_SCRIPT := scripts/stealth/debrand_kotlin.py
+STEALTH_ANDROID_GEN_DIR := $(BUILD_DIR)/stealth/android
+STEALTH_ANDROID_KOTLIN_OUT := $(STEALTH_ANDROID_GEN_DIR)/kotlin
+STEALTH_ANDROID_RES_OUT := $(STEALTH_ANDROID_GEN_DIR)/res
+STEALTH_PROFILE ?=
+STEALTH_MODE ?=
+STEALTH_PACKAGE_NAME ?=
+STEALTH_APP_NAME ?=
+STEALTH_SESSION_NAME ?=
+STEALTH_OBFUSCATION_SEED ?=
+STEALTH_GO_OBFUSCATION_SEED ?= $(STEALTH_OBFUSCATION_SEED)
+STEALTH_DENYLIST_VERSION ?=
+STEALTH_PROFILE_OUT ?= $(BUILD_DIR)/stealth/profile.json
+STEALTH_DART_DEFINES_FILE ?= $(BUILD_DIR)/stealth/dart-defines.json
+STEALTH_ARTIFACT_METADATA ?= $(BUILD_DIR)/stealth/artifact-metadata.json
+STEALTH_GO_TAGS_FILE ?= $(BUILD_DIR)/stealth/go-tags-suffix.txt
+STEALTH_PROFILE_STAMP ?= $(BUILD_DIR)/stealth/profile.stamp
+STEALTH_PROFILE_INPUTS_FILE ?= $(BUILD_DIR)/stealth/profile.inputs
+STEALTH_ENABLED := $(strip $(STEALTH_MODE)$(STEALTH_PROFILE))
+STEALTH_DART_DEFINES := $(if $(STEALTH_ENABLED),--dart-define-from-file=$(STEALTH_DART_DEFINES_FILE),)
+STEALTH_GO_TAGS = $(if $(STEALTH_ENABLED),$(if $(wildcard $(STEALTH_GO_TAGS_FILE)),$(strip $(file <$(STEALTH_GO_TAGS_FILE))),$(error missing $(STEALTH_GO_TAGS_FILE); run make stealth-profile before building)),)
+STEALTH_PROFILE_ENV := $(if $(STEALTH_ENABLED),ORG_GRADLE_PROJECT_stealthProfile="$(abspath $(STEALTH_PROFILE_OUT))",)
+MAYBE_STEALTH_PROFILE := $(if $(STEALTH_ENABLED),$(STEALTH_PROFILE_STAMP),)
+STEALTH_IS_NOVPN = $(if $(findstring novpn,$(STEALTH_GO_TAGS)),1,)
+GOMOBILE_REPOS_EFFECTIVE = $(if $(STEALTH_IS_NOVPN),$(GOMOBILE_REPOS_STEALTH_NOVPN),$(GOMOBILE_REPOS))
+GOMOBILE_JAVAPKG = $(if $(STEALTH_ENABLED),foundation.engine,lantern.io)
+STEALTH_FLUTTER_PREFIX = $(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_FLUTTER_BUILD_SCRIPT) --profile "$(STEALTH_PROFILE_OUT)" --,)
+# Stealth builds compile the REAL app entrypoint (lib/main.dart, Flutter's
+# default target). De-branding is a pre-compile transform (run_flutter_build.py)
+# plus the AppBuildInfo dart-define guards; the legacy lib/main_stealth.dart stub
+# is no longer used.
+STEALTH_FLUTTER_TARGET =
+# Dart symbol obfuscation removes brand *identifiers* (e.g. LanternService) from
+# the AOT-compiled libapp.so. Applied to stealth release builds only; requires
+# --split-debug-info. The symbol map stays local and is NOT shipped in the APK.
+STEALTH_FLUTTER_OBFUSCATE = $(if $(STEALTH_ENABLED),--obfuscate --split-debug-info=$(BUILD_DIR)/stealth/debug-symbols,)
+FLUTTER_DART_DEFINES = $(if $(STEALTH_ENABLED),$(if $(VERSION),--dart-define=VERSION=$(VERSION),),$(DART_DEFINES))
+
+INSTALLER_RESOURCES := installer-resources
+
+# Missing and Guards
+guard-%:
+	 @ if [ -z '${${*}}' ]; then echo 'Environment  $* variable not set' && exit 1; fi
+
+check-gomobile:
+	@command -v gomobile >/dev/null || (echo "gomobile not found. Run 'make install-android-deps'" && exit 1)
+
+.PHONY: stealth-android-sources
+stealth-android-sources:
+	$(PYTHON) $(STEALTH_DEBRAND_KOTLIN_SCRIPT) \
+	  --output $(STEALTH_ANDROID_KOTLIN_OUT) \
+	  --res-source android/app/src/main/res \
+	  --res-overlay android/app/src/stealth/res \
+	  --res-output $(STEALTH_ANDROID_RES_OUT)
+
+.PHONY: stealth-profile FORCE
+stealth-profile:
+	$(MAKE) -B "$(STEALTH_PROFILE_STAMP)"
+
+$(STEALTH_PROFILE_STAMP): FORCE $(STEALTH_PROFILE_SCRIPT)
+	$(call MKDIR_P,$(dir $(STEALTH_PROFILE_STAMP)))
+	@set -e; { \
+	  printf 'STEALTH_PROFILE_SCRIPT_SHA256='; \
+	  $(PYTHON) -c 'import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())' "$(STEALTH_PROFILE_SCRIPT)"; \
+	  printf 'STEALTH_PROFILE=%s\n' "$(STEALTH_PROFILE)"; \
+	  printf 'STEALTH_PROFILE_SHA256='; \
+	  if [ -n "$(STEALTH_PROFILE)" ] && [ -f "$(STEALTH_PROFILE)" ]; then \
+	    $(PYTHON) -c 'import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())' "$(STEALTH_PROFILE)"; \
+	  else \
+	    printf '\n'; \
+	  fi; \
+	  printf 'STEALTH_MODE=%s\n' "$(STEALTH_MODE)"; \
+	  printf 'STEALTH_PACKAGE_NAME=%s\n' "$(STEALTH_PACKAGE_NAME)"; \
+	  printf 'STEALTH_APP_NAME=%s\n' "$(STEALTH_APP_NAME)"; \
+	  printf 'STEALTH_SESSION_NAME=%s\n' "$(STEALTH_SESSION_NAME)"; \
+	  printf 'STEALTH_GO_OBFUSCATION_SEED_SHA256='; \
+	  if [ -n "$(STEALTH_GO_OBFUSCATION_SEED)" ]; then \
+	    $(PYTHON) -c 'import hashlib, sys; print(hashlib.sha256(sys.argv[1].encode("utf-8")).hexdigest())' "$(STEALTH_GO_OBFUSCATION_SEED)"; \
+	  else \
+	    printf '\n'; \
+	  fi; \
+	  printf 'STEALTH_DENYLIST_VERSION=%s\n' "$(STEALTH_DENYLIST_VERSION)"; \
+	} > "$(STEALTH_PROFILE_INPUTS_FILE).tmp"
+	@set -e; \
+	tmp_profile="$(STEALTH_PROFILE_OUT).tmp"; \
+	tmp_dart_defines="$(STEALTH_DART_DEFINES_FILE).tmp"; \
+	tmp_artifact_metadata="$(STEALTH_ARTIFACT_METADATA).tmp"; \
+	tmp_go_tags="$(STEALTH_GO_TAGS_FILE).tmp"; \
+	trap 'rm -f "$(STEALTH_PROFILE_INPUTS_FILE).tmp" "$$tmp_profile" "$$tmp_dart_defines" "$$tmp_artifact_metadata" "$$tmp_go_tags"' EXIT; \
+	if test -f "$(STEALTH_PROFILE_INPUTS_FILE)" && \
+		cmp -s "$(STEALTH_PROFILE_INPUTS_FILE).tmp" "$(STEALTH_PROFILE_INPUTS_FILE)" && \
+		test -s "$(STEALTH_PROFILE_OUT)" && \
+		test -s "$(STEALTH_DART_DEFINES_FILE)" && \
+		test -s "$(STEALTH_ARTIFACT_METADATA)" && \
+		test -s "$(STEALTH_GO_TAGS_FILE)"; then \
+	  touch "$@"; \
+	  rm -f "$(STEALTH_PROFILE_INPUTS_FILE).tmp"; \
+	else \
+	  $(STEALTH_PROFILE_TOOL) \
+		$(if $(STEALTH_PROFILE),--input "$(STEALTH_PROFILE)",) \
+		$(if $(STEALTH_MODE),--mode "$(STEALTH_MODE)",) \
+		$(if $(STEALTH_PACKAGE_NAME),--package-name "$(STEALTH_PACKAGE_NAME)",) \
+		$(if $(STEALTH_APP_NAME),--app-name "$(STEALTH_APP_NAME)",) \
+		$(if $(STEALTH_SESSION_NAME),--session-name "$(STEALTH_SESSION_NAME)",) \
+		$(if $(STEALTH_GO_OBFUSCATION_SEED),--go-obfuscation-seed "$(STEALTH_GO_OBFUSCATION_SEED)",) \
+		$(if $(STEALTH_DENYLIST_VERSION),--denylist-version "$(STEALTH_DENYLIST_VERSION)",) \
+		--output "$$tmp_profile" \
+		--dart-defines-output "$$tmp_dart_defines" \
+		--artifact-metadata-output "$$tmp_artifact_metadata"; \
+	  $(STEALTH_PROFILE_TOOL) --input "$$tmp_profile" --go-tags-suffix > "$$tmp_go_tags"; \
+	  mv "$(STEALTH_PROFILE_INPUTS_FILE).tmp" "$(STEALTH_PROFILE_INPUTS_FILE)"; \
+	  mv "$$tmp_profile" "$(STEALTH_PROFILE_OUT)"; \
+	  mv "$$tmp_dart_defines" "$(STEALTH_DART_DEFINES_FILE)"; \
+	  mv "$$tmp_artifact_metadata" "$(STEALTH_ARTIFACT_METADATA)"; \
+	  mv "$$tmp_go_tags" "$(STEALTH_GO_TAGS_FILE)"; \
+	  touch "$@"; \
+	fi
+
+.PHONY: check-garble require-garble-seed check-garble-seed check-garble-go
+check-garble:
+	@command -v $(GARBLE) >/dev/null 2>&1 || \
+		{ echo "garble not found. Run 'make install-garble' or set GARBLE=/path/to/garble."; exit 1; }
+	@command -v git >/dev/null 2>&1 || \
+		{ echo "git not found. garble requires git to patch the Go linker."; exit 1; }
+	@$(GARBLE) -h >/dev/null 2>&1 || \
+		{ echo "garble was found but could not run. Check GARBLE=$(GARBLE) and your Go toolchain."; exit 1; }
+
+require-garble-seed:
+	@if [ -z "$(GARBLE_SEED)" ]; then \
+		echo "GARBLE_SEED is required for obfuscated builds."; \
+		echo "Set GARBLE_SEED=<base64 profile seed> or STEALTH_GARBLE_SEED=<base64 profile seed>."; \
+		echo "Use GARBLE_SEED=random only for unreproducible local smoke builds."; \
+		exit 1; \
+	fi
+
+check-garble-seed: check-garble require-garble-seed
+	@$(GARBLE) -seed="$(GARBLE_SEED)" version >/dev/null 2>&1 || \
+		{ echo "GARBLE_SEED must be 'random' or a base64-encoded seed accepted by garble."; exit 1; }
+
+check-garble-go:
+	@if [ -z "$(GARBLE_REAL_GO)" ]; then \
+		echo "go not found. Install Go or set GARBLE_REAL_GO=/path/to/go for gomobile garble builds."; \
+		exit 1; \
+	fi
+
+.PHONY: stealth-android-icons
+stealth-android-icons: guard-STEALTH_ICON_SEED
+	$(PYTHON) scripts/stealth/generate_android_icons.py \
+		--output-res-dir "$(STEALTH_ICON_RES_DIR)"
+
+
+.PHONY: require-appdmg
+require-appdmg:
+	@if [[ -z "$(APPDMG)" ]]; then echo 'Missing "appdmg" command. Try sudo npm install -g appdmg.'; exit 1; fi
+
+.PHONY: require-ac-username
+require-ac-username: guard-AC_USERNAME ## App Store Connect username - needed for notarizing macOS apps.
+
+.PHONY: require-ac-password
+require-ac-password: guard-AC_PASSWORD ## App Store Connect password - needed for notarizing macOS apps.
+
+ifeq ($(OS),Windows_NT)
+  NORMALIZED_CURDIR := $(subst \,/,$(CURDIR))
+  SETENV = set CGO_ENABLED=1&& set CGO_CFLAGS=-I$(NORMALIZED_CURDIR)/dart_api_dl/include&& set CGO_LDFLAGS=$(WINDOWS_CGO_LDFLAGS)&&
+else
+  SETENV = CGO_ENABLED=1 CGO_CFLAGS=-I$(CURDIR)/dart_api_dl/include
+endif
+
+.PHONY: desktop-lib
+desktop-lib: $(MAYBE_STEALTH_PROFILE)
+	$(SETENV) go build -v -trimpath -buildmode=c-shared \
+		-tags="$(TAGS)$(STEALTH_GO_TAGS)" \
+		-ldflags="-w -s $(GO_EXTRA_LDFLAGS)" \
+		-o $(LIB_NAME) ./$(FFI_DIR)
+	@echo "Built desktop library: $(LIB_NAME)"
+
+.PHONY: desktop-lib-obfuscated
+desktop-lib-obfuscated: check-garble-seed
+	$(call MKDIR_P,$(dir $(LIB_NAME)))
+	@$(SETENV) $(GARBLE_ENV) $(GARBLE_BUILD) -v -trimpath -buildmode=c-shared \
+		-tags="$(TAGS)" \
+		-ldflags="$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-o $(LIB_NAME) ./$(FFI_DIR)
+	@echo "Built obfuscated desktop library: $(LIB_NAME)"
+
+# macOS build tools need to be installed when generating release builds,
+# but are not necessarily required for debug builds
+.PHONY: install-macos-deps
+
+install-macos-deps: install-gomobile
+	npm install -g appdmg
+	brew tap joshdk/tap
+	brew install joshdk/tap/retry
+	brew install imagemagick || true
+
+# Rebuild when switching between CI and normal frameworks.
+.PHONY: force-apple-framework
+force-apple-framework:
+ifeq ($(SWIFT_CHECK),1)
+ifneq ($(shell cat $(MACOS_FRAMEWORK_OUTPUT)/.swift-check-build 2>/dev/null),$(SWIFT_CHECK_FRAMEWORK_STAMP))
+$(MACOS_FRAMEWORK_OUTPUT): force-apple-framework
+endif
+ifneq ($(shell cat $(IOS_FRAMEWORK_OUTPUT)/.swift-check-build 2>/dev/null),$(SWIFT_CHECK_FRAMEWORK_STAMP))
+$(IOS_FRAMEWORK_OUTPUT): force-apple-framework
+endif
+else
+ifneq ($(wildcard $(MACOS_FRAMEWORK_OUTPUT)/.swift-check-build),)
+$(MACOS_FRAMEWORK_OUTPUT): force-apple-framework
+endif
+ifneq ($(wildcard $(IOS_FRAMEWORK_OUTPUT)/.swift-check-build),)
+$(IOS_FRAMEWORK_OUTPUT): force-apple-framework
+endif
+endif
+
+.PHONY: macos
+macos: $(MACOS_FRAMEWORK_OUTPUT)
+
+$(MACOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+	@echo "Building macOS Framework.."
+	rm -rf $(MACOS_FRAMEWORK_BUILD) $@ && mkdir -p $(MACOS_FRAMEWORK_DIR)
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=darwin $(GOMOBILE_BIND_RETRY) gomobile bind -v \
+		-tags=$(TAGS),netgo$(STEALTH_GO_TAGS)  -trimpath \
+		-target=$(GOMOBILE_MACOS_TARGET) \
+		-o $(MACOS_FRAMEWORK_BUILD) \
+		-ldflags="-w -s -checklinkname=0 $(APPLE_FRAMEWORK_LDFLAGS)" \
+		$(GOMOBILE_REPOS)
+	mv $(MACOS_FRAMEWORK_BUILD) $@
+ifeq ($(SWIFT_CHECK),1)
+	printf '%s\n' '$(SWIFT_CHECK_FRAMEWORK_STAMP)' > $@/.swift-check-build
+endif
+	@echo "Built macOS Framework: $@"
+
+
+.PHONY: macos-framework
+macos-framework: $(MACOS_FRAMEWORK_OUTPUT)
+
+.PHONY: macos-debug
+macos-debug: $(DARWIN_DEBUG_BUILD)
+
+$(DARWIN_DEBUG_BUILD): $(DARWIN_LIB_BUILD) $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (debug) for macOS..."
+	flutter build macos --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+
+.PHONY: macos-unit-tests
+macos-unit-tests: $(MACOS_FRAMEWORK_OUTPUT) $(MAYBE_STEALTH_PROFILE)
+	@echo "Preparing macOS test project (building native assets)..."
+	CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+		flutter build macos --debug --config-only $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+	@echo "Running macOS Runner unit tests..."
+	xcodebuild test \
+		-workspace macos/Runner.xcworkspace \
+		-scheme Runner \
+		-configuration Debug \
+		-destination "$(SWIFT_CHECK_MACOS_DESTINATION)" \
+		-only-testing:RunnerTests \
+		$(SWIFT_CHECK_XCODE_ARGS) \
+		CODE_SIGNING_ALLOWED=NO \
+		CODE_SIGNING_REQUIRED=NO \
+		CODE_SIGN_IDENTITY=""
+
+$(DARWIN_RELEASE_BUILD): $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (release) for macOS..."
+	rm -vf $(MACOS_INSTALLER)
+	flutter build macos --release $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+
+build-macos-release: $(DARWIN_RELEASE_BUILD)
+
+$(DARWIN_PROFILE_BUILD): $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (profile) for macOS..."
+	rm -vf $(MACOS_INSTALLER)
+	flutter build macos --profile $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES) $(MACOS_CONNECT_SMOKE_DEFINES)
+
+.PHONY: build-macos-release build-macos-profile stage-macos-profile
+build-macos-profile: $(DARWIN_PROFILE_BUILD)
+
+# Keep packaging and signing on the established Release staging path. The
+# profile fixture is test-only, but it still goes through the same Developer ID
+# signing, DMG packaging, and notarization steps as a release artifact.
+stage-macos-profile: build-macos-profile
+	rm -rf $(DARWIN_RELEASE_BUILD)
+	mkdir -p $(DARWIN_RELEASE_DIR)
+	ditto $(DARWIN_PROFILE_BUILD) $(DARWIN_RELEASE_BUILD)
+
+# stapler fetches the ticket from Apple's CloudKit, and one dropped connection
+# there failed v10.0.3-beta-3 after notarization had been accepted. Stapling is
+# idempotent, so every failure is retried. CloudKit outages outlasted the
+# default three attempts (~90s of waiting) on v10.0.4-beta.3 and the
+# 2026-10-28 nightly, so stapling waits through six attempts (15 minutes).
+STAPLER_RETRY = "$(CURDIR)/scripts/ci/retry-transient.sh" -n 6 -b 60 --
+
+.PHONY: notarize-darwin
+notarize-darwin: require-ac-username require-ac-password
+	scripts/ci/sign_macos_dmg.sh "$(DARWIN_RELEASE_BUILD)" "$(MACOS_INSTALLER)"
+	@echo "Notarizing distribution package..."
+	xcrun notarytool submit $(MACOS_INSTALLER) \
+		--apple-id $$AC_USERNAME \
+		--team-id "ACZRKC3LQ9" \
+		--password $$AC_PASSWORD \
+		--wait \
+		--output-format json > notary_output.json
+	@status=$$(jq -r '.status' notary_output.json); \
+	if [ "$$status" != "Accepted" ]; then \
+		id=$$(jq -r '.id' notary_output.json); \
+		echo "Notarization failed with status $$status (submission $$id)" >&2; \
+		xcrun notarytool log "$$id" \
+			--apple-id $$AC_USERNAME \
+			--team-id "ACZRKC3LQ9" \
+			--password $$AC_PASSWORD || true; \
+		exit 1; \
+	fi
+	@echo "Stapling notarization ticket..."
+	$(STAPLER_RETRY) xcrun stapler staple $(MACOS_INSTALLER)
+	codesign --verify --strict --verbose=2 "$(MACOS_INSTALLER)"
+	$(STAPLER_RETRY) xcrun stapler validate "$(MACOS_INSTALLER)"
+	spctl --assess --type open --context context:primary-signature --verbose=4 "$(MACOS_INSTALLER)"
+	@echo "Notarization complete"
+
+
+.PHONY: notarize-log
+notarize-log:
+	xcrun notarytool log 3036c6b2-8f99-44d7-8c3e-6c9c007b2524 \
+		--apple-id $$AC_USERNAME \
+		--team-id "ACZRKC3LQ9" \
+		--password $$AC_PASSWORD \
+		--output-format json > notary_log.json
+sign-app:
+	scripts/ci/sign_macos_app.sh \
+		$(DARWIN_RELEASE_BUILD) \
+		$(SIGN_ID) \
+		$(MACOS_ENTITLEMENTS) \
+		$(PACKET_ENTITLEMENTS)
+
+package-macos: require-appdmg
+	appdmg appdmg.json $(MACOS_INSTALLER)
+
+.PHONY: macos-release
+macos-release: clean macos pubget gen build-macos-release sign-app package-macos notarize-darwin
+
+.PHONY: macos-release-ci
+macos-release-ci: macos pubget gen build-macos-release sign-app package-macos notarize-darwin
+
+.PHONY: macos-profile-ci
+macos-profile-ci: macos pubget gen stage-macos-profile sign-app package-macos notarize-darwin
+
+# Linux Build
+.PHONY: install-linux-deps
+
+install-linux-deps:
+	@command -v nfpm >/dev/null 2>&1 || \
+		{ echo "Installing nfpm..."; go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.45.0; }
+
+.PHONY: linux-arm64
+linux-arm64: $(LINUX_LIB_ARM64)
+
+$(LINUX_LIB_ARM64): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+	CC=$(LINUX_CC_ARM64) GOOS=linux GOARCH=arm64 LIB_NAME=$@ $(MAKE) desktop-lib
+
+.PHONY: linux-arm64-obfuscated
+linux-arm64-obfuscated: $(GO_SOURCES)
+	CC=$(LINUX_CC_ARM64) GOOS=linux GOARCH=arm64 LIB_NAME=$(LINUX_LIB_ARM64) $(MAKE) desktop-lib-obfuscated
+
+.PHONY: linux-amd64
+linux-amd64: $(LINUX_LIB_AMD64)
+
+$(LINUX_LIB_AMD64): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+	CC=$(LINUX_CC_AMD64) GOOS=linux GOARCH=amd64 LIB_NAME=$@ $(MAKE) desktop-lib
+
+.PHONY: linux-amd64-obfuscated
+linux-amd64-obfuscated: $(GO_SOURCES)
+	CC=$(LINUX_CC_AMD64) GOOS=linux GOARCH=amd64 LIB_NAME=$(LINUX_LIB_AMD64) $(MAKE) desktop-lib-obfuscated
+
+.PHONY: linux
+linux: linux-$(LINUX_TARGET_ARCH)
+	mkdir -p $(BIN_DIR)/linux
+	cp $(BIN_DIR)/linux-$(LINUX_TARGET_ARCH)/$(LINUX_LIB) $(LINUX_LIB_BUILD)
+
+.PHONY: linux-obfuscated
+linux-obfuscated: linux-$(LINUX_TARGET_ARCH)-obfuscated
+	mkdir -p $(BIN_DIR)/linux
+	cp $(BIN_DIR)/linux-$(LINUX_TARGET_ARCH)/$(LINUX_LIB) $(LINUX_LIB_BUILD)
+
+.PHONY: lanternd-linux-amd64 lanternd-linux-arm64 \
+        lanternd-linux-amd64-obfuscated lanternd-linux-arm64-obfuscated
+
+lanternd-linux-amd64: $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+	$(call MKDIR_P,$(dir $(LANTERND_LINUX_AMD64)))
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 \
+		go build -mod=mod -v -trimpath -tags "$(TAGS)$(STEALTH_GO_TAGS)" \
+		-ldflags "-w -s $(LANTERND_EXTRA_LDFLAGS)" \
+		-o $(LANTERND_LINUX_AMD64) $(LANTERND_SRC)
+	@echo "Built lanternd (linux-amd64): $(LANTERND_LINUX_AMD64)"
+
+lanternd-linux-arm64: $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+	$(call MKDIR_P,$(dir $(LANTERND_LINUX_ARM64)))
+	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
+		go build -mod=mod -v -trimpath -tags "$(TAGS)$(STEALTH_GO_TAGS)" \
+		-ldflags "-w -s $(LANTERND_EXTRA_LDFLAGS)" \
+		-o $(LANTERND_LINUX_ARM64) $(LANTERND_SRC)
+	@echo "Built lanternd (linux-arm64): $(LANTERND_LINUX_ARM64)"
+
+lanternd-linux-amd64-obfuscated: check-garble-seed $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(LANTERND_LINUX_AMD64)))
+	@$(GARBLE_ENV) GOOS=linux GOARCH=amd64 CGO_ENABLED=1 \
+		$(GARBLE_BUILD) -mod=mod -v -trimpath -tags "$(TAGS)" \
+		-ldflags "$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-o $(LANTERND_LINUX_AMD64) $(LANTERND_SRC)
+	@echo "Built obfuscated lanternd (linux-amd64): $(LANTERND_LINUX_AMD64)"
+
+lanternd-linux-arm64-obfuscated: check-garble-seed $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(LANTERND_LINUX_ARM64)))
+	@$(GARBLE_ENV) GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
+		$(GARBLE_BUILD) -mod=mod -v -trimpath -tags "$(TAGS)" \
+		-ldflags "$(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		-o $(LANTERND_LINUX_ARM64) $(LANTERND_SRC)
+	@echo "Built obfuscated lanternd (linux-arm64): $(LANTERND_LINUX_ARM64)"
+
+.PHONY: linux-debug
+linux-debug: $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (debug) for Linux..."
+	flutter build linux --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+
+.PHONY: linux-release linux-release-ci
+linux-release: clean linux-release-ci
+
+linux-release-ci: linux pubget gen $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (release) for Linux..."
+	flutter build linux --release $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+	$(MAKE) lanternd-linux-$(LINUX_TARGET_ARCH)
+
+	@if [ "$(LINUX_TARGET_ARCH)" = "arm64" ]; then \
+	  BUNDLE_DIR="$(LINUX_BUNDLE_DIR_ARM64)"; \
+	else \
+	  BUNDLE_DIR="$(LINUX_BUNDLE_DIR_X64)"; \
+	fi; \
+	if [ ! -d "$$BUNDLE_DIR" ]; then \
+	  echo "Expected Linux bundle dir not found: $$BUNDLE_DIR"; \
+	  exit 1; \
+	fi; \
+	echo "Using Linux bundle dir: $$BUNDLE_DIR"; \
+	cp "$(LINUX_LIB_BUILD)" "$$BUNDLE_DIR"; \
+	cp "$(BIN_DIR)/linux-$(LINUX_TARGET_ARCH)/$(LANTERND)" "$$BUNDLE_DIR"; \
+	printf '%s\n' "$(LANTERND_SERVICE_LOG_LEVEL)" > "$$BUNDLE_DIR/lanternd-log-level"; \
+	patchelf --set-rpath '$$ORIGIN/lib' "$$BUNDLE_DIR/lantern" || true; \
+	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" \
+		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p deb -t $(LINUX_INSTALLER_DEB); \
+	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" \
+		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p rpm -t $(LINUX_INSTALLER_RPM); \
+	VERSION=$(APP_VERSION) GOARCH=$(LINUX_TARGET_ARCH) LINUX_BUNDLE_SRC="$$BUNDLE_DIR/" \
+		nfpm package -f $(LINUX_PKG_ROOT)/nfpm.yaml -p archlinux -t $(LINUX_INSTALLER_ARCH)
+
+.PHONY: verify-linux-package
+verify-linux-package:
+	./scripts/ci/verify_linux_package.sh $(LINUX_INSTALLER_DEB)
+
+# Windows Build
+.PHONY: lanternd-windows-amd64 lanternd-windows-arm64 \
+        copy-lanternd-release copy-lanternd-release-arm64 copy-lanternd-debug
+
+.PHONY: install-windows-deps
+install-windows-deps:
+	dart pub global activate fastforge
+
+windows: windows-amd64
+	$(call MKDIR_P,$(dir $(WINDOWS_LIB_BUILD)))
+	$(call COPY_FILE,$(WINDOWS_LIB_AMD64),$(WINDOWS_LIB_BUILD))
+
+windows-amd64: WINDOWS_GOOS := windows
+windows-amd64: WINDOWS_GOARCH := amd64
+windows-amd64: $(MAYBE_STEALTH_PROFILE)
+	$(call MKDIR_P,$(dir $(WINDOWS_LIB_AMD64)))
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_AMD64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
+windows-arm64: WINDOWS_GOOS := windows
+windows-arm64: WINDOWS_GOARCH := arm64
+windows-arm64: $(MAYBE_STEALTH_PROFILE)
+	$(call MKDIR_P,$(dir $(WINDOWS_LIB_ARM64)))
+	$(MAKE) desktop-lib GOOS=$(WINDOWS_GOOS) GOARCH=$(WINDOWS_GOARCH) LIB_NAME=$(WINDOWS_LIB_ARM64) CGO_LDFLAGS="$(WINDOWS_CGO_LDFLAGS)"
+
+lanternd-windows-amd64: $(LANTERND_WINDOWS_AMD64)
+
+lanternd-windows-arm64: $(LANTERND_WINDOWS_ARM64)
+
+$(LANTERND_WINDOWS_AMD64): $(MAYBE_STEALTH_PROFILE)
+	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_AMD64)))
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
+		go build -mod=mod -v -trimpath -tags "$(TAGS)$(STEALTH_GO_TAGS)" \
+		-ldflags "$(LANTERND_EXTRA_LDFLAGS)" \
+		-o $(LANTERND_WINDOWS_AMD64) $(LANTERND_SRC)
+	@echo "Built lanternd (windows-amd64): $(LANTERND_WINDOWS_AMD64)"
+
+$(LANTERND_WINDOWS_ARM64): $(MAYBE_STEALTH_PROFILE)
+	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_ARM64)))
+	GOOS=windows GOARCH=arm64 CGO_ENABLED=0 \
+		go build -mod=mod -v -trimpath -tags "$(TAGS)$(STEALTH_GO_TAGS)" \
+		-ldflags "$(LANTERND_EXTRA_LDFLAGS)" \
+		-o $(LANTERND_WINDOWS_ARM64) $(LANTERND_SRC)
+	@echo "Built lanternd (windows-arm64): $(LANTERND_WINDOWS_ARM64)"
+
+copy-lanternd-release: $(LANTERND_WINDOWS_AMD64)
+	$(call MKDIR_P,$(WINDOWS_RELEASE_DIR))
+	$(call COPY_FILE,$(LANTERND_WINDOWS_AMD64),$(LANTERND_WINDOWS_RELEASE))
+
+copy-lanternd-release-arm64: $(LANTERND_WINDOWS_ARM64)
+	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_RELEASE_ARM64)))
+	$(call COPY_FILE,$(LANTERND_WINDOWS_ARM64),$(LANTERND_WINDOWS_RELEASE_ARM64))
+
+copy-lanternd-debug: $(LANTERND_WINDOWS_AMD64)
+	$(call MKDIR_P,$(WINDOWS_DEBUG_DIR))
+	$(call COPY_FILE,$(LANTERND_WINDOWS_AMD64),$(WINDOWS_DEBUG_DIR)/$(LANTERND).exe)
+
+.PHONY: copy-lanternd-profile copy-lanternd-profile-arm64
+copy-lanternd-profile: $(LANTERND_WINDOWS_AMD64)
+	$(call MKDIR_P,$(WINDOWS_PROFILE_DIR))
+	$(call COPY_FILE,$(LANTERND_WINDOWS_AMD64),$(LANTERND_WINDOWS_PROFILE))
+
+copy-lanternd-profile-arm64: $(LANTERND_WINDOWS_ARM64)
+	$(call MKDIR_P,$(dir $(LANTERND_WINDOWS_PROFILE_ARM64)))
+	$(call COPY_FILE,$(LANTERND_WINDOWS_ARM64),$(LANTERND_WINDOWS_PROFILE_ARM64))
+
+.PHONY: prepare-windows-release
+prepare-windows-release: lanternd-windows-amd64 lanternd-windows-arm64
+	$(MAKE) copy-lanternd-release
+	$(MAKE) copy-lanternd-release-arm64
+	$(call WRITE_TEXT_FILE,$(LANTERND_SERVICE_LOG_LEVEL),$(WINDOWS_RELEASE_DIR)/lanternd-log-level)
+
+.PHONY: prepare-windows-profile
+prepare-windows-profile: lanternd-windows-amd64 lanternd-windows-arm64
+	$(MAKE) copy-lanternd-profile
+	$(MAKE) copy-lanternd-profile-arm64
+	$(call WRITE_TEXT_FILE,$(LANTERND_SERVICE_LOG_LEVEL),$(WINDOWS_PROFILE_DIR)/lanternd-log-level)
+
+.PHONY: windows-debug
+windows-debug: windows $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (debug) for Windows..."
+	flutter build windows --debug $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+
+.PHONY: build-windows-release
+build-windows-release: $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (release) for Windows..."
+	flutter build windows --release --verbose $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+
+.PHONY: build-windows-profile stage-windows-profile
+build-windows-profile: $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (profile) for Windows..."
+	flutter build windows --profile --verbose $(FLUTTER_TARGET_ARG) $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+
+# Fastforge packages the Release directory. Stage the test-only profile build
+# there after its native service binaries have been added.
+stage-windows-profile: build-windows-profile prepare-windows-profile
+	$(PS) "if (Test-Path '$(WINDOWS_RELEASE_DIR)') { Remove-Item -Recurse -Force -LiteralPath '$(WINDOWS_RELEASE_DIR)' }; New-Item -ItemType Directory -Force -Path '$(WINDOWS_RELEASE_DIR)' | Out-Null; Copy-Item -Recurse -Force -Path '$(WINDOWS_PROFILE_DIR)/*' -Destination '$(WINDOWS_RELEASE_DIR)'"
+
+.PHONY: windows-release
+windows-release: clean windows pubget gen build-windows-release prepare-windows-release
+
+.PHONY: windows-profile-ci
+windows-profile-ci: clean windows pubget gen stage-windows-profile
+
+.PHONY: install-gomobile
+# `go install` reaches proxy.golang.org, and one i/o timeout there is enough to
+# lose a whole release: it failed the v10.0.0 iOS build two minutes in and
+# blocked publication. Retry with backoff instead of surrendering the build to a
+# single blip. Joined with `;\` so the loop stays one recipe line.
+GO_INSTALL_ATTEMPTS ?= 3
+
+define go_install_retry
+attempt=1; until GOTOOLCHAIN=$(GO_VERSION) go install -v $(1); do \
+	if [ $$attempt -ge $(GO_INSTALL_ATTEMPTS) ]; then \
+		echo "go install $(1): giving up after $$attempt attempts" >&2; \
+		exit 1; \
+	fi; \
+	echo "go install $(1): attempt $$attempt failed, retrying in $$((attempt * 5))s" >&2; \
+	sleep $$((attempt * 5)); \
+	attempt=$$((attempt + 1)); \
+done
+endef
+
+# gomobile bind runs `go mod tidy` in a scratch module with no go.sum, so every
+# build checks each module against sum.golang.org. A sum.golang.org outage
+# (stream INTERNAL_ERROR, 2026-10-14) failed iOS and macOS builds for 40
+# minutes. Only those network errors are retried; compile errors fail at once.
+GOMOBILE_BIND_RETRY = "$(CURDIR)/scripts/ci/retry-transient.sh" \
+	-m 'reading https://(sum|proxy)\.golang\.org/|stream error|i/o timeout|TLS handshake timeout|connection reset by peer' --
+
+install-gomobile:
+	@$(call go_install_retry,golang.org/x/mobile/cmd/gomobile@$(GOMOBILE_VERSION))
+	@mkdir -p "$(GOMOBILE_INIT_DIR)"
+	@set -e; if [ ! -f "$(GOMOBILE_INIT_STAMP)" ]; then \
+		echo "Running gomobile init for $(GO_VERSION)/$(GOMOBILE_VERSION)..."; \
+		GOTOOLCHAIN=$(GO_VERSION) gomobile init; \
+	else \
+		echo "Skipping gomobile init (cached for $(GO_VERSION)/$(GOMOBILE_VERSION))"; \
+	fi
+# gomobile init installs gobind@latest, so install the pinned version last.
+	@$(call go_install_retry,golang.org/x/mobile/cmd/gobind@$(GOMOBILE_VERSION))
+	@touch "$(GOMOBILE_INIT_STAMP)"
+
+.PHONY: install-garble
+install-garble:
+	GOTOOLCHAIN=$(GO_VERSION) go install -v mvdan.cc/garble@$(GARBLE_VERSION)
+
+# Android Build
+.PHONY: check-android-sdk
+check-android-sdk:
+ifeq ($(ANDROID_SDK_ROOT),)
+	$(error ANDROID_SDK_ROOT or ANDROID_HOME must be set. Export the path to your Android SDK directory.)
+endif
+
+.PHONY: install-android-sdk
+install-android-sdk: check-android-sdk
+	$(SDKMANAGER) \
+		"platform-tools" \
+		"platforms;$(ANDROID_PLATFORM)" \
+		"build-tools;$(ANDROID_BUILD_TOOLS_VERSION)" \
+		"ndk;$(ANDROID_NDK_VERSION)" \
+		"cmake;$(ANDROID_CMAKE_VERSION)"
+	yes | $(SDKMANAGER) --licenses > /dev/null || true
+
+.PHONY: android-env
+android-env: check-android-sdk
+	@echo "ANDROID_HOME=$(ANDROID_SDK_ROOT)"
+	@echo "ANDROID_NDK_HOME=$(ANDROID_SDK_ROOT)/ndk/$(ANDROID_NDK_VERSION)"
+	@echo "ANDROID_NDK_ROOT=$(ANDROID_SDK_ROOT)/ndk/$(ANDROID_NDK_VERSION)"
+	@echo "NDK_HOME=$(ANDROID_SDK_ROOT)/ndk/$(ANDROID_NDK_VERSION)"
+
+.PHONY: install-android-deps
+install-android-deps: install-gomobile
+
+.PHONY: android-identity-profile
+android-identity-profile: $(MAYBE_STEALTH_PROFILE)
+	@if [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "1" ] || [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "true" ] || [ "$(ANDROID_GENERATE_IDENTITY_PROFILE)" = "yes" ]; then \
+	  if [ -z "$(ANDROID_IDENTITY_PROFILE)" ]; then \
+	    echo "ANDROID_IDENTITY_PROFILE is empty"; \
+	    exit 1; \
+	  fi; \
+	  if [ -z "$(STEALTH_ENABLED)" ]; then \
+	    echo "Generating an Android identity requires a stealth profile; set STEALTH_MODE or STEALTH_PROFILE (or use an android-stealth-* target)"; \
+	    exit 1; \
+	  fi; \
+	  mkdir -p "$$(dirname "$(ANDROID_IDENTITY_PROFILE)")"; \
+	  $(PYTHON) scripts/stealth/generate_android_identity.py \
+	    --output "$(ANDROID_IDENTITY_PROFILE)" \
+	    --profile "$(STEALTH_PROFILE_OUT)"; \
+	fi
+
+.PHONY: android
+android: check-android-sdk check-gomobile $(ANDROID_LIB_BUILD)
+
+# ABI changes invalidate output even when Make rounds mtimes to seconds.
+ifneq ($(shell cat $(ANDROID_ABI_STAMP) 2>/dev/null),$(ANDROID_ABIS))
+$(ANDROID_LIB_BUILD) $(ANDROID_DEBUG_BUILD): FORCE
+endif
+
+$(ANDROID_ABI_STAMP): FORCE
+	@mkdir -p $(dir $@)
+	@if [ ! -f "$@" ] || [ "$$(cat "$@")" != "$(ANDROID_ABIS)" ]; then printf '%s\n' "$(ANDROID_ABIS)" > "$@"; fi
+
+.PHONY: android-abi-config
+android-abi-config:
+	@echo "abis=$(ANDROID_ABIS) flutter=$(ANDROID_TARGET_PLATFORMS) gomobile=$(GOMOBILE_ANDROID_TARGET)"
+
+$(ANDROID_LIB_BUILD): $(GO_SOURCES) Makefile android/abi-targets.properties $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
+	$(MAKE) build-android
+
+build-android: check-android-sdk check-gomobile $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Android libraries..."
+	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
+	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
+
+	GOMOBILECACHE="$(GOMOBILECACHE)" \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=android $(GOMOBILE_BIND_RETRY) gomobile bind -v \
+		-androidapi=23 \
+		-target="$(GOMOBILE_ANDROID_TARGET)" \
+		-javapkg=$(GOMOBILE_JAVAPKG) \
+		-tags=$(TAGS)$(STEALTH_GO_TAGS) -trimpath \
+		-o=$(ANDROID_LIB_BUILD) \
+		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GO_EXTRA_LDFLAGS)" \
+		$(GOMOBILE_REPOS_EFFECTIVE)
+
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)
+	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
+	@echo "Built Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
+
+.PHONY: android-obfuscated
+android-obfuscated: build-android-obfuscated
+
+.PHONY: build-android-obfuscated
+build-android-obfuscated: check-android-sdk check-gomobile check-garble-seed check-garble-go $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
+	@echo "Building obfuscated Android libraries..."
+	rm -rf $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)
+	mkdir -p $(dir $(ANDROID_LIB_BUILD)) $(ANDROID_LIBS_DIR)
+
+	@PATH="$(CURDIR)/scripts/garble-go:$$PATH" \
+	GARBLE_REAL_GO="$(GARBLE_REAL_GO)" \
+	GARBLE_BIN="$(GARBLE)" \
+	GARBLE_SEED="$(GARBLE_SEED)" \
+	GARBLE_FLAGS="$(GARBLE_FLAGS)" \
+	GARBLE_GOGARBLE="$(GARBLE_GOGARBLE)" \
+	GOMOBILECACHE="$(GOMOBILECACHE)" \
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=android $(GOMOBILE_BIND_RETRY) gomobile bind -v \
+		-androidapi=23 \
+		-target="$(GOMOBILE_ANDROID_TARGET)" \
+		-javapkg=$(GOMOBILE_JAVAPKG) \
+		-tags=$(TAGS)$(STEALTH_GO_TAGS) -trimpath \
+		-o=$(ANDROID_LIB_BUILD) \
+		-ldflags="$(ANDROID_GOMOBILE_LDFLAGS) $(GARBLE_LDFLAGS) $(EXTRA_LDFLAGS)" \
+		$(GOMOBILE_REPOS_EFFECTIVE)
+
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD)
+	cp $(ANDROID_LIB_BUILD) $(ANDROID_LIBS_DIR)
+	@echo "Built obfuscated Android library: $(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"
+	$(if $(STEALTH_ENABLED),$(MAKE) ANDROID_LIBS_DIR="$(ANDROID_LIBS_DIR)" ANDROID_LIB="$(ANDROID_LIB)" verify-stealth-jni,)
+
+# verify-stealth-jni: hard gate on JNI symbol namespace in the stealth AAR.
+# Extracts each ABI's libgojni.so and asserts:
+#   - Java_lantern_io_* is ABSENT (GOMOBILE_JAVAPKG=foundation.engine applied)
+#   - Java_foundation_engine_* is PRESENT (gomobile binding succeeded)
+# Called automatically by build-android-obfuscated when STEALTH_ENABLED is set.
+# Can also be called standalone: make verify-stealth-jni
+.PHONY: verify-stealth-jni
+verify-stealth-jni:
+	@echo "=== verify-stealth-jni: checking JNI namespace in $(ANDROID_LIBS_DIR)/$(ANDROID_LIB) ==="
+	@tmpdir=$$(mktemp -d); \
+	trap 'rm -rf "$$tmpdir"' EXIT; \
+	aar="$(ANDROID_LIBS_DIR)/$(ANDROID_LIB)"; \
+	if [ ! -f "$$aar" ]; then \
+	  echo "FAIL: AAR not found at $$aar — build stealth AAR first"; \
+	  exit 1; \
+	fi; \
+	for abi in $$(printf '%s' "$(ANDROID_ABIS)" | tr ',' ' '); do \
+	  unzip -q "$$aar" "jni/$$abi/libgojni.so" -d "$$tmpdir" 2>/dev/null || \
+	    { echo "FAIL: libgojni.so not found in $$aar (expected jni/$$abi/libgojni.so)"; exit 1; }; \
+	  so="$$tmpdir/jni/$$abi/libgojni.so"; \
+	  bad=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_lantern_io" || true); \
+	  if [ "$$bad" -gt 0 ]; then \
+	    echo "FAIL: $$abi: $$bad Java_lantern_io_* symbol(s) found — GOMOBILE_JAVAPKG=foundation.engine not applied:"; \
+	    nm -D "$$so" | grep "Java_lantern_io"; \
+	    exit 1; \
+	  fi; \
+	  good=$$(nm -D "$$so" 2>/dev/null | grep -c "Java_foundation_engine" || true); \
+	  if [ "$$good" -eq 0 ]; then \
+	    echo "FAIL: $$abi: no Java_foundation_engine_* symbols found — gomobile javapkg binding is missing"; \
+	    exit 1; \
+	  fi; \
+	  echo "PASS: $$abi: Java_lantern_io=0, Java_foundation_engine=$$good"; \
+	done; \
+	echo "PASS: JNI namespace gate ($(ANDROID_ABIS))"
+
+.PHONY: android-debug android-debug-ci
+android-debug: $(ANDROID_DEBUG_BUILD)
+
+android-debug-ci: ANDROID_DEBUG_FLUTTER_FLAGS :=
+android-debug-ci: $(ANDROID_DEBUG_BUILD)
+
+$(ANDROID_DEBUG_BUILD): $(ANDROID_LIB_BUILD) Makefile android/abi-targets.properties $(ANDROID_ABI_STAMP) $(MAYBE_STEALTH_PROFILE)
+	$(MAKE) android-identity-profile
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(ANDROID_APK_TARGET_PLATFORMS) $(ANDROID_DEBUG_FLUTTER_FLAGS) --build-name=$(ANDROID_VERSION_NAME) --debug $(STEALTH_FLUTTER_TARGET) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_PATH) --apk $(ANDROID_DEBUG_BUILD)
+
+# Runs the Android integration test on a connected device (the FTL
+# instrumentation path). Override the entrypoint with ANDROID_INTEGRATION_TARGET.
+ANDROID_INTEGRATION_TARGET ?= integration_test/android_all_e2e_test.dart
+ANDROID_INTEGRATION_DART_DEFINES ?=
+# android/gradlew is gitignored, so CI overrides this with a runner-installed
+# gradle (see .github/workflows/firebase-test-lab.yml).
+ANDROID_GRADLE ?= ./gradlew
+
+.PHONY: android-integration-test
+android-integration-test: $(ANDROID_LIB_BUILD)
+	@if [ -z "$$ANDROID_SERIAL" ]; then \
+	  n=$$(adb devices | grep -c 'device$$'); \
+	  if [ "$$n" != "1" ]; then \
+	    echo "ERROR: $$n adb devices attached. connectedDebugAndroidTest runs on ALL of"; \
+	    echo "them at once; if two are the SAME physical phone (USB + Wi-Fi, or duplicate"; \
+	    echo "wireless-debugging transports) the concurrent instrumentation runs collide and"; \
+	    echo "both report 'Process crashed'. Attach exactly one transport, or pin one with"; \
+	    echo "ANDROID_SERIAL=<serial> (see 'adb devices -l')."; \
+	    exit 1; \
+	  fi; \
+	fi
+	@echo "Running Android integration test on connected device(s): $(ANDROID_INTEGRATION_TARGET)"
+	cd android && $(ANDROID_GRADLE) app:connectedDebugAndroidTest -Ptarget-platform=$(ANDROID_TARGET_PLATFORMS) -Ptarget="$(ANDROID_INTEGRATION_TARGET)" -Plantern.versionName="$(ANDROID_VERSION_NAME)" $(ANDROID_INTEGRATION_DART_DEFINES)
+
+# Builds the two APKs Firebase Test Lab needs to run the integration test as an
+# instrumentation test — the app APK (with the Dart entrypoint baked in via
+# -Ptarget) and the androidTest APK — without a connected device. Same default
+# org.getlantern.lantern identity as android-integration-test (see above).
+# Outputs:
+#   build/app/outputs/apk/debug/app-debug.apk
+#   build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+.PHONY: android-integration-apks
+android-integration-apks: $(ANDROID_LIB_BUILD)
+	@echo "Building integration test APKs (app + androidTest): $(ANDROID_INTEGRATION_TARGET)"
+	cd android && $(ANDROID_GRADLE) app:assembleDebug app:assembleDebugAndroidTest -Ptarget-platform=$(ANDROID_TARGET_PLATFORMS) -Ptarget="$(ANDROID_INTEGRATION_TARGET)" -Plantern.versionName="$(ANDROID_VERSION_NAME)" $(ANDROID_INTEGRATION_DART_DEFINES)
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_PATH) --apk build/app/outputs/apk/debug/app-debug.apk
+
+# Runs the integration test APKs on Firebase Test Lab. Needs an authenticated
+# gcloud CLI (`gcloud auth login`). Devices, project, bucket, etc. are
+# overridable via FTL_* env vars — see scripts/android/ftl-run.sh.
+.PHONY: android-ftl-test
+android-ftl-test: android-integration-apks
+	scripts/android/ftl-run.sh
+
+# Builds and checks one single-ABI sideload APK: $(1)=ABI, $(2)=Flutter
+# target platform, $(3)=output file. The AAR keeps every ABI; -Plantern.abis
+# narrows Gradle packaging to match Flutter's single target.
+define android_apk_for_abi
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build apk --target-platform $(2) -Plantern.abis=$(1) --verbose --build-name=$(ANDROID_VERSION_NAME) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) -Plantern.sideloadUpdates=true
+	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_APK_RELEASE_BUILD),true)
+	$(ANDROID_ABI_CHECK) --app-abis $(1) --aar $(ANDROID_LIB_PATH) --apk $(ANDROID_APK_RELEASE_BUILD) --release
+	cp $(ANDROID_APK_RELEASE_BUILD) $(3)
+endef
+
+# One sideload APK per ABI; the AAB below carries every ABI and Play splits it.
+# -Plantern.sideloadUpdates=true adds REQUEST_INSTALL_PACKAGES only to the
+# direct-download APK artifact; Play AAB builds intentionally omit it.
+.PHONY: android-apk-release
+android-apk-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
+	# Package the selected native build as-is; an implicit rebuild could replace a garbled AAR.
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD) --aar $(ANDROID_LIB_PATH)
+	$(call android_apk_for_abi,arm64-v8a,android-arm64,$(ANDROID_RELEASE_APK))
+	$(call android_apk_for_abi,armeabi-v7a,android-arm,$(ANDROID_RELEASE_APK_ARMV7))
+
+# The AAB carries every ABI in android/abi-targets.properties.
+.PHONY: android-aab-release
+android-aab-release: android-identity-profile $(MAYBE_STEALTH_PROFILE)
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_BUILD) --aar $(ANDROID_LIB_PATH)
+	$(STEALTH_PROFILE_ENV) $(ANDROID_IDENTITY_ENV) $(STEALTH_FLUTTER_PREFIX) flutter build appbundle --target-platform $(ANDROID_AAB_TARGET_PLATFORMS) --verbose --build-name=$(ANDROID_VERSION_NAME) --release $(STEALTH_FLUTTER_TARGET) $(STEALTH_FLUTTER_OBFUSCATE) $(FLUTTER_DART_DEFINES) $(STEALTH_DART_DEFINES) $(ANDROID_IDENTITY_DART_DEFINES) $(PLAY_STORE_DART_DEFINE) $(PLAY_STORE_GRADLE_FLAGS)
+	$(if $(STEALTH_ENABLED),$(PYTHON) $(STEALTH_ANDROID_ARTIFACT_SANITIZER) --resign $(STEALTH_ANDROID_ARTIFACT_SIGNING_FLAGS) $(ANDROID_AAB_RELEASE_BUILD),true)
+	$(ANDROID_ABI_CHECK) --aar $(ANDROID_LIB_PATH) --aab $(ANDROID_AAB_RELEASE_BUILD) --release
+	cp $(ANDROID_AAB_RELEASE_BUILD) $(ANDROID_RELEASE_AAB)
+	$(MAKE) android-copy-play-artifacts
+
+.PHONY: android-copy-play-artifacts
+android-copy-play-artifacts:
+ifneq ($(strip $(STEALTH_ENABLED)),)
+	@echo "Skipping Play mapping and native symbols copy for stealth build"
+else
+	# Copy Play console artifacts
+	@if [ -f "$(ANDROID_MAPPING_SRC)" ]; then \
+	  cp "$(ANDROID_MAPPING_SRC)" mapping.txt; \
+	fi
+
+	@if [ -f "$(ANDROID_SYMBOLS_SRC)" ]; then \
+	  cp "$(ANDROID_SYMBOLS_SRC)" debug-symbols.zip; \
+	elif [ -d "build/app/intermediates/merged_native_libs/release/out/lib" ]; then \
+	  (cd build/app/intermediates/merged_native_libs/release/out && zip -r ../../../../../../debug-symbols.zip lib >/dev/null); \
+	fi
+endif
+
+.PHONY: android-stealth-novpn-apk-release
+android-stealth-novpn-apk-release:
+	$(MAKE) $(STEALTH_NOVPN_BUILD_VARS) stealth-android-sources android pubget gen android-apk-release
+
+.PHONY: android-stealth-novpn-aab-release
+android-stealth-novpn-aab-release:
+	$(MAKE) $(STEALTH_NOVPN_BUILD_VARS) stealth-android-sources android pubget gen android-aab-release
+
+.PHONY: android-stealth-novpn-release
+android-stealth-novpn-release:
+	$(MAKE) $(STEALTH_NOVPN_BUILD_VARS) stealth-android-sources android-release-ci
+
+.PHONY: android-stealth-vpn-apk-release
+android-stealth-vpn-apk-release:
+	$(MAKE) $(STEALTH_VPN_BUILD_VARS) stealth-android-sources android pubget gen android-apk-release
+
+.PHONY: android-stealth-vpn-aab-release
+android-stealth-vpn-aab-release:
+	$(MAKE) $(STEALTH_VPN_BUILD_VARS) stealth-android-sources android pubget gen android-aab-release
+
+.PHONY: android-stealth-vpn-release
+android-stealth-vpn-release:
+	$(MAKE) $(STEALTH_VPN_BUILD_VARS) stealth-android-sources android-release-ci
+
+
+.PHONY: android-release
+android-release: clean android pubget gen android-identity-profile android-apk-release
+
+.PHONY: android-release-ci
+android-release-ci: android pubget gen android-identity-profile android-apk-release android-aab-release
+
+.PHONY: stealth-leakage-check stealth-novpn-leakage-check
+stealth-leakage-check:
+	$(PYTHON) scripts/stealth/check_leakage.py \
+		--config "$(STEALTH_LEAKAGE_CONFIG)" \
+		--mode "$(STEALTH_LEAKAGE_MODE)" \
+		$(if $(filter 1 true yes,$(STEALTH_LEAKAGE_MISSING_OK)),--missing-ok,) \
+		$(STEALTH_LEAKAGE_PATHS)
+
+stealth-novpn-leakage-check:
+	$(MAKE) stealth-leakage-check STEALTH_LEAKAGE_MODE=stealth-novpn
+
+.PHONY: android-release-obfuscated
+android-release-obfuscated: clean android-obfuscated pubget gen android-identity-profile android-apk-release
+
+.PHONY: android-release-ci-obfuscated
+android-release-ci-obfuscated: android-obfuscated pubget gen android-identity-profile android-apk-release android-aab-release
+
+.PHONY: stealth-manifest-filter-test
+stealth-manifest-filter-test:
+	$(PYTHON) -m unittest discover -s scripts/stealth -p '*_test.py'
+
+# iOS Build
+.PHONY: install-ios-deps
+
+install-ios-deps: install-gomobile
+	npm install -g appdmg
+
+.PHONY: ios
+ios: $(IOS_FRAMEWORK_BUILD)
+
+.PHONY: ios
+ios: check-gomobile $(IOS_FRAMEWORK_BUILD)
+
+$(IOS_FRAMEWORK_BUILD): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+	$(MAKE) build-ios
+
+build-ios: $(MAYBE_STEALTH_PROFILE)
+	@echo "Building iOS Framework.."
+	rm -rf $(IOS_FRAMEWORK_BUILD)
+	rm -rf $(IOS_FRAMEWORK_DIR) && mkdir -p $(IOS_FRAMEWORK_DIR)
+	GOTOOLCHAIN=$(GO_VERSION) GOOS=ios $(GOMOBILE_BIND_RETRY) gomobile bind -v \
+		-tags=$(TAGS),with_low_memory$(STEALTH_GO_TAGS) -trimpath \
+		-target=$(GOMOBILE_IOS_TARGET) \
+		-o $(IOS_FRAMEWORK_BUILD) \
+		-ldflags="-w -s -checklinkname=0 $(APPLE_FRAMEWORK_LDFLAGS)" \
+		$(GOMOBILE_REPOS)
+	@echo "Built iOS Framework: $(IOS_FRAMEWORK_BUILD)"
+	mv $(IOS_FRAMEWORK_BUILD) $(IOS_FRAMEWORK_DIR)
+ifeq ($(SWIFT_CHECK),1)
+	printf '%s\n' '$(SWIFT_CHECK_FRAMEWORK_STAMP)' > $(IOS_FRAMEWORK_OUTPUT)/.swift-check-build
+endif
+
+$(IOS_FRAMEWORK_OUTPUT): $(GO_SOURCES) $(MAYBE_STEALTH_PROFILE)
+	$(MAKE) check-gomobile
+	$(MAKE) build-ios
+
+# Unsigned simulator build; PR gate for Swift compile errors.
+.PHONY: ios-compile-check
+ios-compile-check: $(IOS_FRAMEWORK_OUTPUT) $(MAYBE_STEALTH_PROFILE)
+	@echo "Building Flutter app (debug, simulator) for iOS..."
+ifeq ($(SWIFT_CHECK),1)
+# Generate Flutter configuration and install Pods before building with Xcode.
+	flutter build ios --debug --simulator --no-codesign --config-only $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+	xcodebuild build \
+		-workspace ios/Runner.xcworkspace \
+		-scheme Runner \
+		-configuration Debug \
+		-sdk iphonesimulator \
+		-destination "generic/platform=iOS Simulator" \
+		BUILD_DIR="$(abspath $(BUILD_DIR))/ios" \
+		$(SWIFT_CHECK_XCODE_ARGS) \
+		CODE_SIGNING_ALLOWED=NO \
+		CODE_SIGNING_REQUIRED=NO \
+		CODE_SIGN_IDENTITY=""
+else
+	flutter build ios --debug --simulator --no-codesign $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+endif
+
+.PHONY: format swift-format
+swift-format:
+	swift-format format --in-place --recursive ios/Runner ios/Tunnel ios/Shared macos/Runner macos/PacketTunnel macos/Shared
+
+format:
+	@echo "Formatting Dart code..."
+	@dart format .
+	@echo "Formatting go code"
+	@cd lantern-core && go fmt ./...
+	@echo "Formatting Swift code..."
+	$(MAKE) swift-format
+
+ios-release: clean pubget ios $(MAYBE_STEALTH_PROFILE)
+	flutter build ipa --release --export-options-plist ./ExportOptions.plist $(DART_DEFINES) $(STEALTH_DART_DEFINES)
+	@set -e; \
+	  IPA_DIR="$(CURDIR)/build/ios/ipa"; \
+	  IPA_SRC=$$(ls -t "$$IPA_DIR"/*.ipa 2>/dev/null | head -n 1); \
+	  if [ -z "$$IPA_SRC" ]; then \
+	    echo "ERROR: No .ipa found under $$IPA_DIR"; \
+	    ls -la "$$IPA_DIR" || true; \
+	    exit 1; \
+	  fi; \
+	  cp -f "$$IPA_SRC" "$(IOS_INSTALLER)"; \
+	  echo "iOS IPA generated: $(IOS_INSTALLER)"
+
+# Dart API DL bridge
+DART_SDK_REPO=https://github.com/dart-lang/sdk
+DART_SDK_INCLUDE_DIR=dart_api_dl/include
+DART_SDK_BRANCH=main
+
+.PHONY: update-dart-api-dl
+update-dart-api-dl:
+	@echo "Updating Dart API DL bridge..."
+	rm -rf $(DART_SDK_INCLUDE_DIR)
+	mkdir -p $(DART_SDK_INCLUDE_DIR)
+	git clone --depth 1 --filter=blob:none --sparse $(DART_SDK_REPO) dart_sdk_tmp
+	cd dart_sdk_tmp && git sparse-checkout set runtime/include
+	mv dart_sdk_tmp/runtime/include/* $(DART_SDK_INCLUDE_DIR)/
+	rm -rf dart_sdk_tmp
+	@echo "Dart API DL bridge updated successfully!"
+
+
+#Routes generation
+gen:
+	dart run build_runner build --delete-conflicting-outputs
+
+# FFI generation
+.PHONY: macos-ffi-amd64 macos-ffi-arm64 macos-ffi-headers ffigen-prep ffigen
+
+macos-ffi-amd64: $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(DARWIN_LIB_AMD64)))
+	GOOS=darwin GOARCH=amd64 LIB_NAME=$(DARWIN_LIB_AMD64) $(MAKE) desktop-lib
+
+macos-ffi-arm64: $(GO_SOURCES)
+	$(call MKDIR_P,$(dir $(DARWIN_LIB_ARM64)))
+	GOOS=darwin GOARCH=arm64 LIB_NAME=$(DARWIN_LIB_ARM64) $(MAKE) desktop-lib
+
+macos-ffi-headers: macos-ffi-arm64
+	@echo "macOS FFI headers available under bin/macos-arm64/liblantern.h"
+
+ffigen-prep:
+ifeq ($(UNAME_S),Darwin)
+	@if [ ! -f "$(MACOS_FFI_HEADER)" ]; then \
+		echo "Missing $(MACOS_FFI_HEADER) — generating macOS FFI headers for ffigen..."; \
+		$(MAKE) macos-ffi-headers; \
+	fi
+endif
+
+ffigen: ffigen-prep
+	dart run ffigen
+
+pubget:
+	flutter pub get
+
+find-duplicate-translations:
+	grep -oE 'msgid\s+"[^"]+"' assets/locales/en.po | sort | uniq -d
+
+# Translate en.po changes into every locale with Claude via OpenRouter (tools/localization). Needs OPENROUTER_API_KEY.
+TRANSLATE_VENV := $(BUILD_DIR)/translate-venv
+TRANSLATE_OUT  := $(BUILD_DIR)/translate
+TRANSLATE_FLAGS = --out $(TRANSLATE_OUT) \
+	$(if $(TRANSLATE_LOCALES),--locales $(TRANSLATE_LOCALES)) \
+	$(if $(TRANSLATE_LIMIT),--limit $(TRANSLATE_LIMIT)) \
+	$(if $(TRANSLATE_BASE),--base $(TRANSLATE_BASE)) \
+	$(TRANSLATE_ARGS)
+
+.PHONY: translate translate-plan translate-dry-run translate-apply translate-report translate-audit translate-cleanup translate-test
+translate: $(TRANSLATE_VENV)/bin/python
+	$(TRANSLATE_VENV)/bin/python tools/localization/translate.py $(TRANSLATE_FLAGS)
+
+translate-dry-run: $(TRANSLATE_VENV)/bin/python
+	$(TRANSLATE_VENV)/bin/python tools/localization/translate.py --dry-run $(TRANSLATE_FLAGS)
+
+translate-plan:
+	$(PYTHON) tools/localization/translate.py --plan $(TRANSLATE_FLAGS)
+
+translate-apply:
+	$(PYTHON) tools/localization/translate.py --apply $(or $(TRANSLATE_RESULTS),$(TRANSLATE_OUT)/results.json) $(if $(TRANSLATE_LOCALES),--locales $(TRANSLATE_LOCALES))
+
+translate-report:
+	@test -f $(TRANSLATE_OUT)/report.html || { echo "no report yet; run make translate-dry-run first"; exit 1; }
+	open $(TRANSLATE_OUT)/report.html 2>/dev/null || xdg-open $(TRANSLATE_OUT)/report.html
+
+translate-audit:
+	$(PYTHON) tools/localization/translate.py --audit --out $(TRANSLATE_OUT)
+
+translate-cleanup:
+	$(PYTHON) tools/localization/translate.py --cleanup $(TRANSLATE_ARGS) --out $(TRANSLATE_OUT)
+
+translate-test:
+	cd tools/localization && $(PYTHON) -m unittest test_translate -v
+
+$(TRANSLATE_VENV)/bin/python:
+	$(PYTHON) -m venv $(TRANSLATE_VENV)
+	$(TRANSLATE_VENV)/bin/pip install -q anthropic==2.3.0 || { rm -rf $(TRANSLATE_VENV); exit 1; }
+
+# flutter clean is what drops .dart_tool, where Flutter keeps its build stamps.
+# Removing the outputs under $(BUILD_DIR) without it leaves Flutter believing
+# those targets are still satisfied, so it skips regenerating them: the
+# native-assets hook stops running and the macOS build dies in the Xcode phase
+# looking for a framework NativeAssetsManifest.json still references. Every
+# target depending on clean re-runs pubget, so dropping .dart_tool is safe.
+.PHONY: clean
+clean:
+	flutter clean
+	rm -rf $(BUILD_DIR)/*
+	rm -rf $(BIN_DIR)/*
+	rm -rf $(MACOS_FRAMEWORK_DIR)/*
+	rm -rf $(ANDROID_LIB_PATH)
+	rm -rf $(IOS_DIR)$(IOS_FRAMEWORK)
+
+
+#this will used to delete all Lantern data from the user's home directory
+PHONY: delete-data
+delete-data:
+	@echo "Deleting Lantern data..."
+	@rm -rf "$(HOME)/Library/Application Support/org.getlantern.lantern"
+	@rm -rf "$(HOME)/Library/Logs/Lantern"
+	@rm -rf "$(HOME)/.lanternsecrets"
+	@rm -rf "/Users/Shared/Lantern/"
+	@echo "Lantern data deleted."
+
+.PHONY: protos
+# You can install the dart protoc support by running 'dart pub global activate protoc_plugin'
+protos:
+	@protoc --dart_out=lib/lantern/protos protos/auth.proto

@@ -1,0 +1,300 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/services.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/notification_event.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/services/notification_service.dart';
+import 'package:lantern/core/services/rating_prompt_service.dart';
+import 'package:lantern/core/utils/helper_tags.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
+import 'package:lantern/features/vpn/provider/vpn_status_notifier.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'vpn_notifier.g.dart';
+
+@Riverpod(keepAlive: true)
+class VpnNotifier extends _$VpnNotifier {
+  bool _hasStatusStreamEmission = false;
+  Future<Either<Failure, String>>? _stopRequest;
+  bool _userDisconnectRequested = false;
+
+  RatingPromptService? get _ratingPrompt =>
+      sl.isRegistered<RatingPromptService>() ? sl<RatingPromptService>() : null;
+
+  @override
+  VPNStatus build() {
+    unawaited(_hydrateInitialStatus());
+    ref.listen(vPNStatusProvider, (previous, next) {
+      if (next.hasError) {
+        _hasStatusStreamEmission = true;
+        _userDisconnectRequested = false;
+        appLogger.error(
+          'VPN status provider failed',
+          next.error,
+          next.stackTrace,
+        );
+        state = VPNStatus.error;
+        return;
+      }
+      if (!next.hasValue) return;
+      final lanternStatus = next.value;
+      if (lanternStatus == null) return;
+      _hasStatusStreamEmission = true;
+      final previousStatus = previous?.hasValue == true
+          ? previous!.value?.status
+          : null;
+      final nextStatus = lanternStatus.status;
+      final nextOrigin = lanternStatus.origin;
+      // [vpn-state-trace] hop=dart_applied — moment Riverpod fires the listener
+      // after the FFI ReceivePort delivers a status. Pairs with ffi_to_port
+      // (lantern-core) and ssehandler_flushed / sse_parsed / daemon_setstatus
+      // (radiance) to localize the Windows lag in Freshdesk #174072.
+      // Use nextStatus.name (e.g. "disconnecting") rather than the default
+      // toString() ("VPNStatus.disconnecting") so the value matches the wire
+      // format emitted by radiance — makes cross-hop grep/correlation work.
+      appLogger.info(
+        '[vpn-state-trace] hop=dart_applied status=${nextStatus.name} '
+        'ts_ms=${DateTime.now().millisecondsSinceEpoch}',
+      );
+      final suppressConnectionNotifications =
+          nextOrigin == VPNStatusOrigin.settingsMutation &&
+          (nextStatus == VPNStatus.connected ||
+              nextStatus == VPNStatus.disconnected);
+
+      final isFirstEvent = previous == null || previous.value == null;
+      final statusChanged = !isFirstEvent && previousStatus != nextStatus;
+
+      if (nextStatus == VPNStatus.error ||
+          nextStatus == VPNStatus.connecting ||
+          (nextStatus == VPNStatus.connected &&
+              previousStatus == VPNStatus.disconnecting)) {
+        _userDisconnectRequested = false;
+      }
+
+      if (nextStatus == VPNStatus.disconnected &&
+          (statusChanged || isFirstEvent)) {
+        // A successful stop request can return before the tunnel is down.
+        // Count the session once, when the native status confirms it.
+        final byUser = _userDisconnectRequested;
+        _userDisconnectRequested = false;
+        unawaited(
+          byUser
+              ? _ratingPrompt?.onUserDisconnected()
+              : _ratingPrompt?.onDisconnected(),
+        );
+      }
+
+      if (statusChanged) {
+        if (previousStatus != VPNStatus.connecting &&
+            nextStatus == VPNStatus.disconnected) {
+          if (!suppressConnectionNotifications) {
+            sl<NotificationService>().showNotification(
+              id: NotificationEvent.vpnDisconnected.id,
+              title: 'app_name'.i18n,
+              body: 'vpn_disconnected'.i18n,
+            );
+          } else {
+            appLogger.debug(
+              'Suppressed vpn_disconnected notification (origin=$nextOrigin)',
+            );
+          }
+        }
+      }
+
+      if (nextStatus == VPNStatus.connected &&
+          (statusChanged || isFirstEvent)) {
+        if (statusChanged && PlatformUtils.isMobile) {
+          HapticFeedback.mediumImpact();
+        }
+
+        /// Mark successful connection in app settings
+        ref.read(appSettingProvider.notifier).setSuccessfulConnection(true);
+        unawaited(_ratingPrompt?.onConnected());
+
+        if (PlatformUtils.isAndroid) {
+          // The foreground service notification already shows the connected
+          // state with a Disconnect action; just clear any stale disconnect.
+          sl<NotificationService>().cancelNotification(
+            NotificationEvent.vpnConnected.id,
+          );
+        } else if (statusChanged && !suppressConnectionNotifications) {
+          sl<NotificationService>().showNotification(
+            id: NotificationEvent.vpnConnected.id,
+            title: 'app_name'.i18n,
+            body: 'vpn_connected'.i18n,
+          );
+        }
+      }
+
+      state = nextStatus;
+    });
+    return VPNStatus.disconnected;
+  }
+
+  Future<void> _hydrateInitialStatus() async {
+    late final Either<Failure, bool> result;
+    try {
+      result = await ref.read(lanternServiceProvider).isVPNConnected();
+    } catch (e, stackTrace) {
+      appLogger.error('Failed to hydrate VPN status', e, stackTrace);
+      if (ref.mounted &&
+          !_hasStatusStreamEmission &&
+          state == VPNStatus.disconnected) {
+        state = VPNStatus.error;
+      }
+      return;
+    }
+    if (!ref.mounted || _hasStatusStreamEmission) return;
+    result.fold(
+      (failure) {
+        appLogger.error(
+          'Failed to hydrate VPN status: ${failure.error}',
+          failure.error,
+        );
+        if (state == VPNStatus.disconnected) {
+          state = VPNStatus.error;
+        }
+      },
+      (connected) {
+        if (state == VPNStatus.disconnected) {
+          state = connected ? VPNStatus.connected : VPNStatus.disconnected;
+        }
+        // Hydration bypasses the status listener, so reconcile the persisted
+        // rating session here.
+        unawaited(
+          connected
+              ? _ratingPrompt?.onConnected()
+              : _ratingPrompt?.onDisconnected(),
+        );
+      },
+    );
+  }
+
+  Future<Either<Failure, String>> onVPNStateChange() async {
+    if (_stopRequest != null ||
+        _userDisconnectRequested ||
+        state == VPNStatus.connecting ||
+        state == VPNStatus.disconnecting) {
+      return Right("");
+    }
+    appLogger.info("VPN State Change requested. Current state: $state");
+    if (state == VPNStatus.connected) {
+      return stopVPN(userInitiated: true);
+    }
+    return startVPN();
+  }
+
+  /// Starts the VPN connection.
+  /// force parameter, if true it will always connect to auto tag
+  /// If the server location is set to auto, it will connect to the best available server.
+  /// If a specific server location is set, it will connect to that server
+  /// valid server location types are: auto,lanternLocation,privateServer,personalProxy
+
+  Future<Either<Failure, String>> startVPN({
+    bool force = false,
+    bool skipConflictCheck = false,
+  }) async {
+    final lantern = ref.read(lanternServiceProvider);
+
+    if (!skipConflictCheck) {
+      final conflict = await _checkVpnConflict();
+      if (conflict != null) return conflict;
+    }
+
+    final serverLocation = ref.read(serverLocationProvider);
+
+    final type = serverLocation.serverType.toServerLocationType;
+    if (type == ServerLocationType.auto || force) {
+      appLogger.debug(
+        'Got server location with type auto or force is true, starting VPN with auto',
+      );
+      return lantern.startVPN();
+    }
+
+    final tag = serverLocation.serverName;
+    final tagAvailable = await lantern.isTagAvailable(tag);
+    if (!tagAvailable) {
+      appLogger.debug(
+        'Server tag "$tag" not available, falling back to auto VPN',
+      );
+      if (type == ServerLocationType.personalProxy) {
+        // A friend with no route left falls back to the group while it
+        // exists, as radiance does for a running tunnel.
+        if (serverLocation.personalProxyFriendTag != null &&
+            await lantern.isTagAvailable(personalProxiesTag)) {
+          return connectToServer(
+            type,
+            personalProxiesTag,
+            skipConflictCheck: true,
+          );
+        }
+        // The group is gone with the last pairing: show Smart Location, which
+        // is what connects.
+        await ref.read(serverLocationProvider.notifier).switchToAuto();
+      }
+      return lantern.startVPN();
+    }
+    return connectToServer(type, tag, skipConflictCheck: skipConflictCheck);
+  }
+
+  /// Connects to a specific server location.
+  /// it supports lantern locations and private servers.
+  Future<Either<Failure, String>> connectToServer(
+    ServerLocationType location,
+    String tag, {
+    bool skipConflictCheck = false,
+  }) async {
+    // Check for a conflicting VPN before initiating a new connection.
+    // The native side guards against false positives by returning false when
+    // Lantern's own VPN is already active (e.g. server switching while connected).
+    if (!skipConflictCheck) {
+      final conflict = await _checkVpnConflict();
+      if (conflict != null) return conflict;
+    }
+
+    appLogger.debug("Connecting to server: $location with tag: $tag");
+    final result = await ref
+        .read(lanternServiceProvider)
+        .connectToServer(location.name, tag);
+    return result;
+  }
+
+  Future<Left<Failure, String>?> _checkVpnConflict() async {
+    if (!Platform.isAndroid && !Platform.isMacOS) return null;
+    final hasConflict = await ref
+        .read(lanternServiceProvider)
+        .checkVpnConflict();
+    if (!hasConflict) return null;
+    appLogger.warning(
+      'Another VPN is active, blocking connect until user confirms',
+    );
+    return Left(VpnConflictFailure());
+  }
+
+  Future<Either<Failure, String>> stopVPN({bool userInitiated = false}) {
+    if (_stopRequest != null) return _stopRequest!;
+    if (_userDisconnectRequested) return Future.value(Right(""));
+    // Only explicit disconnects qualify; setup and shutdown also stop the VPN.
+    _userDisconnectRequested = userInitiated && state == VPNStatus.connected;
+    return _stopRequest = _requestStop().whenComplete(() {
+      _stopRequest = null;
+    });
+  }
+
+  Future<Either<Failure, String>> _requestStop() async {
+    try {
+      final result = await ref.read(lanternServiceProvider).stopVPN();
+      if (result.isLeft()) _userDisconnectRequested = false;
+      return result;
+    } catch (_) {
+      _userDisconnectRequested = false;
+      rethrow;
+    }
+  }
+}

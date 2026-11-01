@@ -1,0 +1,226 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
+
+import 'vpn_smoke_helpers.dart';
+
+const _vpnStateLabels = <VPNStatus, String>{
+  VPNStatus.connected: 'Connected',
+  VPNStatus.disconnected: 'Disconnected',
+  VPNStatus.connecting: 'Connecting',
+  VPNStatus.disconnecting: 'Disconnecting',
+  VPNStatus.missingPermission: 'MissingPermission',
+  VPNStatus.error: 'Error',
+};
+
+const _ipCheckEndpoint = 'https://api64.ipify.org';
+const _forceFullTunnelForSmoke = bool.fromEnvironment(
+  'SMOKE_FORCE_FULL_TUNNEL',
+  defaultValue: false,
+);
+
+Future<void> _setRoutingModeToFullTunnelForSmoke(
+  WidgetTester tester, {
+  required VpnSmokeFinders finders,
+}) async {
+  if (!_forceFullTunnelForSmoke) {
+    return;
+  }
+
+  final homeElements = finders.homeScreen.evaluate();
+  if (homeElements.isEmpty) {
+    fail('Home screen not found while applying smoke routing mode override');
+  }
+
+  final container = ProviderScope.containerOf(
+    homeElements.first,
+    listen: false,
+  );
+  debugPrint('SMOKE_FORCE_FULL_TUNNEL enabled; switching to full tunnel mode');
+  final result = await container
+      .read(radianceSettingsProvider.notifier)
+      .setRoutingMode(RoutingMode.full);
+
+  result.fold(
+    (failure) => fail(
+      'Failed to switch routing mode to full tunnel for smoke: $failure',
+    ),
+    (_) {},
+  );
+
+  final deadline = DateTime.now().add(const Duration(seconds: 20));
+  while (DateTime.now().isBefore(deadline)) {
+    await tester.pump(const Duration(milliseconds: 200));
+    final updatedMode = container.read(radianceSettingsProvider).routingMode;
+    if (updatedMode == RoutingMode.full) {
+      return;
+    }
+  }
+
+  fail('Routing mode did not settle to full tunnel for smoke');
+}
+
+Future<String?> _fetchPublicIpOnce() async {
+  final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
+  try {
+    final request = await client.getUrl(Uri.parse(_ipCheckEndpoint));
+    final response = await request.close().timeout(const Duration(seconds: 6));
+    if (response.statusCode != HttpStatus.ok) {
+      return null;
+    }
+
+    final body = await response
+        .transform(const SystemEncoding().decoder)
+        .join()
+        .timeout(const Duration(seconds: 6));
+    final ip = body.trim();
+    if (ip.isNotEmpty && InternetAddress.tryParse(ip) != null) {
+      return ip;
+    }
+  } catch (_) {
+    return null;
+  } finally {
+    client.close(force: true);
+  }
+  return null;
+}
+
+Future<String> fetchPublicIpForSmoke({
+  required Duration timeout,
+  required String reason,
+}) async {
+  final end = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(end)) {
+    final ip = await _fetchPublicIpOnce();
+    if (ip != null && ip.isNotEmpty) {
+      debugPrint('IP check: fetched public IP for $reason');
+      return ip;
+    }
+    await Future<void>.delayed(const Duration(seconds: 2));
+  }
+  fail('Failed to fetch public IP: $reason');
+}
+
+Future<void> expectPublicIpRestored(String baselineIp) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 60));
+  while (DateTime.now().isBefore(deadline)) {
+    if (await _fetchPublicIpOnce() == baselineIp) return;
+    await Future<void>.delayed(const Duration(seconds: 2));
+  }
+  fail('Public IP did not return to its pre-connect value');
+}
+
+Future<bool> _didPublicIpChangeFromBaseline(String baselineIp) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 60));
+  while (DateTime.now().isBefore(deadline)) {
+    final current = await _fetchPublicIpOnce();
+    if (current != null && current.isNotEmpty && current != baselineIp) {
+      debugPrint('IP check: detected public IP change after connect');
+      return true;
+    }
+    await Future<void>.delayed(const Duration(seconds: 3));
+  }
+  return false;
+}
+
+Future<void> disconnectVpnForSmoke(
+  WidgetTester tester, {
+  required Finder vpnToggle,
+  required VpnStateFinders vpnStateFinders,
+}) async {
+  final currentState = vpnStateFinders.current();
+  if (currentState != VPNStatus.connected &&
+      currentState != VPNStatus.connecting) {
+    return;
+  }
+
+  await tester.tap(vpnToggle);
+  await tester.pump(const Duration(milliseconds: 200));
+
+  await vpnStateFinders.waitFor(
+    tester,
+    expected: const [VPNStatus.disconnected],
+    timeout: const Duration(seconds: 45),
+    reason: 'VPN did not return to disconnected state within 45 seconds',
+  );
+}
+
+Future<void> runConnectSmokeHarness(
+  WidgetTester tester, {
+  bool enableIpCheck = false,
+  bool requireTrafficAfterConnect = false,
+  bool requireIpRestored = false,
+  Future<void> Function()? afterConnect,
+}) async {
+  final finders = VpnSmokeFinders();
+  final vpnStateFinders = VpnStateFinders(textLabels: _vpnStateLabels);
+  String? baselinePublicIp;
+
+  await prepareVpnStartsDisconnectedForSmoke(
+    tester,
+    finders: finders,
+    vpnStateFinders: vpnStateFinders,
+    scenario: 'connect/disconnect smoke',
+  );
+  await _setRoutingModeToFullTunnelForSmoke(tester, finders: finders);
+
+  if (enableIpCheck || requireIpRestored) {
+    debugPrint('IP check: enabled; fetching baseline before connect');
+    baselinePublicIp = await fetchPublicIpForSmoke(
+      timeout: const Duration(seconds: 40),
+      reason: 'before connect',
+    );
+  }
+
+  var ipChanged = true;
+  try {
+    await tester.tap(finders.vpnToggle);
+    await tester.pump(const Duration(milliseconds: 200));
+
+    await vpnStateFinders.waitFor(
+      tester,
+      expected: const [VPNStatus.connected],
+      timeout: const Duration(seconds: 45),
+      reason: 'VPN did not reach connected state within 45 seconds',
+      allowVpnConflict: true,
+    );
+
+    if (requireTrafficAfterConnect) {
+      debugPrint('IP check: confirming public traffic after connect');
+      await fetchPublicIpForSmoke(
+        timeout: const Duration(seconds: 45),
+        reason: 'after connect',
+      );
+    }
+
+    if (enableIpCheck && baselinePublicIp != null) {
+      debugPrint('IP check: waiting for IP change after connect');
+      await Future<void>.delayed(const Duration(seconds: 3));
+      ipChanged = await _didPublicIpChangeFromBaseline(baselinePublicIp);
+      if (ipChanged) {
+        debugPrint('IP check: passed');
+      }
+    }
+    await afterConnect?.call();
+  } finally {
+    await disconnectVpnForSmoke(
+      tester,
+      vpnToggle: finders.vpnToggle,
+      vpnStateFinders: vpnStateFinders,
+    );
+  }
+
+  if (requireIpRestored && baselinePublicIp != null) {
+    await expectPublicIpRestored(baselinePublicIp);
+  }
+
+  if (enableIpCheck && baselinePublicIp != null && !ipChanged) {
+    fail(
+      'Public IP did not change after VPN connected (baseline: $baselinePublicIp)',
+    );
+  }
+}

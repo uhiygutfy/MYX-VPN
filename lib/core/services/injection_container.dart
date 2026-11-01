@@ -1,0 +1,118 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:get_it/get_it.dart';
+import 'package:lantern/core/common/app_build_info.dart';
+import 'package:lantern/core/services/app_purchase.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/core/services/notification_service.dart';
+import 'package:lantern/core/services/rating_prompt_service.dart';
+import 'package:lantern/core/services/stripe_service.dart';
+import 'package:lantern/core/updater/updater.dart';
+import 'package:lantern/core/utils/deeplink_utils.dart';
+import 'package:lantern/core/utils/platform_utils.dart' show PlatformUtils;
+import 'package:lantern/core/utils/store_utils.dart';
+import 'package:lantern/features/helpers/helper_key_store.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/lantern/lantern_ffi_service.dart';
+import 'package:lantern/lantern/lantern_platform_service.dart';
+import 'package:lantern/lantern/lantern_service.dart';
+
+import '../router/router.dart';
+import 'logger_service.dart';
+
+final GetIt sl = GetIt.instance;
+
+// The smoke test replaces this to hold core startup while updates still run.
+@visibleForTesting
+Future<void> Function(LanternService) initializeLanternService = (service) =>
+    service.init();
+
+Future<void> injectServices() async {
+  sl.registerSingleton<Updater>(
+    Updater(),
+    dispose: (updater) => updater.dispose(),
+  );
+  // Desktop updates must still start if core initialization stalls.
+  if (PlatformUtils.isDesktop) unawaited(sl<Updater>().init());
+
+  appLogger.debug('Initializing storage services...');
+  final storage = LocalStorageService();
+  final storeUtils = StoreUtils();
+  try {
+    await Future.wait([storage.init(), storeUtils.init()]);
+    appLogger.debug('Storage services initialized');
+
+    sl.registerSingleton<LocalStorageService>(storage);
+    sl.registerSingleton<StoreUtils>(storeUtils);
+  } catch (e, st) {
+    appLogger.error('Storage init failed', e, st);
+    rethrow;
+  }
+
+  // Detect when the data directory was deleted but SharedPreferences
+  // (e.g. NSUserDefaults on macOS) survived.  Must run before runApp()
+  // so that AppSettingNotifier.build() reads the correct defaults.
+  await AppSettingNotifier.resetIfFreshInstall(storage);
+
+  sl.registerSingleton<RatingPromptService>(RatingPromptService(storage));
+
+  sl.registerLazySingleton<AppRouter>(() => AppRouter());
+  sl.registerLazySingleton<DeepLinkCallbackManager>(
+    () => DeepLinkCallbackManager(),
+  );
+  sl.registerLazySingleton<HelperKeyStore>(() => HelperKeyStore());
+  sl.registerSingleton<LanternPlatformService>(LanternPlatformService());
+
+  appLogger.debug('Registering AppPurchase...');
+  final appPurchase = AppPurchase();
+  sl.registerSingleton<AppPurchase>(appPurchase);
+  if (PlatformUtils.isIOS) {
+    // StoreKit can deliver pending transaction updates at launch; init()
+    // only subscribes to the stream and does not fetch product details.
+    appPurchase.init();
+  }
+  appLogger.debug('AppPurchase registered');
+
+  sl.registerSingleton<LanternFFIService>(
+    PlatformUtils.isFFISupported
+        ? LanternFFIService()
+        : MockLanternFFIService(),
+  );
+
+  sl.registerSingletonAsync<LanternService>(() async {
+    final service = LanternService(
+      ffiService: sl<LanternFFIService>(),
+      platformService: sl<LanternPlatformService>(),
+      appPurchase: sl<AppPurchase>(),
+    );
+    try {
+      await initializeLanternService(service);
+      appLogger.debug('LanternService initialized');
+    } catch (e, st) {
+      appLogger.error('LanternService init failed', e, st);
+    }
+    return service;
+  });
+
+  if (PlatformUtils.isAndroid && AppBuildInfo.enablePayments) {
+    // The publishable key arrives with the plans response (synced by the
+    // listenSelf listener in PlansNotifier.build), so no upfront
+    // initialization.
+    sl.registerSingleton<StripeService>(StripeService());
+    appLogger.debug('StripeService registered');
+  }
+
+  appLogger.debug('Initializing notification service...');
+  final notificationService = NotificationService();
+  try {
+    await notificationService.init();
+  } catch (e, st) {
+    appLogger.error('Notification init failed', e, st);
+  }
+  sl.registerSingleton<NotificationService>(notificationService);
+  appLogger.debug('NotificationService initialized');
+
+  await sl.allReady();
+  appLogger.info('All services injected ✅');
+}

@@ -1,0 +1,167 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/app_text_styles.dart';
+import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/models/website.dart';
+import 'package:lantern/core/services/injection_container.dart';
+import 'package:lantern/core/services/local_storage_service.dart';
+import 'package:lantern/features/split_tunneling/provider/website_notifier.dart';
+
+class WebsiteDomainInput extends HookConsumerWidget {
+  const WebsiteDomainInput({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final textController = useTextEditingController();
+    final enabledWebsites =
+        ref.watch(splitTunnelingWebsitesProvider).value ?? const <Website>{};
+
+    void showSnackbar(String message) {
+      // All call sites below surface validation or backend errors; use the
+      // design-system error snackbar rather than Material's default unstyled
+      // SnackBar.
+      context.showSnackBarError(message);
+    }
+
+    // validate URL and extract the domain before adding it to the
+    // split tunneling list
+    Website? validateDomain(String input, void Function(String) onError) {
+      final domain = UrlUtils.extractDomain(input);
+
+      if (!UrlUtils.isValidDomainOrIP(domain)) {
+        onError("Invalid domain");
+        return null;
+      }
+
+      final website = Website(domain: domain);
+      if (enabledWebsites.contains(website)) {
+        onError("$domain already added");
+        return null;
+      }
+
+      return website;
+    }
+
+    Future<void> addValidatedWebsites(List<Website> added) async {
+      if (added.isEmpty) {
+        return;
+      }
+      textController.clear();
+
+      final failures = await ref
+          .read(splitTunnelingWebsitesProvider.notifier)
+          .addWebsites(added);
+
+      if (!context.mounted || failures.isEmpty) {
+        return;
+      }
+
+      showSnackbar(
+        failures.map((failure) => failure.localizedErrorMessage).join('\n'),
+      );
+    }
+
+    Future<void> validateAndExtractDomain() async {
+      final inputText = textController.text.trim();
+      if (inputText.isEmpty) {
+        showSnackbar("Please enter a URL or domain.");
+        return;
+      }
+
+      final parts = inputText
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toSet();
+
+      final errors = <String>[];
+      final added = <Website>[];
+
+      for (final part in parts) {
+        final website = validateDomain(part, (msg) => errors.add(msg));
+        if (website != null) {
+          added.add(website);
+        }
+      }
+
+      if (errors.isNotEmpty) {
+        showSnackbar(errors.join('\n'));
+        return;
+      }
+
+      final storage = sl<LocalStorageService>();
+      if (!storage.hasSeenBypassWebsiteDialog) {
+        await AppDialog.show(
+          context: context,
+          header: Center(child: AppImage(path: AppImagePaths.info, height: 40)),
+          centeredTitle: true,
+          title: 'bypass_website_first_time_title'.i18n,
+          body: 'bypass_website_first_time_body'.i18n.fill([
+            added.map((website) => website.domain).join(', '),
+          ]),
+          primaryLabel: 'add'.i18n,
+          onPrimaryPressed: () {
+            // Mark seen only on confirm; cancelling should show the
+            // explainer again next time.
+            unawaited(storage.markBypassWebsiteDialogSeen());
+            unawaited(addValidatedWebsites(added));
+          },
+          secondaryLabel: 'cancel'.i18n,
+        );
+        return;
+      }
+
+      await addValidatedWebsites(added);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            'enter_url_or_ip'.i18n,
+            style: AppTextStyles.bodySmall.copyWith(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: AppTextField(
+                fieldKey: const Key('split_tunneling.website.input'),
+                prefixIcon: AppImagePaths.web,
+                controller: textController,
+                hintText: '',
+              ),
+            ),
+            AppTextButton(
+              key: const Key('split_tunneling.website.add_button'),
+              label: 'add'.i18n,
+              textColor: context.textPrimary,
+              onPressed: () => unawaited(validateAndExtractDomain()),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            'use_commas'.i18n,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: context.textTertiary,
+              height: 1.6,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

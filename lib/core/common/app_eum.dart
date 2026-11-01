@@ -1,0 +1,176 @@
+import 'package:lantern/core/common/common.dart';
+
+enum VPNStatus {
+  connected,
+  disconnected,
+  connecting,
+  disconnecting,
+  missingPermission,
+  error,
+}
+
+enum SignUpMethodType { email, google, apple, withoutEmail }
+
+enum ServerLocationType { auto, privateServer, lanternLocation, personalProxy }
+
+extension ServerLocationTypeExtension on String {
+  ServerLocationType get toServerLocationType {
+    switch (this) {
+      case 'auto':
+        return ServerLocationType.auto;
+      case 'privateServer':
+        return ServerLocationType.privateServer;
+      case 'lanternLocation':
+        return ServerLocationType.lanternLocation;
+      case 'personalProxy':
+        return ServerLocationType.personalProxy;
+      default:
+        return ServerLocationType.auto;
+    }
+  }
+}
+
+enum AuthFlow {
+  resetPassword,
+  oauth,
+  signUp,
+  lanternProLicense,
+  changeEmail,
+  renewSubscription
+}
+
+enum BillingType { subscription, one_time }
+
+enum PrivateServerInput { selectAccount, selectProject }
+
+enum SplitTunnelFilterType {
+  domain,
+  domainSuffix,
+  domainKeyword,
+  domainRegex,
+  processName,
+  processPath,
+  processPathRegex,
+  packageName;
+
+  String get value {
+    switch (this) {
+      case SplitTunnelFilterType.domain:
+        return 'domain';
+      case SplitTunnelFilterType.domainSuffix:
+        return 'domainSuffix';
+      case SplitTunnelFilterType.domainKeyword:
+        return 'domainKeyword';
+      case SplitTunnelFilterType.domainRegex:
+        return 'domainRegex';
+      case SplitTunnelFilterType.processName:
+        return 'processName';
+      case SplitTunnelFilterType.processPath:
+        return 'processPath';
+      case SplitTunnelFilterType.processPathRegex:
+        return 'processPathRegex';
+      case SplitTunnelFilterType.packageName:
+        return 'packageName';
+    }
+  }
+}
+
+enum SplitTunnelActionType {
+  add,
+  remove;
+
+  String get value {
+    switch (this) {
+      case SplitTunnelActionType.add:
+        return 'add';
+      case SplitTunnelActionType.remove:
+        return 'remove';
+    }
+  }
+}
+
+enum BypassListOption {
+  global,
+  russia,
+  china,
+  iran,
+  none;
+
+  String get value {
+    switch (this) {
+      case BypassListOption.russia:
+        return 'russia';
+      case BypassListOption.china:
+        return 'china';
+      case BypassListOption.iran:
+        return 'iran';
+      case BypassListOption.global:
+        return 'global';
+      case BypassListOption.none:
+        return 'none';
+    }
+  }
+}
+
+extension BypassListOptionString on String {
+  BypassListOption get toBypassList {
+    switch (this) {
+      case 'russia':
+        return BypassListOption.russia;
+      case 'china':
+        return BypassListOption.china;
+      case 'iran':
+        return BypassListOption.iran;
+      case 'none':
+        return BypassListOption.none;
+      case 'global':
+        return BypassListOption.global;
+      default:
+        return BypassListOption.none;
+    }
+  }
+}
+
+enum CloudProvider {
+  googleCloud,
+  digitalOcean;
+
+  String get value {
+    switch (this) {
+      case CloudProvider.googleCloud:
+        return 'gcp';
+      case CloudProvider.digitalOcean:
+        return 'do';
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case CloudProvider.googleCloud:
+        return "Google";
+      case CloudProvider.digitalOcean:
+        return "Digital Ocean";
+    }
+  }
+}
+
+enum RoutingMode { smart, full }
+
+extension RoutingModeX on RoutingMode {
+  String get key => switch (this) {
+        RoutingMode.smart => 'smart_routing',
+        RoutingMode.full => 'full_tunnel',
+      };
+
+  String label() => key.i18n;
+
+  static RoutingMode fromRaw(String raw) {
+    switch (raw) {
+      case 'smart_routing':
+        return RoutingMode.smart;
+      case 'full_tunnel':
+      default:
+        return RoutingMode.full;
+    }
+  }
+}

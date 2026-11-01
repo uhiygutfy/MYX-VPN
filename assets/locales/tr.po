@@ -1,0 +1,2333 @@
+# Translators:
+# e2f <projects@e2f.com>, 2025
+# Aşkın Özgür <askin@askin.ws>, 2025
+# efe kerem sözeri <eksozeri@hotmail.com>, 2025
+# Volkan Gezer <volkangezer@gmail.com>, 2025
+# Emre Deniz, 2025
+# Lantern, 2026
+# Teo Westbrook, 2026
+# Gökhan Kalayci <gkmediagokhan@gmail.com>, 2026
+# Mehmet Çağrı Aksoy <mcagriaksoy@yandex.com>, 2026
+# Zeynel Cebeci <cebeciz@gmail.com>, 2026
+# e2f_tr c1 <tx_e2f_tr_c1@ate2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
+# 
+msgid ""
+msgstr ""
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
+"Language-Team: Turkish (https://app.transifex.com/lantern-1/teams/94371/tr/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: tr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "app_name"
+msgstr "MYX-VPN"
+
+msgid "upgrade_to_pro"
+msgstr "Pro'ya Yükselt"
+
+msgid "settings"
+msgstr "Ayarlar"
+
+msgid "report_an_issue"
+msgstr "Sorun Bildir"
+
+msgid "report_issue_add_screenshots"
+msgstr "Ekran görüntüsü ekle"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG veya GIF — toplam en fazla 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "Görsel ekle"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "Yalnızca PNG, JPG ve GIF görseller desteklenir."
+
+msgid "report_issue_attachments_too_many"
+msgstr "En fazla 3 görsel ekleyebilirsiniz."
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "Eklerin toplam boyutu 15 MB'ın altında olmalıdır."
+
+msgid "report_issue_attachments_duplicate"
+msgstr "Bu görsel zaten eklenmiş."
+
+msgid "report_issue_attachments_unreadable"
+msgstr "Bu dosyalardan birini okuyamadık."
+
+msgid "send_without_email_title"
+msgstr "E-posta olmadan gönderilsin mi?"
+
+msgid "send_without_email_body"
+msgstr ""
+"Bir e-posta adresi eklemediniz, bu yüzden bu rapora yanıt veremeyecek veya "
+"takibini yapamayacağız."
+
+msgid "send_without_email"
+msgstr "E-posta Olmadan Gönder"
+
+msgid "invite_friends"
+msgstr "Arkadaşlarını Davet Et"
+
+msgid "your_referral_code"
+msgstr "Tavsiye Kodun"
+
+msgid "share_referral_code"
+msgstr "Tavsiye Kodunu Paylaş"
+
+msgid "invite_friends_description"
+msgstr ""
+"Bir arkadaşınız tavsiye kodunuzu kullanarak Lantern Pro'ya yükselttiğinde, "
+"ikiniz de 1 ay ücretsiz kazanırsınız."
+
+msgid "month_earned"
+msgstr "%s ay kazanıldı"
+
+msgid "months_earned"
+msgstr "%s ay kazanıldı"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Tavsiyelerden %s ücretsiz ay dahil"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Tavsiyelerden %s ücretsiz ay dahil"
+
+msgid "referral_converted_title"
+msgstr "Bir arkadaşınız Pro'ya yükseltti"
+
+msgid "referral_converted_message"
+msgstr ""
+"İkiniz de %s Lantern Pro'yu ücretsiz kazandınız. Şimdiye kadar %s "
+"kazandınız. Daha fazla kazanmak için kodunuzu paylaşmaya devam edin."
+
+msgid "month_count"
+msgstr "%s ay"
+
+msgid "months_count"
+msgstr "%s ay"
+
+msgid "done"
+msgstr "Bitti"
+
+msgid "view_account"
+msgstr "Hesabı Görüntüle"
+
+msgid "show_download_links"
+msgstr "İndirme bağlantılarını göster"
+
+msgid "get_lantern"
+msgstr "MYX-VPN'i Edin"
+
+msgid "send_friend_download_link"
+msgstr "Arkadaşınıza bu indirme bağlantısını gönderin:"
+
+msgid "scan_to_install"
+msgstr "MYX-VPN'i yüklemek için kamera uygulamanızla tarayın"
+
+msgid "remind_use_code"
+msgstr "Yükseltirken %s kodunu kullanmalarını hatırlatın!"
+
+msgid "unbounded"
+msgstr "Action Mode"
+
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
+
+msgid "vpn_settings"
+msgstr "VPN Ayarları"
+
+msgid "split_tunneling"
+msgstr "Bölünmüş Tünelleme"
+
+msgid "server_locations"
+msgstr "Sunucu Konumları"
+
+msgid "lantern_pro_email"
+msgstr "Lantern Pro E-postası:"
+
+msgid "pro_account_expiration"
+msgstr "Pro Hesap Bitiş Tarihi"
+
+msgid "manage_subscription"
+msgstr "Aboneliği Yönet"
+
+msgid "lantern_pro_devices"
+msgstr "Lantern Pro Cihazları"
+
+msgid "remove"
+msgstr "Kaldır"
+
+msgid "danger_zone"
+msgstr "Tehlike Bölgesi:"
+
+msgid "delete_account"
+msgstr "Hesabı Sil"
+
+msgid "delete"
+msgstr "Sil"
+
+msgid "account"
+msgstr "Hesap"
+
+msgid "delete_account_?"
+msgstr "Hesabını Sil?"
+
+msgid "delete_account_message"
+msgstr ""
+"Hesap silme işlemi kalıcıdır. Tüm cihazlarda erişiminizi kaybedeceksiniz ve "
+"kalan Pro abonelik süreniz iade yapılmadan kaybedilecektir."
+
+msgid "delete_account_message_two"
+msgstr "Silme işlemini onaylamak için lütfen aşağıya şifrenizi girin"
+
+msgid "confirm_deletion"
+msgstr "Silmeyi Onayla"
+
+msgid "cancel"
+msgstr "İptal"
+
+msgid "daily_data_usage"
+msgstr "Günlük Veri Kullanımı"
+
+msgid "mb"
+msgstr "MB"
+
+msgid "vpn_status"
+msgstr "VPN Durumu"
+
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "Bizi Takip Et"
+
+msgid "server_selection"
+msgstr "Sunucu Seçimi"
+
+msgid "smart_location"
+msgstr "Akıllı Konum"
+
+msgid "pro_locations"
+msgstr "Pro konumları:"
+
+msgid "language"
+msgstr "Dil"
+
+msgid "sign_in"
+msgstr "Giriş Yap"
+
+msgid "check_for_updates"
+msgstr "Güncellemeleri Kontrol Et"
+
+msgid "update_available"
+msgstr "Güncelleme mevcut"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"MYX-VPN %s mevcut. MYX-VPN, Android'in yükleyicisini açmadan önce APK'yı "
+"indirip doğrulayacak."
+
+msgid "allow_unknown_app_installs"
+msgstr "Uygulama yüklemeye izin ver"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Android'in MYX-VPN'den güncelleme yüklemek için izne ihtiyacı var. Bu "
+"kaynaktan izin ver seçeneğini açın, ardından güncellemeleri yeniden kontrol "
+"edin."
+
+msgid "error_install_update"
+msgstr "Güncelleme yüklenemedi"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"MYX-VPN bu güncellemeyi doğrulayamadı veya yükleyemedi. Lütfen daha sonra "
+"tekrar deneyin."
+
+msgid "support"
+msgstr "Destek"
+
+msgid "download_links"
+msgstr "İndirme Linkleri"
+
+msgid "get_30_days_of_pro_free"
+msgstr "30 gün ücretsiz Pro kazan"
+
+msgid "share_message_referral_code"
+msgstr ""
+"Bir ay ücretsiz Lantern Pro için bu tavsiye kodunu kullan: %s ; Buradan "
+"indirebilirsin: https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "Sorun Raporu Gönder"
+
+msgid "select_an_issue"
+msgstr "Bir Sorun Seç"
+
+msgid "cannot_access_blocked_sites"
+msgstr "Engelli sitelere erişilemiyor"
+
+msgid "cannot_complete_purchase"
+msgstr "Satın alma tamamlanamıyor"
+
+msgid "cannot_sign_in"
+msgstr "Giriş yapılamıyor"
+
+msgid "spinner_loads_endlessly"
+msgstr "Yükleme sonsuz devam ediyor"
+
+msgid "slow"
+msgstr "Yavaş"
+
+msgid "cannot_link_devices"
+msgstr "Cihazlar bağlanamıyor"
+
+msgid "split_tunnel"
+msgstr "Bölünmüş tünelleme çalışmıyor"
+
+msgid "smart_routing_not_working"
+msgstr "Akıllı yönlendirme çalışmıyor"
+
+msgid "server_selection_not_working"
+msgstr "Sunucu seçimi çalışmıyor"
+
+msgid "upgrade_fail"
+msgstr "Lantern Pro yükseltmesi başarısız oldu"
+
+msgid "application_crashes"
+msgstr "Uygulama çöküyor"
+
+msgid "other"
+msgstr "Diğer"
+
+msgid "issue_description"
+msgstr "Sorununuzu açıklayın"
+
+msgid "enter_password_to_confirm"
+msgstr "Onaylamak için şifre girin"
+
+msgid "apps_split_tunneling"
+msgstr "Uygulamalar için Bölünmüş Tünelleme"
+
+msgid "website_split_tunneling"
+msgstr "Web Siteleri için Bölünmüş Tünelleme"
+
+msgid "add"
+msgstr "Ekle"
+
+msgid "enabled"
+msgstr "Etkin"
+
+msgid "disabled"
+msgstr "Devre Dışı"
+
+msgid "automatic"
+msgstr "Otomatik"
+
+msgid "automatic_mode"
+msgstr "Otomatik Mod"
+
+msgid "manual"
+msgstr "Manuel"
+
+msgid "enter_url_or_ip"
+msgstr "URL veya IP Adresi Girin"
+
+msgid "installed_apps"
+msgstr "Yüklü Uygulamalar"
+
+msgid "search_apps"
+msgstr "Uygulamalarda Ara"
+
+msgid "search_websites"
+msgstr "Web Sitelerinde Ara"
+
+msgid "mode"
+msgstr "Mod"
+
+msgid "use_commas"
+msgstr "Birden fazla URL'yi ayırmak için virgül kullanın"
+
+msgid "deep_link_expired"
+msgstr "Bu bağlantının süresi doldu. Lütfen yeni bir tane talep edin."
+
+msgid "invalid_deep_link"
+msgstr "Bu bağlantı geçersiz. Lütfen yeni bir tane talep edin."
+
+msgid "apps_bypassing_vpn"
+msgstr "VPN'i atlayan uygulamalar (%d)"
+
+msgid "websites_bypassing_vpn"
+msgstr "VPN'i atlayan web siteleri (%d)"
+
+msgid "logs_share_message"
+msgstr "İşte MYX-VPN'den tanı günlüklerim."
+
+msgid "payment_options"
+msgstr "Ödeme Seçenekleri"
+
+msgid "add_your_email"
+msgstr "E-postanı Ekle"
+
+msgid "continue"
+msgstr "Devam Et"
+
+msgid "continue_with_google"
+msgstr "Google ile Devam Et"
+
+msgid "continue_with_apple"
+msgstr "Apple ile Devam Et"
+
+msgid "continue_without_email"
+msgstr "E-posta Olmadan Devam Et"
+
+msgid "confirm_email"
+msgstr "E-postayı Onayla"
+
+msgid "add_your_email_message"
+msgstr "Aboneliğinize herhangi bir cihazdan erişmek için e-postanızı ekleyin."
+
+msgid "confirm_email_code"
+msgstr "Onay Kodu"
+
+msgid "confirm_email_code_message_part_one"
+msgstr "Şu adrese bir kod gönderdik: "
+
+msgid "confirm_email_code_message_part_two"
+msgstr ""
+" Kodu aşağıya girin. Gelen kutunuzda yoksa spam klasörünüzü kontrol edin."
+
+msgid "resend_email"
+msgstr "E-postayı Yeniden Gönder"
+
+msgid "create_password"
+msgstr "Şifre Oluştur"
+
+msgid "sign_in_to_lantern_pro"
+msgstr "MYX-VPN'e Giriş Yap"
+
+msgid "sign_in_with_email"
+msgstr "E-posta ile Giriş Yap"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "MYX-VPN hesap bilgilerinizi girin."
+
+msgid "email"
+msgstr "E-posta"
+
+msgid "enter_password"
+msgstr "Şifre Girin"
+
+msgid "forgot_password"
+msgstr "Şifrenizi mi unuttunuz?"
+
+msgid "reset_your_password"
+msgstr "Şifrenizi Sıfırlayın"
+
+msgid "enter_your_lantern_pro_account_email"
+msgstr "MYX-VPN hesap e-postanızı girin."
+
+msgid "reset_password"
+msgstr "Şifreyi Sıfırla"
+
+msgid "confirm_new_password"
+msgstr "Yeni Şifreyi Onayla"
+
+msgid "create_new_password"
+msgstr "Yeni Şifre Oluştur"
+
+msgid "confirm_password"
+msgstr "Şifreyi Onayla"
+
+msgid "confirm_password_required"
+msgstr "Şifre onayı gerekli"
+
+msgid "passwords_do_not_match"
+msgstr "Şifreler eşleşmiyor"
+
+msgid "activate_lantern_pro"
+msgstr "Lantern Pro'yu Etkinleştir"
+
+msgid "invalid_email"
+msgstr "Geçersiz e-posta adresi"
+
+msgid "purchase_already_owned"
+msgstr "Bu satın almaya zaten sahipsiniz, Satın almayı geri yüklemeyi deneyin"
+
+msgid "stripe_payment"
+msgstr "Stripe Ödeme"
+
+msgid "split_tunneling_description"
+msgstr ""
+"MYX-VPN, konumunuza göre internet trafiğini akıllıca yönlendirir, yalnızca "
+"gerektiğinde VPN kullanarak güvenli erişimi sağlarken bağlantınızı hızlı "
+"tutar."
+
+msgid "region_specific_rules"
+msgstr "Bölgeye Özel Kurallar"
+
+msgid "location_based_rules"
+msgstr ""
+"MYX-VPN, konumunuza bağlı olarak farklı yönlendirme kuralları kullanır:"
+
+msgid "censored_regions"
+msgstr "Sansürlü bölgelerde:"
+
+msgid "blocked_sites_proxied"
+msgstr ""
+"Engellenmiş web siteleri ve uygulamalar (haber, mesajlaşma, kısıtlı "
+"hizmetler) proxy üzerinden bağlanır."
+
+msgid "unblocked_sites_bypass"
+msgstr "Çoğu engellenmemiş web sitesi daha hızlı tarama için VPN'i atlar."
+
+msgid "uncensored_regions"
+msgstr "Sansürsüz bölgelerde:"
+
+msgid "trusted_sites_bypass"
+msgstr ""
+"Yalnızca güvenilir web siteleri ve hizmetler varsayılan olarak VPN'i atlar."
+
+msgid "examples_of_bypassed_sites"
+msgstr ""
+"Bunlar, alışveriş, hava durumu ve yazılım güncellemeleri gibi kamuya açık "
+"veya hassas olmayan içeriğe sahip HTTPS şifreli siteleri içerir."
+
+msgid "routing_rules_vary"
+msgstr "Bu kurallar ülkeye göre değişir ve düzenli olarak güncellenir."
+
+msgid "view_the_full_list"
+msgstr "Yönlendirme kurallarının tam listesini görüntüleyin."
+
+msgid "welcome_to_lantern_pro"
+msgstr "Lantern Pro'ya Hoş Geldin!"
+
+msgid "welcome_to_lantern"
+msgstr "MYX-VPN'e Hoş Geldin!"
+
+msgid "lantern_pro_description"
+msgstr ""
+"Pro özellikleriniz açıldı—sınırsız veri, daha hızlı hız ve premium "
+"sunucuların keyfini çıkarın."
+
+msgid "purchase_restored_title"
+msgstr "Satın alma geri yüklendi"
+
+msgid "purchase_restored_description"
+msgstr "Lantern Pro aboneliğiniz artık bu cihazda etkin."
+
+msgid "no_purchase_found_title"
+msgstr "Satın alma bulunamadı"
+
+msgid "no_purchase_found_body_ios"
+msgstr "Bu Apple ID ile ilişkili etkin bir abonelik yok."
+
+msgid "no_purchase_found_body_android"
+msgstr "Bu Google hesabıyla ilişkili etkin bir abonelik yok."
+
+msgid "authorize_device_for_pro"
+msgstr "Pro için Cihazı Yetkilendir"
+
+msgid "device_linking_replaced_title"
+msgstr "Cihaz bağlama kodları değiştirildi"
+
+msgid "device_linking_replaced_body"
+msgstr "MYX-VPN 10 ve daha yeni sürümler cihaz bağlama kodlarını kullanmaz. Artık Lantern Pro hesabınıza e-posta adresiniz ve bir şifre ile giriş yapıyorsunuz."
+
+msgid "device_linking_replaced_body_two"
+msgstr "Bir Lantern Pro hesabınız varsa ve henüz bir şifreniz yoksa, bu cihazda giriş yapmak için şimdi bir şifre ekleyin."
+
+msgid "add_an_account_password"
+msgstr "Hesap Şifresi Ekle"
+
+msgid "have_a_password_sign_in"
+msgstr "Şifreniz Var mı? Giriş Yap"
+
+msgid "plans_fetch_error"
+msgstr "Planlar alınırken hata oluştu. Lütfen daha sonra tekrar deneyin."
+
+msgid "best_value"
+msgstr "En İyi Değer!"
+
+msgid "choose_payment_method"
+msgstr "Ödeme Yöntemi Seç"
+
+msgid "purchase_not_completed"
+msgstr ""
+"Satın alma tamamlanmadı. İstediğiniz zaman tekrar deneyebilir veya yardıma "
+"ihtiyacınız varsa desteğe başvurabilirsiniz"
+
+msgid "are_you_sure"
+msgstr "Emin misiniz?"
+
+msgid "continue_without_email_message"
+msgstr ""
+"Aboneliğinizi diğer cihazlarda kullanmak için geçerli bir e-posta adresi "
+"gereklidir."
+
+msgid "add_email"
+msgstr "E-posta Ekle"
+
+msgid "block_ads"
+msgstr "Reklamları Engelle"
+
+msgid "only_active"
+msgstr "Yalnızca VPN bağlıyken aktif"
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "Action Mode Hakkında"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "Durum"
+
+msgid "smc_status_off"
+msgstr "Devre Dışı"
+
+msgid "smc_status_configuring"
+msgstr "Ağ yapılandırılıyor"
+
+msgid "smc_status_error_with_message"
+msgstr "Paylaşılamadı: %s"
+
+msgid "smc_status_error_generic"
+msgstr "Paylaşılamadı — kapatıp yeniden açmayı deneyin"
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "%s ülkesinde yeni bir kişiye yardım ediliyor"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "Bağlantılar bekleniyor..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "Action Mode'a hoş geldiniz"
+
+msgid "unbounded_welcome_body_1"
+msgstr ""
+"Action Mode'u etkinleştirdiğinizde, cihazınız açık internete uzanan bir "
+"'dijital köprüler' ağının parçası olur. Sansüre maruz kalan kullanıcılar bu "
+"köprülere bağlanarak devletlerin koyduğu kısıtlamaları aşar ve ihtiyaç "
+"duydukları bilgilere erişir."
+
+msgid "unbounded_welcome_body_2"
+msgstr ""
+"Bu ortak çaba, sansürün uygulanmasını zorlaştırarak açık internete erişimi "
+"genişletir."
+
+msgid "unbounded_welcome_body_3"
+msgstr ""
+"Action Mode'u istediğiniz zaman Ayarlar'dan arayüzden kaldırabilirsiniz."
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "Gelişmiş"
+
+msgid "smc_advanced_subtitle"
+msgstr "Yönlendiricisi UPnP desteklemeyen kullanıcılar için"
+
+msgid "smc_manual_port"
+msgstr "Manuel bağlantı noktası yönlendirme"
+
+msgid "smc_manual_port_description"
+msgstr ""
+"Yönlendiriciniz UPnP desteklemiyorsa, yönlendiricinizde bir bağlantı noktası"
+" yönlendirmesi yapılandırın ve numarasını buraya girin. MYX-VPN, UPnP "
+"sorgulamak yerine bunu harici bağlantı noktası olarak kullanır. UPnP "
+"(varsayılan) kullanmak için boş bırakın."
+
+msgid "smc_manual_port_label"
+msgstr "Bağlantı noktası"
+
+msgid "smc_manual_port_hint"
+msgstr "örn. 5698"
+
+msgid "smc_manual_port_save"
+msgstr "Kaydet"
+
+msgid "smc_manual_port_currently_set"
+msgstr ""
+"Şu anda %d numaralı bağlantı noktasına ayarlı. Değişikliğin geçerli olması "
+"için Action Mode'u kapatıp yeniden açın."
+
+msgid "smc_manual_port_out_of_range"
+msgstr "Bağlantı noktası 1 ile 65535 arasında olmalıdır"
+
+msgid "smc_manual_port_cleared"
+msgstr "Manuel bağlantı noktası temizlendi — UPnP kullanılıyor"
+
+msgid "smc_manual_port_saved"
+msgstr "Manuel bağlantı noktası %d olarak ayarlandı"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Action Mode Ayarları"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "Action Mode'u otomatik etkinleştir"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "MYX-VPN açıldığında devreye girer"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "Action Mode'u gizle"
+
+msgid "hide_unbounded_subtitle"
+msgstr "Action Mode'u arayüzden kaldırır"
+
+msgid "vpn_connected"
+msgstr "MYX-VPN şimdi bağlı."
+
+msgid "vpn_disconnected"
+msgstr "MYX-VPN şimdi bağlantısı kesildi."
+
+msgid "open_notification"
+msgstr "Bildirimi Aç"
+
+msgid "logout"
+msgstr "Çıkış"
+
+msgid "logout_message"
+msgstr ""
+"Çıkış yapmak MYX-VPN'i ücretsiz sürüme geçirecektir. Hesabınıza tekrar "
+"erişmek için yeniden giriş yapmanız gerekecektir."
+
+msgid "logout_message_expired"
+msgstr "Hesabınızdan çıkış yapmak istediğinizden emin misiniz?"
+
+msgid "not_now"
+msgstr "Şimdi Değil"
+
+msgid "billed_once"
+msgstr "Bir Kez Faturalandırılır"
+
+msgid "subscription"
+msgstr "Abonelik"
+
+msgid "subscribe"
+msgstr "Abone Ol"
+
+msgid "checkout"
+msgstr "Ödeme"
+
+msgid "vpn_may_be_needed"
+msgstr "VPN gerekli olabilir"
+
+msgid "google_and_apple_sign_in_blocked"
+msgstr ""
+"Google ve Apple ile giriş bu bölgede engellenmiş olabilir. Hesap kurulumunu "
+"tamamlamak için lütfen önce VPN'i açın."
+
+msgid "continue_without_vpn"
+msgstr "VPN Olmadan Devam Et"
+
+msgid "turn_on_vpn"
+msgstr "VPN'i Aç"
+
+msgid "server_setup_do"
+msgstr "DigitalOcean kullanarak kur"
+
+msgid "server_setup_do_price"
+msgstr "Digital Ocean üzerinden ayda sadece %s"
+
+msgid "server_setup_gcp"
+msgstr "Google Cloud Platform kullanarak kur"
+
+msgid "continue_with_do"
+msgstr "Digital Ocean ile Devam Et"
+
+msgid "server_setup_gcp_price"
+msgstr "GCP üzerinden ayda sadece %s"
+
+msgid "continue_with_gcp"
+msgstr "Google ile Devam Et"
+
+msgid "server_setup_manual"
+msgstr "Manuel Olarak Kur"
+
+msgid "seamless_integration"
+msgstr "MYX-VPN ile sorunsuz entegrasyon"
+
+msgid "one_month_included"
+msgstr "Ayda %d TB veri dahil"
+
+msgid "easiest_setup_process"
+msgstr "En kolay kurulum süreci"
+
+msgid "setup_a_private_server"
+msgstr "Özel Sunucu Kur"
+
+msgid "setup_private_server"
+msgstr "Özel Sunucu Kur"
+
+msgid "previous"
+msgstr "Önceki"
+
+msgid "next"
+msgstr "Sonraki"
+
+msgid "error"
+msgstr "Hata"
+
+msgid "signup_error_user_exists"
+msgstr ""
+"Kayıt sırasında bir sorun oluştu. Lütfen tekrar deneyin veya zaten bir "
+"hesabınız varsa giriş yapın"
+
+msgid "user_not_found"
+msgstr ""
+"Kullanıcı tanınmadı. Lütfen kimlik bilgilerinizi kontrol edip tekrar "
+"deneyin. Sorun devam ederse, yardım için destek ekibimizle iletişime geçin."
+
+msgid "invalid_code"
+msgstr ""
+"Yanlış kod veya süresi dolmuş olabilir. Lütfen tekrar göndermeyi deneyin"
+
+msgid "email_resend_message"
+msgstr "Yeni onay kodunuz gönderildi"
+
+msgid "password_has_been_updated"
+msgstr "Şifre güncellendi"
+
+msgid "password_has_been_updated_message"
+msgstr "Şifreniz başarıyla sıfırlandı"
+
+msgid "update_pro_account"
+msgstr "Pro Hesabı Güncelle"
+
+msgid "update_pro_account_message"
+msgstr ""
+"Hesabınızı yönetmek veya başka bir cihazda oturum açmak için lütfen önce "
+"hesabınıza bir e-posta ve şifre ekleyin."
+
+msgid "subscription_cancelled"
+msgstr "Aboneliğiniz iptal edildi."
+
+msgid "subscription_updated"
+msgstr "Aboneliğiniz güncellendi."
+
+msgid "subscription_renewed"
+msgstr "Aboneliğiniz yenilendi."
+
+msgid "got_it"
+msgstr "Anladım"
+
+msgid "server_location"
+msgstr "Sunucu Konumu"
+
+msgid "choose"
+msgstr "Seç"
+
+msgid "choose_your_account"
+msgstr "Hesabını Seç"
+
+msgid "choose_your_project"
+msgstr "Projeni seç"
+
+msgid "billing_account"
+msgstr "Fatura Hesabı"
+
+msgid "server_name"
+msgstr "Sunucu Adı"
+
+msgid "change"
+msgstr "Değiştir"
+
+msgid "choose_location"
+msgstr "Konum Seç"
+
+msgid "choose_your_location"
+msgstr "Konumunu Seç"
+
+msgid "start_deployment"
+msgstr "Dağıtımı Başlat"
+
+msgid "private_server_setup_in_progress"
+msgstr ""
+"Sabırlı ol! Özel Sunucun kuruluyor. Bu birkaç dakika sürebilir, lütfen bu "
+"ekranı açık tutun."
+
+msgid "cancel_server_deployment"
+msgstr "Sunucu Dağıtımını İptal Et"
+
+msgid "close"
+msgstr "Kapat"
+
+msgid "connect_now"
+msgstr "Şimdi Bağlan"
+
+msgid "server_setup_failed"
+msgstr "Sunucu Kurulumu Başarısız"
+
+msgid "server_setup_failed_message"
+msgstr ""
+"Özel Sunucunuzu kurarken bir sorun oluştu. Yeniden deneyebilir veya daha "
+"sonra tekrar deneyebilirsiniz."
+
+msgid "exit"
+msgstr "Çıkış"
+
+msgid "retry"
+msgstr "Yeniden Dene"
+
+msgid "private_server_ready"
+msgstr "Özel Sunucu Hazır!"
+
+msgid "private_server_ready_message"
+msgstr ""
+"(%s) Sunucu kuruldu ve sunucu listenize eklendi. Bağlanmaya hazırsınız!"
+
+msgid "set_up_your_server"
+msgstr "Sunucunu Kur"
+
+msgid "view_instructions_github"
+msgstr "GitHub'da Talimatları Görüntüle"
+
+msgid "server_access_key"
+msgstr "Sunucu Erişim Anahtarı"
+
+msgid "access_key"
+msgstr "Erişim Anahtarı"
+
+msgid "name_your_server"
+msgstr "Sunucuna İsim Ver"
+
+msgid "how_server_appears"
+msgstr "Sunucunun sunucu seçim listesinde nasıl görüneceği"
+
+msgid "server_nickname"
+msgstr "Sunucu Takma Adı"
+
+msgid "verify_server"
+msgstr "Sunucuyu Doğrula"
+
+msgid "vpn_client_not_setup"
+msgstr "Lütfen VPN istemcisini açın."
+
+msgid "join_a_private_server"
+msgstr "Özel Bir Sunucuya Katıl"
+
+msgid "join_private_server"
+msgstr "Özel Sunucuya Katıl"
+
+msgid "join_server"
+msgstr "Sunucuya Katıl"
+
+msgid "private_server_usage_message"
+msgstr "Özel sunucu kullanımı MYX-VPN günlük veri limitinize sayılmaz."
+
+msgid "my_servers"
+msgstr "Sunucularım"
+
+msgid "joined_servers"
+msgstr "Katıldığım Sunucular"
+
+msgid "access_key_expiration"
+msgstr ""
+"Her erişim anahtarı benzersizdir ve 1 gün sonra sona erer. İstediğiniz zaman"
+" yeni bir tane oluşturabilirsiniz."
+
+msgid "share_access_key"
+msgstr "Erişim Anahtarını Paylaş"
+
+msgid "rename_server"
+msgstr "Sunucuyu Yeniden Adlandır"
+
+msgid "rename"
+msgstr "Yeniden Adlandır"
+
+msgid "selected_location"
+msgstr "Seçili Konum"
+
+msgid "remove_server_?"
+msgstr "Sunucu Kaldırılsın mı?"
+
+msgid "remove_server_message"
+msgstr ""
+"%s kaldırılsın mı? Bu sadece uygulamanızdan kaldıracaktır, bulut "
+"sağlayıcınızdan sunucuyu silmeyecektir."
+
+msgid "generate_access_key"
+msgstr "Erişim anahtarı oluştur"
+
+msgid "trust_server_operator"
+msgstr "Sunucu Operatörüne Güvenin"
+
+msgid "trust_server_operator_message_one"
+msgstr ""
+"Özel sunucular, MYX-VPN dışındaki bireyler veya kuruluşlar tarafından "
+"barındırılır ve işletilir. Birine bağlandığınızda, onu çalıştıran kişiye "
+"güvenli bir şekilde yönetmesi ve sorumlu bir şekilde kullanması için "
+"güveniyorsunuz."
+
+msgid "trust_server_operator_message_two"
+msgstr ""
+"MYX-VPN özel sunucuları yönetmez veya izlemez. Bir sunucuya katılmadan önce "
+"sunucu operatörünü tanıdığınızdan ve güvendiğinizden emin olun."
+
+msgid "trust_server_operator_message_three"
+msgstr ""
+"Sunucuyu kimin yönettiğinden veya nasıl yapılandırıldığından emin "
+"değilseniz, sunucu listenizde bulunan varsayılan MYX-VPN sunucularından "
+"birini kullanmanızı öneririz."
+
+msgid "lantern_servers"
+msgstr "MYX-VPN Sunucuları"
+
+msgid "private_servers"
+msgstr "Özel Sunucular"
+
+msgid "fastest_server"
+msgstr "En Hızlı Sunucu"
+
+msgid "latency_testing"
+msgstr "Test ediliyor…"
+
+msgid "latency_unreachable"
+msgstr "Ulaşılamıyor"
+
+msgid "join_my_private_server"
+msgstr "MYX-VPN Özel Sunucuma Katıl"
+
+msgid "your_server"
+msgstr "Sunucularınız:"
+
+msgid "no_private_server_setup_yet"
+msgstr ""
+"Henüz bir özel sunucu kurmadınız. Başlamak için aşağıdaki düğmeye tıklayın."
+
+msgid "connect"
+msgstr "Bağlan"
+
+msgid "disconnect"
+msgstr "Bağlantıyı Kes"
+
+msgid "show"
+msgstr "Göster"
+
+msgid "status_on"
+msgstr "Bağlı"
+
+msgid "status_off"
+msgstr "Bağlantı Kesildi"
+
+msgid "select_location"
+msgstr "Konum Seç"
+
+msgid "select_your_server_location"
+msgstr "Sunucu konumunu seçin"
+
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "Daha hızlı hız ve sınırsız bant genişliği"
+
+msgid "premium_servers_less_congestion"
+msgstr "Daha az yoğunluğa sahip premium sunucular"
+
+msgid "advanced_anti_censorship"
+msgstr "Gelişmiş sansür önleme teknolojisi"
+
+msgid "connect_up_to_five_devices"
+msgstr "5 cihaza kadar bağlayın"
+
+msgid "built_in_ad_blocking"
+msgstr "Yerleşik reklam engelleme"
+
+msgid "get_lantern_pro"
+msgstr "Lantern Pro Edin"
+
+msgid "connected_to_private_server"
+msgstr "Özel Sunucuya Bağlandı"
+
+msgid "server_already_selected"
+msgstr "Bu sunucuya zaten bağlısınız."
+
+msgid "device_limit_reached"
+msgstr "Cihaz Limitine Ulaşıldı"
+
+msgid "device_limit_reached_message"
+msgstr ""
+"5 cihaz limitinize ulaştınız. Devam etmek için lütfen bir cihazı kaldırın."
+
+msgid "remove_device_and_sign_in"
+msgstr "Cihazı Kaldır ve Giriş Yap"
+
+msgid "cancel_sign_in"
+msgstr "Girişi İptal Et"
+
+msgid "change_email"
+msgstr "E-posta Değiştir"
+
+msgid "change_email_message"
+msgstr ""
+"Bu, yeni giriş e-postanız olacaktır. Değişiklik yürürlüğe girmeden önce "
+"doğrulamanız gerekecektir."
+
+msgid "email_must_be_different"
+msgstr "Lütfen farklı bir e-posta adresi girin."
+
+msgid "enter_new_email"
+msgstr "Yeni e-postanı girin"
+
+msgid "confirm_password_to_continue"
+msgstr "Devam etmek için lütfen şifrenizi onaylayın."
+
+msgid "email_updated"
+msgstr "E-postanız güncellendi."
+
+msgid "enable_network_extension"
+msgstr "Ağ Uzantısını Etkinleştir"
+
+msgid "enable_network_extension_message"
+msgstr ""
+"MYX-VPN'i kullanmak için Mac'iniz için bir ağ uzantısı yüklememiz gerekiyor."
+
+msgid "install_now"
+msgstr "Şimdi Yükle"
+
+msgid "learn_more"
+msgstr "Daha Fazla Bilgi"
+
+msgid "network_extension_required"
+msgstr "Ağ uzantısı gerekli"
+
+msgid "click"
+msgstr "Tıkla"
+
+msgid "open_system_settings"
+msgstr "Sistem Ayarlarını Aç"
+
+msgid "when_prompted"
+msgstr "istendiğinde."
+
+msgid "activate_extension"
+msgstr "Uzantıyı Etkinleştir"
+
+msgid "email_optional"
+msgstr "E-posta (isteğe bağlı)"
+
+msgid "please_enter_valid_email"
+msgstr "Lütfen geçerli bir e-posta girin"
+
+msgid "please_select_an_issue"
+msgstr "Lütfen bir sorun seçin"
+
+msgid "thanks_for_feedback"
+msgstr "Geri bildiriminiz için teşekkürler!"
+
+msgid "no_apps_selected"
+msgstr "Hiç uygulama seçilmedi"
+
+msgid "deselect_all"
+msgstr "Tümünün Seçimini Kaldır"
+
+msgid "select_all"
+msgstr "Tümünü Seç"
+
+msgid "no_websites_selected"
+msgstr "Hiç web sitesi seçilmedi"
+
+msgid "restore_purchase"
+msgstr "Satın Almayı Geri Yükle"
+
+msgid "already_purchased"
+msgstr "Zaten satın aldınız mı?"
+
+msgid "do_private_server_setup"
+msgstr "DO Özel Sunucu Kurulumu"
+
+msgid "private_server_note"
+msgstr ""
+"Özel Sunucunuz için bir bölge seçin. Daha yakın konumlar hız ve gecikmeyi "
+"iyileştirebilir."
+
+msgid "gcp_private_server_setup"
+msgstr "GCP Özel Sunucu Kurulumu"
+
+msgid "gcp_private_server_location"
+msgstr "GCP Özel Sunucu Konumu"
+
+msgid "do_private_server_location"
+msgstr "DO Özel Sunucu Konumu"
+
+msgid "confirm"
+msgstr "Onayla"
+
+msgid "private_server_warning"
+msgstr ""
+"Yalnızca güvendiğiniz kişiler tarafından çalıştırılan sunucuları ekleyin "
+
+msgid "go_to_server_locations"
+msgstr "Sunucu Konumlarına Git"
+
+msgid "lantern_io"
+msgstr "MYX-VPN.io"
+
+msgid "alternative_download_links"
+msgstr "Alternatif İndirme Linkleri"
+
+msgid "github_download_page"
+msgstr "GitHub İndirme Sayfası"
+
+msgid "telegram_bot"
+msgstr "Telegram Botu"
+
+msgid "if_you_cannot_access_website"
+msgstr ""
+"Web sitemize erişirken herhangi bir sorunla karşılaşırsanız, MYX-VPN'i "
+"yukarıdaki linklerden indirebilirsiniz."
+
+msgid "available_on"
+msgstr "Şunlarda mevcut:"
+
+msgid "subscription_renewal_date"
+msgstr "Abonelik Yenileme Tarihi"
+
+msgid "pro_access_until"
+msgstr "%s tarihine kadar Pro erişimi"
+
+msgid "diagnostic_logs"
+msgstr "Tanı Günlükleri"
+
+msgid "lantern_user_forum"
+msgstr "MYX-VPN Kullanıcı Forumu"
+
+msgid "frequently_asked_questions"
+msgstr "Sıkça Sorulan Sorular"
+
+msgid "privacy_policy"
+msgstr "Gizlilik Politikası"
+
+msgid "terms_of_service"
+msgstr "Hizmet Şartları"
+
+msgid "get_unlimited_data"
+msgstr "Sınırsız veri ve daha hızlı hız elde edin!"
+
+msgid "private_server_options"
+msgstr "Özel Sunucu Seçenekleri"
+
+msgid "lantern_version"
+msgstr "MYX-VPN Sürümü"
+
+msgid "quit"
+msgstr "Çık"
+
+msgid "device_removed"
+msgstr "Cihaz kaldırıldı"
+
+msgid "set_server_alias"
+msgstr "Sunucu Takma Adı Belirle"
+
+msgid "this_name_pre_filled"
+msgstr ""
+"Bu isim, davetli kullanıcı için sunucuyu tanımlamalarına yardımcı olmak için"
+" önceden doldurulacaktır. Daha sonra değiştirebilirler."
+
+msgid "server_alias"
+msgstr "Sunucu Takma Adı"
+
+msgid "add_referral_code"
+msgstr "Tavsiye Kodu Ekle"
+
+msgid "referral_code"
+msgstr "Tavsiye Kodu"
+
+msgid "scan_qr_code"
+msgstr "QR Kodu Tara"
+
+msgid "choose_your_server_location"
+msgstr "Sunucunun konumunu seç"
+
+msgid "we_handle_configuration"
+msgstr "Yapılandırmayı biz hallederiz, sadece kaydolun."
+
+msgid "90_day_free_trial"
+msgstr "90 günlük ücretsiz deneme"
+
+msgid "server_alias_cannot_be_empty"
+msgstr "Sunucu takma adı boş olamaz"
+
+msgid "referral_code_applied"
+msgstr "Referans kodunuz uygulandı!"
+
+msgid "discount_applied"
+msgstr "%s indirim uygulandı"
+
+msgid "referral_message_1y"
+msgstr "+ 1 ek ay ücretsiz"
+
+msgid "referral_code_invalid"
+msgstr ""
+"Girdiğiniz tavsiye/promosyon kodu geçersiz. Lütfen kodu kontrol edip tekrar "
+"deneyin."
+
+msgid "referral_code_own_invalid"
+msgstr "Kendi referans kodunuzu kullanamazsınız. Lütfen farklı bir kod girin."
+
+msgid "free"
+msgstr "Ücretsiz"
+
+msgid "lantern_pro_license"
+msgstr "Lantern Pro Lisansı"
+
+msgid "lantern_pro_license_required"
+msgstr "Lantern Pro lisansı gerekli"
+
+msgid "lantern_pro_license_invalid"
+msgstr "Geçersiz Lantern Pro lisansı"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "Lantern Pro lisansı 25 karakter olmalıdır"
+
+msgid "create_an_account"
+msgstr "Hesap oluşturun"
+
+msgid "no_projects_found"
+msgstr "Proje Bulunamadı"
+
+msgid "no_projects_found_desc"
+msgstr ""
+"Proje bulunamadı. Lütfen önce bulut sağlayıcı hesabınızda bir proje "
+"oluşturun."
+
+msgid "add_billing_details"
+msgstr "Fatura Bilgilerini Ekle"
+
+msgid "do_billing_details_message"
+msgstr "DigitalOcean sunucu oluşturmak için ödeme bilgilerine ihtiyaç duyar."
+
+msgid "1"
+msgstr "1"
+
+msgid "2"
+msgstr "2"
+
+msgid "3"
+msgstr "3"
+
+msgid "add_payment_method"
+msgstr "Bir ödeme yöntemi ekleyin (kredi kartı veya PayPal)"
+
+msgid "return_to_lantern"
+msgstr "MYX-VPN'e geri dönün ve kuruluma devam etmek için \"Devam Et\"e dokunun"
+
+msgid "how_to_add_billing_details"
+msgstr "Fatura bilgileri nasıl eklenir:"
+
+msgid "ok"
+msgstr "Tamam"
+
+msgid "could_not_open_url"
+msgstr "URL açılamadı"
+
+msgid "new_to_lantern_pro"
+msgstr "MYX-VPN'de yeni misiniz?"
+
+msgid "an_error_occurred"
+msgstr "Bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+
+msgid "developer_mode"
+msgstr "Geliştirici Modu"
+
+msgid "developer_mode_note"
+msgstr ""
+"Geliştirici Modu, yalnızca MYX-VPN Geliştiricilerinin geliştirme sırasında "
+"özellikleri test etmesi içindir."
+
+msgid "error_while_vpn_connection"
+msgstr "VPN bağlantısı kurulurken bir hata oluştu. Lütfen tekrar deneyin."
+
+msgid "help_improve_lantern"
+msgstr "MYX-VPN'i İyileştirmeye Yardımcı Olun"
+
+msgid "share_anonymous_usage_data"
+msgstr ""
+"Hızı ve güvenilirliği artırmaya yardımcı olmak için anonim kullanım "
+"verilerini paylaşın."
+
+msgid "data_we_collect"
+msgstr ""
+"Tarayıcı geçmişi, trafik hedefleri, DNS sorguları veya bağlantı günlüklerini"
+" asla toplamayız."
+
+msgid "you_can_change_anytime"
+msgstr "Bunu VPN Ayarları'ndan istediğiniz zaman değiştirebilirsiniz."
+
+msgid "dont_allow"
+msgstr "İzin Verme"
+
+msgid "allow"
+msgstr "İzin Ver"
+
+msgid "anonymous_usage_data"
+msgstr "Anonim Kullanım Verileri"
+
+msgid "helps_improve_lantern_performance"
+msgstr "MYX-VPN performansını iyileştirmeye yardımcı olur"
+
+msgid "email_deliverability_notice"
+msgstr "E-posta Teslimat Bildirimi"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"163.com, 126.com, qq.com ve sina.com adreslerine gönderilen e-postalar bazen"
+" engelleniyor ve ulaşmayabilir"
+
+msgid "email_deliverability_notice_message_two"
+msgstr ""
+"Onay kodunuzu almadıysanız, alternatif bir e-posta sağlayıcısı kullanmayı "
+"düşünün."
+
+msgid "continue_anyway"
+msgstr "Yine de Devam Et"
+
+msgid "routing_mode"
+msgstr "Yönlendirme Modu"
+
+msgid "smart_routing"
+msgstr "Akıllı Yönlendirme"
+
+msgid "full_tunnel"
+msgstr "Tam Tünel"
+
+msgid "region_optimized_routing"
+msgstr "Bölgeniz için optimize edilmiş kural tabanlı yönlendirme"
+
+msgid "all_traffic_through_vpn"
+msgstr "Tüm trafik VPN üzerinden"
+
+msgid "smart_routing_description"
+msgstr ""
+"Akıllı Yönlendirme, VPN'e ihtiyaç duyan trafiği otomatik olarak MYX-VPN "
+"üzerinden göndermek için bölgeye özel kurallar kullanır. Diğer tüm trafik "
+"hız ve güvenilirlik için doğrudan gider."
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "VPN'i atlamak için uygulama ve web siteleri ekle"
+
+msgid "lantern_pro_license_applied"
+msgstr "Lantern Pro Lisansınız mevcut hesabınıza uygulanacak"
+
+msgid "daily_data_cap_reached"
+msgstr "Günlük veri limitine ulaşıldı"
+
+msgid "daily_data_cap_reached_message"
+msgstr "Hız 128 kb/sn'ye düşürüldü - %s'de sıfırlanacak."
+
+msgid "subscription_renewal_info"
+msgstr ""
+"Ödeme, satın alma sırasında Apple ID'nizden tahsil edilir. Abonelikler, "
+"mevcut dönemin bitiminden en az 24 saat önce iptal edilmedikçe otomatik "
+"olarak yenilenir."
+
+msgid "failed_to_update_routing_mode"
+msgstr "Yönlendirme modu güncellenemedi. Lütfen tekrar deneyin."
+
+msgid "apps"
+msgstr "Uygulamalar"
+
+msgid "websites"
+msgstr "Web Siteleri"
+
+msgid "main_channel"
+msgstr "Ana Kanal"
+
+msgid "data_cap_channel"
+msgstr "Veri Kullanım Uyarıları"
+
+msgid "mb_free_data_remaining"
+msgstr "%d MB ücretsiz veri kaldı"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"Verileriniz %s tarihinde sıfırlanacak. Sınırsız yüksek hızlı veri için "
+"Pro'ya yükseltin."
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"Daha önce Lantern Pro şifresi belirlemediyseniz, aşağıdaki 'şifrenizi mi "
+"unuttunuz?' seçeneğini seçin."
+
+msgid "pro_subscription_expired"
+msgstr "Pro aboneliğinizin süresi doldu"
+
+msgid "renew_pro_subscription"
+msgstr "Pro Aboneliğini Yenile"
+
+msgid "subscription_expired"
+msgstr "Abonelik Süresi Doldu"
+
+msgid "pro"
+msgstr "Pro"
+
+msgid "set_account_password"
+msgstr "Hesap Şifresi Belirle"
+
+msgid "set_password"
+msgstr "Şifre Belirle"
+
+msgid "set_account_password_message"
+msgstr ""
+"Hesabınızı yönetmek veya diğer cihazlarda oturum açmak için Lantern Pro hesabınız için bir şifre belirlemeniz gerekiyor.\n"
+"\n"
+"Şifrenizi oluşturmanız için size e-posta ile bir doğrulama kodu göndereceğiz."
+
+msgid "expired"
+msgstr "Süresi Doldu"
+
+msgid "lantern_pro_tagline"
+msgstr "Hızlı, güvenilir ve gizli internet erişimi"
+
+msgid "what_makes_lantern_different"
+msgstr "MYX-VPN'ı farklı kılan nedir"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "Gizlilik, hız ve özgürlük için tasarlandı"
+
+msgid "smart_routing_mode"
+msgstr "Akıllı Yönlendirme Modu"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"Bölgeye özel kurallar yalnızca VPN gerektiren trafiği yönlendirir, "
+"bağlantınızı hızlı tutar."
+
+msgid "advanced_protocols"
+msgstr "Gelişmiş Protokoller"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"Maksimum güvenilirlik için diğer VPN'lerden daha fazla protokol. AnyTLS, "
+"Hysteria2, VLESS, Kindling, WATER ve daha fazlası."
+
+msgid "private_servers_description"
+msgstr "Bağlantınız üzerinde tam kontrol için kendi sunucularınızı bağlayın."
+
+msgid "nonprofit_mission"
+msgstr "Kâr Amacı Gütmeyen Misyon"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"12 yılı aşkın internet özgürlüğü deneyimine sahip kâr amacı gütmeyen bir "
+"kuruluş tarafından geliştirildi"
+
+msgid "choose_your_routing_mode"
+msgstr "Yönlendirme modunuzu seçin"
+
+msgid "fastest"
+msgstr "En Hızlı"
+
+msgid "traditional_vpn_mode"
+msgstr "Geleneksel VPN Modu"
+
+msgid "traditional_vpn_mode_description"
+msgstr ""
+"İhtiyacı olsun ya da olmasın tüm trafiği MYX-VPN üzerinden yönlendirir."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "Yönlendirme Modu Ayarlarından istediğiniz zaman değiştirin"
+
+msgid "get_started"
+msgstr "Başla"
+
+msgid "skip_connect_now"
+msgstr "Atla - Şimdi Bağlan"
+
+msgid "renew_pro"
+msgstr "Pro'yu Yenile"
+
+msgid "payment"
+msgstr "Ödeme"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"Bir sorun oluşmuş gibi görünüyor. Ödeme yaptıysanız ancak aboneliğinizi "
+"aktif göremiyorsanız, lütfen birkaç saat bekleyip tekrar kontrol edin."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"Pro planınız Google Play üzerinden satın alındı. Lütfen aboneliğinizi Google"
+" Play hesap ayarlarınızdan yönetin."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"Pro planınız Apple App Store üzerinden satın alındı. Lütfen aboneliğinizi "
+"Apple ID hesap ayarlarınızdan yönetin."
+
+msgid "create_account_error"
+msgstr "Hesap Oluşturma Hatası"
+
+msgid "appearance"
+msgstr "Görünüm"
+
+msgid "light"
+msgstr "Aydınlık"
+
+msgid "dark"
+msgstr "Karanlık"
+
+msgid "system"
+msgstr "Sistem"
+
+msgid "lantern_email"
+msgstr "MYX-VPN E-posta"
+
+msgid "confirm_with_account"
+msgstr ""
+"Silme işlemini onaylamak için lütfen aşağıdaki %s hesabınızla doğrulayın:"
+
+msgid "oauth_different_account"
+msgstr ""
+"Giriş yapmaya çalıştığınız hesap, bu e-postayla ilişkili hesapla eşleşmiyor."
+" Lütfen doğru hesapla giriş yapın veya farklı bir e-posta seçin."
+
+msgid "account_deleted"
+msgstr "Hesap Silindi"
+
+msgid "account_deleted_message"
+msgstr "Hesabınız kalıcı olarak silindi."
+
+msgid "verify_with"
+msgstr "%s ile doğrula"
+
+msgid "renew"
+msgstr "Yenile"
+
+msgid "vpn_conflict_title"
+msgstr "VPN çakışması algılandı"
+
+msgid "vpn_conflict_body"
+msgstr ""
+"Cihazınızda başka bir VPN çalışıyor. MYX-VPN, tek etkin VPN'iniz olduğunda "
+"en iyi şekilde çalışır. En iyi sonuç için lütfen MYX-VPN'i kullanmadan önce "
+"onun bağlantısını kesin."
+
+msgid "vpn_conflict_dismiss"
+msgstr "Tamam"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Yine de bağlan"
+
+msgid "err_check_connection"
+msgstr "Bağlanılamıyor. İnternet bağlantınızı kontrol edin."
+
+msgid "err_service_unavailable"
+msgstr "Hizmet geçici olarak kullanılamıyor. Yeniden deneniyor..."
+
+msgid "err_connection_failed"
+msgstr "Bağlantı başarısız oldu. Lütfen tekrar deneyin."
+
+msgid "err_ruleset_failed"
+msgstr "Yönlendirme yapılandırması yüklenemedi. Yeniden deneniyor..."
+
+msgid "update_now"
+msgstr "Şimdi güncelle"
+
+msgid "later"
+msgstr "Daha sonra"
+
+msgid "update_ready_to_install"
+msgstr "MYX-VPN %s yüklenmeye hazır"
+
+msgid "up_to_date"
+msgstr "Güncel"
+
+msgid "running_latest_version"
+msgstr "MYX-VPN'in en son sürümünü (%s) kullanıyorsunuz"
+
+msgid "couldnt_check_for_updates"
+msgstr "Güncellemeler kontrol edilemedi"
+
+msgid "check_connection_and_retry"
+msgstr "Bağlantınızı kontrol edip tekrar deneyin"
+
+msgid "refresh_configuration"
+msgstr "Yapılandırmayı Yenile"
+
+msgid "configuration_cleared"
+msgstr "Yapılandırma temizlendi"
+
+msgid "turn_off_vpn"
+msgstr "VPN'i Kapat"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"Yapılandırmanızı yenileyebilmeniz için VPN'in kapalı olması gerekiyor. "
+"Kapatın ve tekrar deneyin."
+
+msgid "configuration_message"
+msgstr ""
+"Eski yapılandırmanız temizlendi. En yenisini otomatik olarak indirmek için "
+"VPN'i açın."
+
+msgid "promo_referral_code"
+msgstr "Promosyon / Tavsiye Kodu"
+
+msgid "promo_code"
+msgstr "Promosyon Kodu"
+
+msgid "promo_code_with"
+msgstr "Promosyon Kodu (%s)"
+
+msgid "order_total"
+msgstr "Sipariş Toplamı"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"Akıllı Konum en hızlı sunucuyu seçer ve daha iyi rotalar buldukça otomatik "
+"olarak geçiş yapar."
+
+# Share consent dialog (shown once before any sharing starts, covers both
+# modes)
+msgid "share_consent_title"
+msgstr "Bağlantınızı paylaşmak istiyor musunuz?"
+
+msgid "share_consent_body_what"
+msgstr ""
+"Paylaşım açıkken, sansürlü ülkelerdeki insanlar açık internete ulaşmak için "
+"trafiklerini bağlantınız üzerinden yönlendirir."
+
+msgid "share_consent_body_ip"
+msgstr ""
+"Yönlendiriciniz bağlantı noktası yönlendirmeyi destekliyorsa, ev bağlantınız"
+" çıkış olarak kullanılır ve paylaşım sırasında IP adresiniz hedefin "
+"günlüklerinde görünür. Aksi halde bu trafik MYX-VPN'in sunucuları üzerinden "
+"aktarılır ve IP'niz bu şekilde açığa çıkmaz."
+
+msgid "share_consent_body_safety"
+msgstr ""
+"Her iki durumda da MYX-VPN bilinen kötüye kullanım hedeflerini, özel ağ "
+"aralıklarını ve kötüye kullanıma açık bağlantı noktalarını engeller, kimlik "
+"bilgilerini düzenli olarak değiştirir ve DMCA § 512(a) kapsamında \"salt "
+"iletici\" (mere conduit) olarak çalışır."
+
+msgid "share_consent_decline"
+msgstr "Şimdi Değil"
+
+msgid "share_consent_accept"
+msgstr "Paylaşımı aç"
+
+msgid "bypass_browser_warning_title"
+msgstr "%s atlama listesine eklensin mi?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s, MYX-VPN'in koruması olmadan doğrudan bağlanacak. Belirli web sitelerini "
+"engelleyen ülkelerde bazı siteler yüklenmeyi durduracak."
+
+msgid "add_anyway"
+msgstr "Yine de Ekle"
+
+msgid "bypass_all_warning_title"
+msgstr "Tüm uygulamalar atlama listesine eklensin mi?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Buna %s gibi tarayıcılar da dahildir. Atlama listesindeki uygulamalar, "
+"MYX-VPN'in koruması olmadan doğrudan bağlanır. Belirli web sitelerini "
+"engelleyen ülkelerde bazı siteler yüklenmeyi durduracak."
+
+msgid "add_all_except_browsers"
+msgstr "Tarayıcılar Hariç Tümünü Ekle"
+
+msgid "add_all_anyway"
+msgstr "Yine de Tümünü Ekle"
+
+msgid "bypass_app_first_time_title"
+msgstr "Bu uygulama için VPN atlansın mı?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s, MYX-VPN'in koruması olmadan doğrudan bağlanacak. Ülkenizde engelliyse "
+"çalışmayı durdurabilir."
+
+msgid "bypass_website_first_time_title"
+msgstr "Bu web sitesi için VPN atlansın mı?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s, MYX-VPN'in koruması olmadan doğrudan bağlanacak. Ülkenizde engelliyse "
+"çalışmayı durdurabilir."
+
+msgid "upsell_upgrade_suffix"
+msgstr "Daha hızlı, sınırsız veri!"
+
+msgid "upsell_expired_suffix"
+msgstr "Pro süreniz doldu"
+
+msgid "pro_expires_days_left"
+msgstr "Pro %s tarihinde sona eriyor, %s gün kaldı"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro %s tarihinde sona eriyor, 1 gün kaldı"
+
+msgid "renewing_adds_time"
+msgstr "Yenileme, mevcut bitiş tarihinize süre ekler"
+
+msgid "pro_ends_today"
+msgstr "Pro süresi bugün sona eriyor, %s"
+
+msgid "renew_now_keep_data"
+msgstr "Sınırsız veriyi ve Pro özelliklerini korumak için şimdi yenileyin"
+
+msgid "pro_expired_on"
+msgstr "Pro süreniz %s tarihinde doldu"
+
+msgid "renew_now_get_back_data"
+msgstr "Sınırsız veriyi geri almak için şimdi yenileyin"
+
+msgid "days_left"
+msgstr "%s gün kaldı"
+
+msgid "one_day_left"
+msgstr "1 gün kaldı"
+
+msgid "expires_today"
+msgstr "Bugün sona eriyor"
+
+msgid "pro_time_expired_message"
+msgstr ""
+"Lantern Pro süresi doldu. Sınırsız veriyi ve Pro özelliklerini geri getirmek"
+" için yenileyin."
+
+msgid "pro_expires_today_title"
+msgstr "Pro bugün sona eriyor"
+
+msgid "pro_expires_today_popup_message"
+msgstr ""
+"Pro hesabınız bugün sona eriyor. Lantern Pro erişiminizi korumak için şimdi "
+"yenileyin."
+
+msgid "renew_now"
+msgstr "Şimdi Yenile"
+
+msgid "dismiss"
+msgstr "Kapat"
+
+msgid "unbounded_status_waiting"
+msgstr "Başlamak için bekliyor"
+
+msgid "affiliate_offer_unavailable"
+msgstr "İndirimli planlar mağazadan yüklenemedi. Lütfen tekrar deneyin."
+
+msgid "action_mode_helping_now"
+msgstr "Şu anda yardım ediliyor"
+
+msgid "action_mode_total_helped"
+msgstr "Bugüne kadar yardım edilen toplam kişi"
+
+msgid "show_license"
+msgstr "Lisansı göster"
+
+msgid "hide_license"
+msgstr "Lisansı gizle"
+
+msgid "share_logs_warning_title"
+msgstr "Tanılama günlükleri paylaşılsın mı?"
+
+msgid "share_logs_warning_body"
+msgstr "Bu günlükler e-posta adresinizi, IP adresinizi, cihaz tanımlayıcılarınızı ve bağlandığınız MYX-VPN sunucularını içerebilir. Uygulamadan çıktıktan sonra korunmazlar, bu nedenle onları alan herkes okuyabilir. Bunları yalnızca support@lantern.io adresindeki MYX-VPN desteğine gönderin."
+
+msgid "share_logs_anyway"
+msgstr "Günlükleri Paylaş"
+
+msgid "widget"
+msgstr "Widget"
+
+msgid "add_lantern_widget"
+msgstr "MYX-VPN widget'ını ekle"
+
+msgid "add_lantern_widget_description"
+msgstr "Uygulamayı açmadan telefonunuzun ana ekranından bağlanın."
+
+msgid "widget_step_1"
+msgstr "Telefonunuzun ana ekranında boş bir alana dokunup basılı tutun."
+
+msgid "widget_step_2"
+msgstr "Düzenle'ye, ardından Widget Ekle'ye dokunun."
+
+msgid "widget_step_3"
+msgstr "MYX-VPN'ı arayın, bir boyut seçin ve Widget Ekle'ye dokunun."
+
+msgid "people_helped_title"
+msgstr "Yardım ettiğiniz kişiler"
+
+msgid "people_helped_subtitle"
+msgstr "Bugüne kadar yardım edilen: %s · şu anda: %s"
+
+msgid "advanced_stats_by_country"
+msgstr "Ülkeye göre, tüm zamanlar"
+
+msgid "advanced_stats_relayed"
+msgstr "Aktarılan: %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "Aktarılan veri"
+
+msgid "advanced_stats_this_session"
+msgstr "Bu oturum"
+
+msgid "advanced_stats_all_time_short"
+msgstr "Tüm zamanlar"
+
+msgid "advanced_stats_current_speed"
+msgstr "Mevcut hız"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "Gönderilen %s · Alınan %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "Henüz kimseye yardım edilmedi. İnsanlar sizin üzerinizden bağlandığında ülkeler burada görünecek."
+
+msgid "advanced_stats_unknown_country"
+msgstr "Bilinmiyor"
+
+msgid "advanced_stats_one_person"
+msgstr "1 kişi"
+
+msgid "advanced_stats_people"
+msgstr "%s kişi"
+
+msgid "share_mode_smc"
+msgstr "Doğrudan bağlantı"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "Paylaşım modu"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "Doğrudan bağlantı kullanılamıyor: %s"
+
+msgid "view_advanced_stats"
+msgstr "Gelişmiş istatistikleri görüntüle"
+
+msgid "error_occurred"
+msgstr "Bir hata oluştu. Lütfen tekrar deneyin."
+
+msgid "unknown_error_occurred"
+msgstr "Bilinmeyen bir hata oluştu."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "Teknik sorunlar yaşıyoruz. Lütfen daha sonra tekrar deneyin."
+
+msgid "proxy_error"
+msgstr "Proxy üzerinden bağlanılamadı. Lütfen bağlantınızı kontrol edip tekrar deneyin."
+
+msgid "err_while_sending_code"
+msgstr "Doğrulama kodu gönderilemedi. Lütfen tekrar deneyin."
+
+msgid "recovery_not_found"
+msgstr "Bu bilgilerle kurtarılacak bir hesap bulunamadı."
+
+msgid "wrong_link_code"
+msgstr "Cihaz bağlama kodu yanlış. Lütfen kontrol edip tekrar deneyin."
+
+msgid "wrong_seller_code"
+msgstr "Bayi kodu yanlış. Lütfen kontrol edip tekrar deneyin."
+
+msgid "purchase_not_found"
+msgstr "Bu hesap için bir satın alma bulamadık."
+
+msgid "purchase_restored_error"
+msgstr "Satın alma işleminiz geri yüklenemedi. Lütfen tekrar deneyin."
+
+msgid "empty_url"
+msgstr "Ödeme sayfası açılamadı. Lütfen tekrar deneyin."
+
+msgid "please_enter_referral_code"
+msgstr "Lütfen bir referans kodu girin."
+
+msgid "access_token_missing"
+msgstr "Erişim belirteci eksik. Lütfen bulut sağlayıcınızda tekrar oturum açın."
+
+msgid "private_server_setup_error"
+msgstr "Özel sunucunuz kurulamadı. Lütfen tekrar deneyin."
+
+msgid "logs"
+msgstr "Günlükler"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "DigitalOcean'a gitmek için aşağıdaki %s düğmesine dokunun"
+
+msgid "network_extension_disabled_message"
+msgstr "MYX-VPN ağ uzantısı Sistem Ayarları'nda kapalı. Giriş Öğeleri ve Uzantılar > Ağ Uzantıları bölümünden açın, ardından MYX-VPN uygulamasına dönün."
+
+msgid "oauth_error_sign_in_failed"
+msgstr "Giriş başarısız oldu. Lütfen tekrar deneyin."
+
+msgid "oauth_error_session_expired"
+msgstr "Giriş oturumunuzun süresi doldu. Lütfen tekrar deneyin."
+
+msgid "oauth_error_provider_failed"
+msgstr "Bu hesapla giriş yapamadık. Lütfen tekrar deneyin."
+
+msgid "oauth_error_no_email"
+msgstr "Bu hesap bir e-posta adresi paylaşmadı. Lütfen e-posta erişimine izin verin ve tekrar deneyin."
+
+msgid "oauth_error_add_device"
+msgstr "Bu cihaz hesabınıza bağlanamadı. Lütfen destek ekibiyle iletişime geçin."
+
+msgid "helper_error_disabled"
+msgstr "Arkadaşlara yardım etme özelliği bu cihazda henüz kullanılamıyor."
+
+msgid "helper_error_not_found"
+msgstr "Bu davet veya yardımcı artık mevcut değil."
+
+msgid "helper_error_unavailable"
+msgstr "MYX-VPN ile bağlantı kurulamadı. Bağlantınızı kontrol edip tekrar deneyin."
+
+msgid "helper_error_too_many_invites"
+msgstr "Şimdilik gönderebileceğiniz tüm davetleri gönderdiniz. Yarın tekrar deneyin."
+
+msgid "helper_error_too_many_pairings"
+msgstr "20 kişilik sınıra ulaştınız."
+
+msgid "helper_error_no_pending_claim"
+msgstr "Bu davet hakkında zaten karar verildi."
+
+msgid "helper_error_bad_name"
+msgstr "Arkadaşınızın tanıyacağı bir ad girin, en fazla 60 karakter."
+
+msgid "helper_error_keystore"
+msgstr "Bu cihaz adları güvenli şekilde saklayamıyor, bu yüzden arkadaşlara yardım kapalı. Linux'ta GNOME Keyring gibi bir anahtarlık başlatın."
+
+msgid "helper_error_keystore_reset"
+msgstr "Bu cihazın güvenli depolama alanı sıfırlandı, bu yüzden yardımcılarınızın ve davetlerinizin adları okunamadı. Yardımcılarınız hâlâ çalışıyor; adlarını görmek için onları yeniden davet edin."
+
+msgid "helper_error_copy"
+msgstr "Bağlantı kopyalanamadı. Bunun yerine Bağlantıyı Paylaş seçeneğini kullanın."
+
+msgid "helpers_your_name_label"
+msgstr "Arkadaşınızın sizi tanıdığı adınız"
+
+msgid "helpers_your_name_hint"
+msgstr "Örneğin, Sara"
+
+msgid "helper_online"
+msgstr "Çevrimiçi"
+
+msgid "helper_offline"
+msgstr "Çevrimdışı"
+
+msgid "helper_unnamed"
+msgstr "Yardımcınız"
+
+msgid "helper_remove_confirm_title"
+msgstr "%s kaldırılsın mı?"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s artık size yardım etmeyecek. Daha sonra tekrar davet edebilirsiniz."
+
+msgid "helpers_remove_all"
+msgstr "Tüm Yardımcıları Kaldır"
+
+msgid "helpers_remove_all_body"
+msgstr "Tüm yardımcılar size yardım etmeyi bırakır ve adları bu cihazdan silinir."
+
+msgid "manage_private_locations"
+msgstr "Özel Konumları Yönet"
+
+msgid "invite_personal_proxy"
+msgstr "Kişisel Proxy Davet Et"
+
+msgid "personal_proxies_tab"
+msgstr "Kişisel Proxy'ler"
+
+msgid "invite_another"
+msgstr "Başka Birini Davet Et"
+
+msgid "helpers_nudge_second"
+msgstr "Kişisel proxy'niz çevrimdışı olursa, onun üzerinden kurduğunuz bağlantı da kesilir. Bağlı kalmak için ikinci bir arkadaşınızı davet edin."
+
+msgid "personal_proxy_banner_title"
+msgstr "Kişisel proxy edinin"
+
+msgid "personal_proxy_banner_body"
+msgstr "Yurt dışındaki bir arkadaşınız bağlı kalmanızı sağlayabilir."
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Arkadaşınız bekliyor"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Kodu karşılaştırın ve onaylayın."
+
+msgid "personal_proxy_nickname_label"
+msgstr "Bu cihazdaki ad"
+
+msgid "invite_share_message"
+msgstr "%s çevrimiçi kalmak için yardımınızı istiyor. %s"
+
+msgid "invite_share_button"
+msgstr "Bağlantıyı Paylaş"
+
+msgid "invite_copy_link"
+msgstr "Bağlantıyı Kopyala"
+
+msgid "invite_link_copied"
+msgstr "Bağlantı kopyalandı"
+
+msgid "invite_qr_hint"
+msgstr "Arkadaşınız bunu MYX-VPN ile tarayabilir."
+
+msgid "invite_waiting"
+msgstr "Arkadaşınızın bağlantıyı açması bekleniyor"
+
+msgid "invite_trust_warning"
+msgstr "Davet ettiğiniz kişi MYX-VPN kullandığınızı bilecek ve onun üzerinden ne zaman bağlı olduğunuzu görebilecek. Trafiğiniz onun internet bağlantısından geçer, bu yüzden hangi siteleri ziyaret ettiğinizi öğrenebilir, ancak güvenli (https) sitelerde ne yaptığınızı öğrenemez. Yalnızca güvendiğiniz birini davet edin."
+
+msgid "invite_expires"
+msgstr "%s saat içinde sona erer"
+
+msgid "invite_gone"
+msgstr "Bu davet kullanılmış veya süresi dolmuş."
+
+msgid "invite_claimed_title"
+msgstr "Biri davetinizi açtı"
+
+msgid "invite_compare_codes"
+msgstr "Kodları Karşılaştır"
+
+msgid "personal_proxy"
+msgstr "Kişisel proxy"
+
+msgid "private_locations"
+msgstr "Özel Konumlar"
+
+msgid "personal_proxies"
+msgstr "Kişisel proxy'ler"
+
+msgid "your_personal_proxies"
+msgstr "Kişisel proxy'leriniz"
+
+msgid "help_friend_link_label"
+msgstr "Davet bağlantısı"
+
+msgid "help_friend_paste"
+msgstr "Arkadaşınızın gönderdiği bağlantıyı yapıştırın"
+
+msgid "help_friend_scan"
+msgstr "Arkadaşınızın QR Kodunu Tarayın"
+
+msgid "help_friend_approved"
+msgstr "Artık şu kişiye yardım ediyorsunuz: %s."
+
+msgid "help_friend_no_longer_pending"
+msgstr "Bu istek artık beklemede değil. Arkadaşınızdan yeni bir davet isteyin."
+
+msgid "help_friend_done"
+msgstr "Bitti"
+
+msgid "help_friend_already_claimed_title"
+msgstr "Bu davet zaten kullanıldı"
+
+msgid "help_friend_already_claimed_body"
+msgstr "Bu bağlantıyı önce başka biri açtı veya bağlantının süresi doldu. Arkadaşınızdan yeni bir davet isteyin ve bu davetin başka biri tarafından görülmüş olabileceğini söyleyin."
+
+msgid "help_friend_already_helping"
+msgstr "Bu arkadaşınıza zaten yardım ediyorsunuz."
+
+msgid "help_friend_already_helping_named"
+msgstr "Zaten yardım ediyorsunuz: %s."
+
+msgid "help_friend_bad_link"
+msgstr "Bu bir yardımcı davet bağlantısı değil."
+
+msgid "help_friend_own_invite"
+msgstr "Bu sizin kendi davetiniz. Yardım almak istediğiniz arkadaşınıza gönderin."
+
+msgid "helping_since"
+msgstr "Başlangıç: %s"
+
+msgid "helping_unnamed"
+msgstr "Yardım ettiğiniz biri"
+
+msgid "helping_sharing_off_warning"
+msgstr "Paylaşım kapalı, bu yüzden yardım ettiğiniz kişiler sizin üzerinizden bağlanamıyor."
+
+msgid "helping_remove"
+msgstr "Yardımı Durdur"
+
+msgid "helping_remove_confirm"
+msgstr "Yardım durdurulsun mu: %s? Sizin üzerinizden tekrar bağlanmak için yeni bir davet gerekecek."
+
+msgid "help_others_too"
+msgstr "Başkalarına da yardım edin"
+
+msgid "help_others_too_body"
+msgstr "Sansürle karşılaşan diğer kişilere boş kapasitenizi ödünç verin; MYX-VPN onların yalnızca izin verilen sitelere erişmesine izin verir, bu da bağlantınızı kötüye kullanıma karşı korur."
+
+msgid "help_others_too_note"
+msgstr "Bunu değiştirmek, yardım ettiğiniz kişilerin bağlantısını kısa süreliğine yeniler."
+
+msgid "helping_duration_hm"
+msgstr "%s sa %s dk"
+
+msgid "helping_duration_m"
+msgstr "%s dk"
+
+msgid "invite_share_title"
+msgstr "Bu bağlantıyı ülkeniz dışında güvendiğiniz biriyle paylaşın"
+
+msgid "invite_share_steps"
+msgstr "Kişi bağlantıyı açar, gerekirse MYX-VPN'i yükler ve adını girer. 4 haneli bir kodu kontrol ederek onu onaylarsınız, ardından onun üzerinden bağlanabilirsiniz."
+
+msgid "invite_link_label"
+msgstr "Davet bağlantınız"
+
+msgid "invite_link_expiry"
+msgstr "Yalnızca bir kez çalışır ve 48 saat içinde sona erer."
+
+msgid "approve_title"
+msgstr "%s Kişisel Proxy'niz olmak istiyor"
+
+msgid "approve_body"
+msgstr "MYX-VPN'ın gösterdiği 4 haneli kodu bir aramada veya bağlantıyı gönderdiğiniz uygulamadan farklı bir uygulamada şu kişiye sorun: %s. Yalnızca eşleşirse onaylayın."
+
+msgid "approve_codes_match"
+msgstr "Kodlar Eşleşiyor, Onayla"
+
+msgid "approve_reject"
+msgstr "Reddet"
+
+msgid "personal_proxy_fallback_group"
+msgstr "Şu anda ulaşılamıyor: %s. Kişisel proxy'leriniz seçeneğine geçildi."
+
+msgid "personal_proxy_fallback_auto"
+msgstr "Şu anda ulaşılamıyor: %s. Akıllı Konum'a geçildi."
+
+msgid "become_means_title"
+msgstr "Kişisel Proxy olmak ne demek"
+
+msgid "become_means_traffic"
+msgstr "Bir arkadaşınız sizden yardım istedi. Action Mode çalışırken bağlantınız üzerinden açık internete erişebilir. Yönlendiricinize bağlı olarak trafiği ağınızdan çıkar veya MYX-VPN sunucuları üzerinden aktarılır. MYX-VPN, çevrimiçi ne yaptığını size göstermez."
+
+msgid "become_means_seen"
+msgstr "Ne zaman bağlı olduğunuzu görebilirler. Yalnızca tanıdığınız kişilerden gelen davetleri kabul edin."
+
+msgid "become_means_remove"
+msgstr "Bağlantıyı istediğiniz zaman kaldırın."
+
+msgid "help_friend_form_title"
+msgstr "Yardım ettiğiniz kişiden gelen bağlantıyı yapıştırın"
+
+msgid "help_friend_link_hint"
+msgstr "Bağlantıyı bu cihazda açtıysanız bu alan sizin için doldurulur"
+
+msgid "help_friend_name_label"
+msgstr "Sizi tanıdıkları adınız"
+
+msgid "help_friend_name_hint"
+msgstr "Arkadaşınızın MYX-VPN uygulamasında bu şekilde görünürsünüz"
+
+msgid "help_friend_become"
+msgstr "Arkadaşınızın Kişisel Proxy'si Olun"
+
+msgid "help_friend_tell_code"
+msgstr "Bu kodu arkadaşınıza söyleyin"
+
+msgid "help_friend_code_check"
+msgstr "Karşı taraf kodun kendi telefonundaki kodla eşleştiğini kontrol edip sizi onaylayacak."
+
+msgid "help_friend_waiting_approval"
+msgstr "Onay bekleniyor"
+
+msgid "help_friend_code_note"
+msgstr "Kodu bir aramada veya davet bağlantısının geldiği uygulamadan farklı bir uygulamada söyleyin. Bağlantıyı gören kişi kodu da görmemeli."
+
+msgid "become_personal_proxy"
+msgstr "Kişisel Proxy Ol"
+
+msgid "become_personal_proxy_body"
+msgstr "Tanıdığınız birinin internete bağlanmasına yardım edin"
+
+msgid "helping_connections_title"
+msgstr "Personal Proxy bağlantılarınız"
+
+msgid "helping_friends_one"
+msgstr "1 arkadaş"
+
+msgid "helping_friends_count"
+msgstr "%s arkadaş"
+
+msgid "helping_connected_named"
+msgstr "%s şu anda bağlı"
+
+msgid "helping_connected_count"
+msgstr "Şu anda bağlı: %s"
+
+msgid "helping_sheet_title"
+msgstr "Yardım ettiğiniz arkadaşlar"
+
+msgid "helping_your_friends"
+msgstr "Arkadaşlarınız"
+
+msgid "helping_connected"
+msgstr "Bağlı"
+
+msgid "helping_not_connected"
+msgstr "Bağlı değil"
+
+msgid "helping_paste_another"
+msgstr "Başka Bir Davet Bağlantısı Yapıştır"
+
+msgid "helping_data_relayed"
+msgstr "Bugün aktarılan veri"
+
+msgid "helping_active_today"
+msgstr "Etkin: %s"
+
+msgid "myx_tap_to_connect"
+msgstr "Tap to connect"
+
+msgid "myx_protected"
+msgstr "Protected"
+
+msgid "myx_not_protected"
+msgstr "Not protected"
+
+msgid "myx_connecting"
+msgstr "Securing connection"
+
+msgid "myx_disconnecting"
+msgstr "Disconnecting"
+
+msgid "myx_session"
+msgstr "Session"
+
+msgid "myx_update_title"
+msgstr "New version available"
+
+msgid "myx_update_body"
+msgstr "MYX-VPN %s is ready. You are using %s."
+
+msgid "myx_update_now"
+msgstr "Update now"
+
+msgid "myx_update_later"
+msgstr "Later"
+
+msgid "myx_whats_new"
+msgstr "What's new"

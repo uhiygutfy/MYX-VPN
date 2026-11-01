@@ -1,0 +1,577 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/deeplink_utils.dart';
+import 'package:lantern/core/widgets/oauth_login.dart';
+import 'package:lantern/core/keys/app_keys.dart';
+import 'package:lantern/features/auth/provider/auth_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+
+import 'package:lantern/features/home/provider/home_notifier.dart';
+
+@RoutePage(name: 'AddEmail')
+class AddEmail extends StatefulHookConsumerWidget {
+  final AuthFlow authFlow;
+
+  ///password will be used for change email flow
+  /// all other times it will be null
+  final String? password;
+
+  /// Web-licensing key to pre-fill once the email flow reaches the license screen.
+  final String licenseKey;
+
+  const AddEmail({
+    super.key,
+    this.authFlow = AuthFlow.signUp,
+    this.password,
+    this.licenseKey = '',
+  });
+
+  @override
+  ConsumerState<AddEmail> createState() => _AddEmailState();
+}
+
+class _AddEmailState extends ConsumerState<AddEmail> {
+  final _formKey = GlobalKey<FormState>();
+  TextTheme? textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    final emailController = useTextEditingController();
+    useListenable(emailController);
+    final user = ref.watch(homeProvider).value;
+    final isUserRegistered = user?.legacyUserData.unpassRegistered ?? false;
+    final currentEmail = user?.legacyUserData.email ?? '';
+    final isChangeEmailFlow = widget.authFlow == AuthFlow.changeEmail;
+
+    useEffect(() {
+      if (isUserRegistered && !isChangeEmailFlow) {
+        emailController.text = currentEmail;
+      }
+      return null;
+    }, [isUserRegistered, isChangeEmailFlow, currentEmail]);
+
+    textTheme = Theme.of(context).textTheme;
+    return EnterKeyShortcut(
+      onEnter: () {
+        if (_canSubmitEmail(emailController.text, currentEmail)) {
+          onContinuePressed(
+            SignUpMethodType.email,
+            emailController.text,
+            isUserRegistered,
+            currentEmail,
+          );
+        }
+      },
+      child: BaseScreen(
+        title: isChangeEmailFlow
+            ? 'enter_new_email'.i18n
+            : 'add_your_email'.i18n,
+        body: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppTextField(
+                  fieldKey: AuthKeys.signUpEmailField,
+                  enable: !isUserRegistered || isChangeEmailFlow,
+                  controller: emailController,
+                  label: 'email'.i18n,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [
+                    AutofillHints.email,
+                    AutofillHints.username,
+                  ],
+                  prefixIcon: AppImagePaths.email,
+                  hintText: 'example@gmail.com',
+                  validator: (value) {
+                    final email = value?.trim() ?? '';
+                    if (email.isEmpty) {
+                      return null;
+                    }
+                    if (!email.isValidEmail()) {
+                      return 'invalid_email'.i18n;
+                    }
+                    if (isChangeEmailFlow &&
+                        _isSameEmail(email, currentEmail)) {
+                      return 'email_must_be_different'.i18n;
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 4),
+                if (isUserRegistered &&
+                    widget.authFlow == AuthFlow.lanternProLicense) ...{
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: defaultSize),
+                    child: Text(
+                      'lantern_pro_license_applied'.i18n,
+                      style: textTheme!.bodyMedium!.copyWith(
+                        color: context.textDisabled,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: defaultSize),
+                },
+                if (widget.authFlow == AuthFlow.changeEmail)
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: defaultSize),
+                    child: Text(
+                      'change_email_message'.i18n,
+                      style: textTheme!.bodyMedium!.copyWith(
+                        color: context.textDisabled,
+                      ),
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: defaultSize),
+                    child: Text(
+                      'add_your_email_message'.i18n,
+                      style: textTheme!.bodyMedium!.copyWith(
+                        color: context.textDisabled,
+                      ),
+                    ),
+                  ),
+                SizedBox(height: 32),
+                PrimaryButton(
+                  key: AuthKeys.signUpContinueButton,
+                  label: 'continue'.i18n,
+                  enabled: _canSubmitEmail(emailController.text, currentEmail),
+                  isTaller: true,
+                  onPressed: () => onContinuePressed(
+                    SignUpMethodType.email,
+                    emailController.text,
+                    isUserRegistered,
+                    currentEmail,
+                  ),
+                ),
+                if (!isUserRegistered) ...{
+                  SizedBox(height: defaultSize),
+                  DividerSpace(),
+                  SizedBox(height: defaultSize),
+                  OAuthLogin(
+                    methodType: SignUpMethodType.google,
+                    onResult: (token) =>
+                        onOAuthResult(token, SignUpMethodType.google),
+                  ),
+                  SizedBox(height: defaultSize),
+                  OAuthLogin(
+                    methodType: SignUpMethodType.apple,
+                    foregroundColor: context.textPrimary,
+                    onResult: (token) =>
+                        onOAuthResult(token, SignUpMethodType.apple),
+                  ),
+                  SizedBox(height: defaultSize),
+                  DividerSpace(),
+                  SizedBox(height: defaultSize),
+                  if (isStoreVersion() && widget.authFlow == AuthFlow.signUp)
+                    Center(
+                      child: AppTextButton(
+                        key: AuthKeys.signUpContinueWithoutEmailButton,
+                        label: 'continue_without_email'.i18n,
+                        textColor: AppColors.gray9,
+                        onPressed: () =>
+                            navigateRoute(SignUpMethodType.withoutEmail, ""),
+                      ),
+                    ),
+                },
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  bool _isProblematicEmail(String email) {
+    const problematicDomains = ['@sina.com', '@qq.com', '@163.com', '@126.com'];
+
+    return problematicDomains.any(email.endsWith);
+  }
+
+  bool _canSubmitEmail(String email, String currentEmail) {
+    final trimmedEmail = email.trim();
+    if (!trimmedEmail.isValidEmail()) {
+      return false;
+    }
+    if (widget.authFlow == AuthFlow.changeEmail &&
+        _isSameEmail(trimmedEmail, currentEmail)) {
+      return false;
+    }
+    return true;
+  }
+
+  bool _isSameEmail(String email, String currentEmail) {
+    return currentEmail.trim().isNotEmpty &&
+        email.trim().toLowerCase() == currentEmail.trim().toLowerCase();
+  }
+
+  void onContinuePressed(
+    SignUpMethodType type,
+    String email,
+    bool isUserRegistered,
+    String currentEmail,
+  ) {
+    email = email.trim();
+    if (!_canSubmitEmail(email, currentEmail)) {
+      _formKey.currentState!.validate();
+      return;
+    }
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_isProblematicEmail(email) && !isUserRegistered) {
+      _showEmailDeliverabilityNotice(
+        () => _handleContinue(type, email, isUserRegistered),
+      );
+      return;
+    }
+    _handleContinue(type, email, isUserRegistered);
+  }
+
+  Future<void> _handleContinue(
+    SignUpMethodType type,
+    String email,
+    bool isUserRegistered,
+  ) async {
+    try {
+      if (!_formKey.currentState!.validate()) {
+        return;
+      }
+      if (widget.authFlow == AuthFlow.changeEmail) {
+        //Change email flow
+        appLogger.debug('Starting change email flow');
+        startChangeEmailFlow(email);
+      } else {
+        if (isUserRegistered) {
+          ///This mean user is already registered
+          /// plan is expired or user are creating new account with same email
+          /// by pass signup flow and start forgot password flow
+          startForgotPasswordFlow(email);
+          appLogger.info(
+            "User already registered, starting forgot password flow",
+          );
+        } else {
+          appLogger.debug('Starting signup flow');
+          await signupFlow(email);
+          return;
+        }
+      }
+    } catch (e) {
+      appLogger.error('Error in _handleContinue: $e');
+      context.showSnackBar('error_occurred'.i18n);
+    }
+  }
+
+  Future<void> signupFlow(String email) async {
+    context.showLoadingDialog();
+    final tempPassword = generatePassword();
+    final result = await ref
+        .read(authProvider.notifier)
+        .signUpWithEmail(email, tempPassword);
+
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        if (failure.localizedErrorMessage == 'signup_error_user_exists'.i18n) {
+          AppDialog.customDialog(
+            context: context,
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                SizedBox(height: 24),
+                Text(
+                  'create_account_error'.i18n,
+                  style: textTheme!.headlineMedium,
+                ),
+                SizedBox(height: defaultSize),
+                Text(
+                  failure.localizedErrorMessage,
+                  style: textTheme!.bodyMedium,
+                ),
+              ],
+            ),
+            action: [
+              AppTextButton(
+                key: AuthKeys.signUpExistsSignInButton,
+                label: 'sign_in'.i18n,
+                onPressed: () {
+                  appRouter.maybePop();
+                  appRouter.push(SignInEmail());
+                },
+              ),
+              AppTextButton(
+                key: AuthKeys.signUpExistsDismissButton,
+                label: 'ok'.i18n,
+                textColor: AppColors.gray6,
+                onPressed: () {
+                  appRouter.maybePop();
+                },
+              ),
+            ],
+          );
+          return;
+        }
+        AppDialog.errorDialog(
+          context: context,
+          title: 'error'.i18n,
+          content: failure.localizedErrorMessage,
+        );
+      },
+      (response) {
+        //sign up successful
+        //start forgot password flow
+        context.hideLoadingDialog();
+        startForgotPasswordFlow(email, tempPassword);
+      },
+    );
+  }
+
+  Future<void> startForgotPasswordFlow(
+    String email, [
+    String? tempPassword,
+  ]) async {
+    context.showLoadingDialog();
+    final result = await ref
+        .read(authProvider.notifier)
+        .startRecoveryByEmail(email);
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (_) {
+        context.hideLoadingDialog();
+        navigateRoute(SignUpMethodType.email, email, tempPassword);
+      },
+    );
+  }
+
+  Future<void> onOAuthResult(
+    Map<String, dynamic> result,
+    SignUpMethodType type,
+  ) async {
+    final token = result['token'];
+    if (token != null) {
+      context.showLoadingDialog();
+      final result = await ref
+          .read(authProvider.notifier)
+          .oAuthLoginCallback(token);
+      result.fold(
+        (failure) {
+          context.hideLoadingDialog();
+          context.showSnackBar(failure.localizedErrorMessage);
+        },
+        (response) {
+          context.hideLoadingDialog();
+          ref.read(homeProvider.notifier).updateUserData(response);
+          appLogger.debug(
+            'OAuth login successful, for user email  ${response.legacyUserData.email}, userD ${response.legacyID}, updating app settings with token and provider: ${type.name}',
+          );
+
+          ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
+          navigateRoute(type, response.legacyUserData.email);
+        },
+      );
+    } else {
+      context.showSnackBar(oAuthSignInFailedKey.i18n);
+    }
+  }
+
+  //Change Email flow
+  void startChangeEmailFlow(String email) async {
+    context.showLoadingDialog();
+    final result = await ref
+        .read(authProvider.notifier)
+        .startChangeEmail(email, widget.password!);
+
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        AppDialog.errorDialog(
+          context: context,
+          title: 'error'.i18n,
+          content: failure.localizedErrorMessage,
+        );
+      },
+      (newEmail) {
+        context.hideLoadingDialog();
+        appLogger.debug('Change email started successfully');
+        navigateRoute(SignUpMethodType.email, email);
+      },
+    );
+  }
+
+  void navigateRoute(
+    SignUpMethodType type,
+    String email, [
+    String? tempPassword,
+  ]) {
+    switch (type) {
+      case SignUpMethodType.apple:
+      case SignUpMethodType.google:
+        final storeVersion = isStoreVersion();
+        if (storeVersion) {
+          AppDialog.showLanternProDialog(
+            context: context,
+            onPressed: () {
+              appRouter.popUntilRoot();
+            },
+          );
+          return;
+        }
+        if (widget.authFlow == AuthFlow.lanternProLicense) {
+          appRouter.push(
+            LanternProLicense(
+              email: email,
+              code: '',
+              licenseKey: widget.licenseKey,
+            ),
+          );
+          return;
+        }
+        appRouter.push(
+          ChoosePaymentMethod(email: email, authFlow: AuthFlow.oauth),
+        );
+        break;
+      case SignUpMethodType.email:
+        appRouter.push(
+          ConfirmEmail(
+            email: email,
+            authFlow: widget.authFlow,
+            password: widget.password ?? tempPassword,
+            licenseKey: widget.licenseKey,
+          ),
+        );
+        break;
+      case SignUpMethodType.withoutEmail:
+        continueWithoutEmail();
+        break;
+    }
+  }
+
+  void continueWithoutEmail() {
+    showEmailDialog(() async {
+      try {
+        context.showLoadingDialog();
+        await checkUserAccountStatus(ref, context);
+        if (!mounted) return;
+        context.hideLoadingDialog();
+        AppDialog.showLanternProDialog(
+          context: context,
+          onPressed: () {
+            appRouter.popUntilRoot();
+          },
+        );
+      } catch (e) {
+        if (!mounted) return;
+        context.hideLoadingDialog();
+        appLogger.error('Error while continuing without email: $e');
+        context.showSnackBar('error_occurred'.i18n);
+      }
+    });
+  }
+
+  void showEmailDialog(OnPressed onContinue) {
+    final size = MediaQuery.of(context).size;
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(height: 24),
+          Center(
+            child: SizedBox(
+              width: size.width * 0.7,
+              height: 40,
+              child: AutoSizeText(
+                'are_you_sure'.i18n,
+                style: textTheme!.headlineMedium,
+                maxLines: 1,
+                minFontSize: 20,
+                maxFontSize: 24,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            'continue_without_email_message'.i18n,
+            style: textTheme!.bodyMedium,
+          ),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: 'continue'.i18n,
+          textColor: AppColors.gray6,
+          onPressed: () {
+            appRouter.maybePop();
+            Future.delayed(const Duration(milliseconds: 300), onContinue);
+          },
+        ),
+        AppTextButton(
+          label: 'add_email'.i18n,
+          textColor: AppColors.blue6,
+          onPressed: () {
+            appRouter.maybePop();
+          },
+        ),
+      ],
+    );
+  }
+
+  void _showEmailDeliverabilityNotice(OnPressed onContinue) {
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: size24),
+          Text(
+            'email_deliverability_notice'.i18n,
+            style: textTheme!.headlineSmall!.copyWith(
+              color: context.textPrimary,
+            ),
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            'email_deliverability_notice_message'.i18n,
+            style: textTheme!.bodyMedium!.copyWith(color: context.textPrimary),
+          ),
+          SizedBox(height: defaultSize),
+          Text(
+            'email_deliverability_notice_message_two'.i18n,
+            style: textTheme!.bodyMedium!.copyWith(color: context.textPrimary),
+          ),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          padding: EdgeInsets.only(right: 8.0),
+          label: 'change_email'.i18n,
+          textColor: AppColors.gray6,
+          onPressed: () {
+            appRouter.maybePop();
+          },
+        ),
+        AppTextButton(
+          padding: EdgeInsets.only(right: defaultSize),
+          label: 'continue_anyway'.i18n,
+          textColor: AppColors.blue6,
+          onPressed: () {
+            appRouter.maybePop();
+            Future.delayed(const Duration(milliseconds: 300), onContinue);
+          },
+        ),
+      ],
+    );
+  }
+}

@@ -1,0 +1,2295 @@
+# Translators:
+# Lantern, 2026
+# Derek F <derek@getlantern.org>, 2026
+# 
+msgid ""
+msgstr ""
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
+"Language-Team: Turkmen (https://app.transifex.com/lantern-1/teams/94371/tk/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: tk\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "app_name"
+msgstr "MYX-VPN"
+
+msgid "upgrade_to_pro"
+msgstr "Pro wersiýasyna geç"
+
+msgid "settings"
+msgstr "Sazlamalar"
+
+msgid "report_an_issue"
+msgstr "Mesele barada habar beriň"
+
+msgid "report_issue_add_screenshots"
+msgstr "Skrinşot goşuň"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG ýa-da GIF — jemi iň köp 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "Surat goşuň"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "Diňe PNG, JPG we GIF suratlary goldanýar."
+
+msgid "report_issue_attachments_too_many"
+msgstr "Iň köp 3 surat goşup bilersiňiz."
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "Goşundylaryň jemi möçberi 15 MB-den az bolmaly."
+
+msgid "report_issue_attachments_duplicate"
+msgstr "Bu surat eýýäm goşuldy."
+
+msgid "report_issue_attachments_unreadable"
+msgstr "Şol faýllaryň birini okap bilmedik."
+
+msgid "send_without_email_title"
+msgstr "E-poçtasyz iberilsinmi?"
+
+msgid "send_without_email_body"
+msgstr ""
+"E-poçta salgysyny goşmadyňyz, şonuň üçin bu habarnama jogap berip ýa-da "
+"yzarlap bilmeris."
+
+msgid "send_without_email"
+msgstr "E-poçtasyz iber"
+
+msgid "invite_friends"
+msgstr "Dostlary çagyryň"
+
+msgid "your_referral_code"
+msgstr "Siziň taýşdyryş koduňyz"
+
+msgid "share_referral_code"
+msgstr "Taýşdyryş kodyny paýlaş"
+
+msgid "invite_friends_description"
+msgstr ""
+"Dostuňyz siziň salgylanma koduňyzy ulanyp Lantern Pro-a geçende, ikiňiz hem "
+"1 aý mugt alarsyňyz."
+
+msgid "month_earned"
+msgstr "%s aý gazanyldy"
+
+msgid "months_earned"
+msgstr "%s aý gazanyldy"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Salgylanmalardan %s mugt aý girýär"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Salgylanmalardan %s mugt aý girýär"
+
+msgid "referral_converted_title"
+msgstr "Dostuňyz Pro-a geçdi"
+
+msgid "referral_converted_message"
+msgstr ""
+"Ikiňiz hem %s Lantern Pro-ny mugt gazandyňyz. Häzire çenli %s gazandyňyz. "
+"Has köp gazanmak üçin koduňyzy paýlaşmagy dowam ediň."
+
+msgid "month_count"
+msgstr "%s aý"
+
+msgid "months_count"
+msgstr "%s aý"
+
+msgid "done"
+msgstr "Taýýar"
+
+msgid "view_account"
+msgstr "Hasaby gör"
+
+msgid "show_download_links"
+msgstr "Ýükleme baglanyşyklaryny görkez"
+
+msgid "get_lantern"
+msgstr "MYX-VPN-i al"
+
+msgid "send_friend_download_link"
+msgstr "Dostuňyza şu ýükleme baglanyşygyny iberiň:"
+
+msgid "scan_to_install"
+msgstr "MYX-VPN-i gurnamak üçin kamera programmaňyz bilen skanirläň"
+
+msgid "remind_use_code"
+msgstr "Geçenlerinde %s koduny ulanmagy ýatladyň!"
+
+msgid "unbounded"
+msgstr "Action Mode"
+
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
+
+msgid "vpn_settings"
+msgstr "VPN sazlamalary"
+
+msgid "split_tunneling"
+msgstr "Bölünişikli tunnelirleme"
+
+msgid "server_locations"
+msgstr "Serwer ýerleri"
+
+msgid "lantern_pro_email"
+msgstr "Lantern Pro e-poçtasy:"
+
+msgid "pro_account_expiration"
+msgstr "Pro hasabynyň möhleti"
+
+msgid "manage_subscription"
+msgstr "Abunalygyňyzy dolandyr"
+
+msgid "lantern_pro_devices"
+msgstr "Lantern Pro enjamlary"
+
+msgid "remove"
+msgstr "Aýyr"
+
+msgid "danger_zone"
+msgstr "Howply zona:"
+
+msgid "delete_account"
+msgstr "Hasaby poz"
+
+msgid "delete"
+msgstr "Poz"
+
+msgid "account"
+msgstr "Hasap"
+
+msgid "delete_account_?"
+msgstr "Hasabyňyzy pozmalymy?"
+
+msgid "delete_account_message"
+msgstr ""
+"Hasabyň pozulmagy hemişelik. Ähli enjamlarda elýeterliligi ýitirýärsiňiz we "
+"galan Pro abunalyk wagty yzyna gaýtarylman ýitirilýär."
+
+msgid "delete_account_message_two"
+msgstr "Pozulmagyny tassyklamak üçin parolyňyzy giriziň"
+
+msgid "confirm_deletion"
+msgstr "Pozulmagyny tassykla"
+
+msgid "cancel"
+msgstr "Ýatyr"
+
+msgid "daily_data_usage"
+msgstr "Gündelik maglumat ulanyşy"
+
+msgid "mb"
+msgstr "MB"
+
+msgid "vpn_status"
+msgstr "VPN ýagdaýy"
+
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "Bizi yzarlaň"
+
+msgid "server_selection"
+msgstr "Serwer saýlamak"
+
+msgid "smart_location"
+msgstr "Akylly ýerleşiş"
+
+msgid "pro_locations"
+msgstr "Pro ýerleşişler:"
+
+msgid "language"
+msgstr "Dil"
+
+msgid "sign_in"
+msgstr "Içeri gir"
+
+msgid "check_for_updates"
+msgstr "Täzelenmeler barla"
+
+msgid "update_available"
+msgstr "Täzelenme bar"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"MYX-VPN %s elýeterli. MYX-VPN Android gurnaýjysyny açmazdan öň APK-ny "
+"ýükläp, barlar."
+
+msgid "allow_unknown_app_installs"
+msgstr "Programma gurnamaga rugsat beriň"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Android MYX-VPN-den täzelenmeleri gurnamak üçin rugsat gerek. Bu çeşmeden "
+"rugsat ber opsiýasyny açyň, soňra täzelenmeleri ýene barlaň."
+
+msgid "error_install_update"
+msgstr "Täzelenmäni gurnap bolmady"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"MYX-VPN bu täzelenmäni barlap ýa-da gurnap bilmedi. Soňrak ýene synanyşyň."
+
+msgid "support"
+msgstr "Goldaw"
+
+msgid "download_links"
+msgstr "Göçürip almak baglanyşyklary"
+
+msgid "get_30_days_of_pro_free"
+msgstr "30 gün mugt Pro alyň"
+
+msgid "share_message_referral_code"
+msgstr ""
+"Mugt bir aýlyk Lantern Pro almak üçin şu taýşdyryş kodyny ulanyň: %s ; Ony "
+"şu ýerden göçürip alyp bilersiňiz: https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "Mesele barada habar ber"
+
+msgid "select_an_issue"
+msgstr "Mesele saýlaň"
+
+msgid "cannot_access_blocked_sites"
+msgstr "Bloklanan saýtlara girip bilemok"
+
+msgid "cannot_complete_purchase"
+msgstr "Satyn almagy tamamlap bilemok"
+
+msgid "cannot_sign_in"
+msgstr "Içeri girip bilemok"
+
+msgid "spinner_loads_endlessly"
+msgstr "Ýükleýji hemişe aýlanýar"
+
+msgid "slow"
+msgstr "Haýal"
+
+msgid "cannot_link_devices"
+msgstr "Enjamlary baglap bilemok"
+
+msgid "split_tunnel"
+msgstr "Bölünişikli tunnelirleme işlemeýär"
+
+msgid "smart_routing_not_working"
+msgstr "Akylly ugrukdyryş işlemeýär"
+
+msgid "server_selection_not_working"
+msgstr "Serwer saýlamak işlemeýär"
+
+msgid "upgrade_fail"
+msgstr "Lantern Pro-a geçmek şowsuz boldy"
+
+msgid "application_crashes"
+msgstr "Programma çökýär"
+
+msgid "other"
+msgstr "Başga"
+
+msgid "issue_description"
+msgstr "Meseläňizi düşündiriň"
+
+msgid "enter_password_to_confirm"
+msgstr "Tassyklamak üçin parol giriziň"
+
+msgid "apps_split_tunneling"
+msgstr "Programmalar üçin bölünişikli tunnelirleme"
+
+msgid "website_split_tunneling"
+msgstr "Web saýtlar üçin bölünişikli tunnelirleme"
+
+msgid "add"
+msgstr "Goş"
+
+msgid "enabled"
+msgstr "Açyk"
+
+msgid "disabled"
+msgstr "Ýapyk"
+
+msgid "automatic"
+msgstr "Awtomatik"
+
+msgid "automatic_mode"
+msgstr "Awtomatik tertip"
+
+msgid "manual"
+msgstr "El bilen"
+
+msgid "enter_url_or_ip"
+msgstr "URL ýa-da IP salgy giriziň"
+
+msgid "installed_apps"
+msgstr "Gurlan programmalar"
+
+msgid "search_apps"
+msgstr "Programmalary gözle"
+
+msgid "search_websites"
+msgstr "Web saýtlary gözle"
+
+msgid "mode"
+msgstr "Tertip"
+
+msgid "use_commas"
+msgstr "Birnäçe URL-leri bölmek üçin vergül ulanyň"
+
+msgid "deep_link_expired"
+msgstr "Bu baglanyşygyň möhleti gutardy. Täzesini haýyş ediň."
+
+msgid "invalid_deep_link"
+msgstr "Bu baglanyşyk nädogry. Täzesini haýyş ediň."
+
+msgid "apps_bypassing_vpn"
+msgstr "VPN arkaly ulanmaýan programmalar (%d)"
+
+msgid "websites_bypassing_vpn"
+msgstr "VPN arkaly ulanmaýan web saýtlar (%d)"
+
+msgid "logs_share_message"
+msgstr "Bu meniň MYX-VPN-dan diagnostika žurnallarym."
+
+msgid "payment_options"
+msgstr "Töleg görnüşleri"
+
+msgid "add_your_email"
+msgstr "E-poçtaňyzy goşuň"
+
+msgid "continue"
+msgstr "Dowam et"
+
+msgid "continue_with_google"
+msgstr "Google bilen dowam et"
+
+msgid "continue_with_apple"
+msgstr "Apple bilen dowam et"
+
+msgid "continue_without_email"
+msgstr "E-poçtasyz dowam et"
+
+msgid "confirm_email"
+msgstr "E-poçtany tassykla"
+
+msgid "add_your_email_message"
+msgstr ""
+"Islendik enjamda abunalygyňyz elýeterli bolmagy üçin e-poçtaňyzy goşuň."
+
+msgid "confirm_email_code"
+msgstr "Tassyklama kody"
+
+msgid "confirm_email_code_message_part_one"
+msgstr "Şu salga kod iberdik: "
+
+msgid "confirm_email_code_message_part_two"
+msgstr ""
+" Ony aşakda giriziň. Gelen hatlaryňyzda ýok bolsa, spam bukjaňyzy barlaň."
+
+msgid "resend_email"
+msgstr "E-poçtany täzeden iber"
+
+msgid "create_password"
+msgstr "Parol dörediň"
+
+msgid "sign_in_to_lantern_pro"
+msgstr "MYX-VPN-a giriň"
+
+msgid "sign_in_with_email"
+msgstr "E-poçta bilen giriň"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "MYX-VPN hasabyňyzyň maglumatlaryny giriziň."
+
+msgid "email"
+msgstr "E-poçta"
+
+msgid "enter_password"
+msgstr "Parol giriziň"
+
+msgid "forgot_password"
+msgstr "Parolyňyzy ýatdan çykardyňyzmy?"
+
+msgid "reset_your_password"
+msgstr "Parolyňyzy täzeden dikleň"
+
+msgid "enter_your_lantern_pro_account_email"
+msgstr "MYX-VPN hasabyňyzyň e-poçtasyny giriziň."
+
+msgid "reset_password"
+msgstr "Paroly täzele"
+
+msgid "confirm_new_password"
+msgstr "Täze paroly tassykla"
+
+msgid "create_new_password"
+msgstr "Täze parol dörediň"
+
+msgid "confirm_password"
+msgstr "Paroly tassykla"
+
+msgid "confirm_password_required"
+msgstr "Parol tassyklanmasy zerur"
+
+msgid "passwords_do_not_match"
+msgstr "Parollar gabat gelenok"
+
+msgid "activate_lantern_pro"
+msgstr "Lantern Pro işjeňleşdir"
+
+msgid "invalid_email"
+msgstr "Nädogry e-poçta salgysy"
+
+msgid "purchase_already_owned"
+msgstr "Siziň eýýäm bu satyn alşyňyz bar, Dikeltmegi synanyň"
+
+msgid "stripe_payment"
+msgstr "Stripe töleg"
+
+msgid "split_tunneling_description"
+msgstr ""
+"MYX-VPN internet traffigini ýagdaýyňyza esaslanyp akylly ugradýar, howpsuz "
+"girişi üpjün edýär we diňe zerur bolanda VPN ulanmak arkaly baglanyşygyňyzy "
+"çalt saklaýar."
+
+msgid "region_specific_rules"
+msgstr "Sebit boýunça düzgünler"
+
+msgid "location_based_rules"
+msgstr "MYX-VPN ýagdaýyňyza görä dürli ugratma düzgünlerini ulanýar:"
+
+msgid "censored_regions"
+msgstr "Senzurlanan sebitlerd:"
+
+msgid "blocked_sites_proxied"
+msgstr ""
+"Bloklanan web saýtlar we programmalar (habarlar, habarlaşma, çäklendirilen "
+"hyzmatlar) proksi arkaly geçirilýär."
+
+msgid "unblocked_sites_bypass"
+msgstr "Köp bloklanan däl web saýtlar has çalt görmek üçin VPN-den geçýär."
+
+msgid "uncensored_regions"
+msgstr "Senzurlama bolmadyk sebitlerd:"
+
+msgid "trusted_sites_bypass"
+msgstr ""
+"Diňe ygtybarly web saýtlar we hyzmatlar deslapky boýunça VPN-den geçýär."
+
+msgid "examples_of_bypassed_sites"
+msgstr ""
+"Bulara HTTPS şifrlenen saýtlar, açyk ýa-da duýgur däl mazmunly saýtlar, "
+"söwda, howa we programma täzelenmeleri ýaly zatlary öz içine alýar."
+
+msgid "routing_rules_vary"
+msgstr "Bu düzgünler ýurt boýunça üýtgeýär we yzygiderli täzelenýär."
+
+msgid "view_the_full_list"
+msgstr "Ugratma düzgünleriniň doly sanawyna göz aýlaň."
+
+msgid "welcome_to_lantern_pro"
+msgstr "Lantern Pro hoş geldiňiz!"
+
+msgid "welcome_to_lantern"
+msgstr "MYX-VPN-a hoş geldiňiz!"
+
+msgid "lantern_pro_description"
+msgstr ""
+"Pro aýratynlyklarňyz açyldy - çäksiz maglumatlardan, has çalt tizlikden we "
+"premium serwerlerden lezzet alyň."
+
+msgid "purchase_restored_title"
+msgstr "Satyn alma dikeldildi"
+
+msgid "purchase_restored_description"
+msgstr "Lantern Pro abunaňyz indi bu enjamda işjeň."
+
+msgid "no_purchase_found_title"
+msgstr "Satyn alma tapylmady"
+
+msgid "no_purchase_found_body_ios"
+msgstr "Bu Apple ID bilen baglanyşykly işjeň abuna ýok."
+
+msgid "no_purchase_found_body_android"
+msgstr "Bu Google hasaby bilen baglanyşykly işjeň abuna ýok."
+
+msgid "authorize_device_for_pro"
+msgstr "Enjamy Pro üçin tassyklaň"
+
+msgid "device_linking_replaced_title"
+msgstr "Enjam baglanyşyk kodlary çalşyryldy"
+
+msgid "device_linking_replaced_body"
+msgstr "MYX-VPN 10 we ondan täze wersiýalary enjam baglanyşyk kodlaryny ulanmaýar. Indi Lantern Pro hasabyňyza e-poçtaňyz we parolyňyz bilen girýärsiňiz."
+
+msgid "device_linking_replaced_body_two"
+msgstr "Lantern Pro hasabyňyz bar bolsa we entek parolyňyz ýok bolsa, bu enjamda girmek üçin häzir parol goşuň."
+
+msgid "add_an_account_password"
+msgstr "Hasap paroly goşuň"
+
+msgid "have_a_password_sign_in"
+msgstr "Parolyňyz barmy? Içeri gir"
+
+msgid "plans_fetch_error"
+msgstr "Planlar alyňanda ýalňyşlyk. Soňra täzeden synanyň."
+
+msgid "best_value"
+msgstr "Iň gowy bahasy!"
+
+msgid "choose_payment_method"
+msgstr "Töleg usulyny saýlaň"
+
+msgid "purchase_not_completed"
+msgstr ""
+"Satyn alma tamamlanmady. Islendik wagta täzeden synanyp bilersiňiz ýa-da "
+"kömek gerek bolsa goldaw bilen habarlaşyň"
+
+msgid "are_you_sure"
+msgstr "Siz ynamyňyz barmy?"
+
+msgid "continue_without_email_message"
+msgstr ""
+"Başga enjamlarda abunalygyňyzy ulanmak üçin dogry e-poçta salgysy zerur."
+
+msgid "add_email"
+msgstr "E-poçta goş"
+
+msgid "block_ads"
+msgstr "Reklamalary blokla"
+
+msgid "only_active"
+msgstr "Diňe VPN birikdirilende işjeň"
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "Action Mode barada"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "Ýagdaý"
+
+msgid "smc_status_off"
+msgstr "Ýapyk"
+
+msgid "smc_status_configuring"
+msgstr "Tor sazlanýar"
+
+msgid "smc_status_error_with_message"
+msgstr "Paýlaşyp bolmady: %s"
+
+msgid "smc_status_error_generic"
+msgstr "Paýlaşyp bolmady — ýene öçürip-açyp görüň"
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "%s ýurdunda täze adama kömek edilýär"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "Birikmelere garaşylýar..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "Action Mode-a hoş geldiňiz"
+
+msgid "unbounded_welcome_body_1"
+msgstr ""
+"Action Mode-y açanyňyzda, enjamyňyz açyk internete barýan 'sanly köprüleriň'"
+" torunyň bölegine öwrülýär. Senzura astyndaky ulanyjylar bu köprülere "
+"birigip, hökümetleriň girizen çäklendirmelerini aýlanyp geçýärler we gerekli"
+" maglumatlaryna ýetýärler."
+
+msgid "unbounded_welcome_body_2"
+msgstr ""
+"Bu bilelikdäki tagalla senzurany ýerine ýetirmegi kynlaşdyrýar we açyk "
+"internete elýeterliligi giňeldýär."
+
+msgid "unbounded_welcome_body_3"
+msgstr ""
+"Sazlamalarda islendik wagt Action Mode-y interfeýsden aýryp bilersiňiz."
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "Giňişleýin"
+
+msgid "smc_advanced_subtitle"
+msgstr "Routeri UPnP goldamaýan ulanyjylar üçin"
+
+msgid "smc_manual_port"
+msgstr "El bilen port ugrukdyrmasy"
+
+msgid "smc_manual_port_description"
+msgstr ""
+"Routeriňiz UPnP goldamaýan bolsa, routerde port ugrukdyrmasyny sazlaň we "
+"port belgisini şu ýere giriziň. MYX-VPN UPnP barlamagyň ýerine ony daşarky "
+"port hökmünde ulanar. UPnP (adaty) ulanmak üçin boş goýuň."
+
+msgid "smc_manual_port_label"
+msgstr "Port"
+
+msgid "smc_manual_port_hint"
+msgstr "meselem 5698"
+
+msgid "smc_manual_port_save"
+msgstr "Ýatda sakla"
+
+msgid "smc_manual_port_currently_set"
+msgstr ""
+"Häzir %d portuna bellenen. Üýtgeşme güýje girmegi üçin Action Mode-y öçürip,"
+" täzeden açyň."
+
+msgid "smc_manual_port_out_of_range"
+msgstr "Port 1 bilen 65535 aralygynda bolmaly"
+
+msgid "smc_manual_port_cleared"
+msgstr "El bilen bellenen port arassalandy — UPnP ulanylýar"
+
+msgid "smc_manual_port_saved"
+msgstr "El bilen port %d edilip bellendi"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Action Mode sazlamalary"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "Action Mode-y awto-açmak"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "MYX-VPN açylanda işläp başlaýar"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "Action Mode-y gizle"
+
+msgid "hide_unbounded_subtitle"
+msgstr "Action Mode-y interfeýsden aýyrýar"
+
+msgid "vpn_connected"
+msgstr "MYX-VPN indi birikdirildi."
+
+msgid "vpn_disconnected"
+msgstr "MYX-VPN indi birikdirilmedi."
+
+msgid "open_notification"
+msgstr "Habarnamany aç"
+
+msgid "logout"
+msgstr "Çykmak"
+
+msgid "logout_message"
+msgstr ""
+"Çykmak MYX-VPN-i mugt wersiýasyna geçirer. Hasabyňyza täzeden girmek üçin "
+"täzeden girmeliňiz bolar."
+
+msgid "logout_message_expired"
+msgstr "Hasabyňyzdan çykmak isleýärsiňizmi?"
+
+msgid "not_now"
+msgstr "Häzir däl"
+
+msgid "billed_once"
+msgstr "Bir gezek tölenilýär"
+
+msgid "subscription"
+msgstr "Abunalyk"
+
+msgid "subscribe"
+msgstr "Abuna bol"
+
+msgid "checkout"
+msgstr "Hasap"
+
+msgid "vpn_may_be_needed"
+msgstr "VPN gerek bolup biler"
+
+msgid "google_and_apple_sign_in_blocked"
+msgstr ""
+"Bu sebitde Google we Apple giriş bloklanan bolup biler. Hasabyňyzy gutarmak "
+"üçin ilki bilen VPN-ni açyň."
+
+msgid "continue_without_vpn"
+msgstr "VPN-siz dowam et"
+
+msgid "turn_on_vpn"
+msgstr "VPN-ni aç"
+
+msgid "server_setup_do"
+msgstr "DigitalOcean arkaly guruň"
+
+msgid "server_setup_do_price"
+msgstr "Digital Ocean arkaly diňe %s aýda"
+
+msgid "server_setup_gcp"
+msgstr "Google Cloud Platform arkaly guruň"
+
+msgid "continue_with_do"
+msgstr "Digital Ocean bilen dowam et"
+
+msgid "server_setup_gcp_price"
+msgstr "GCP arkaly diňe %s aýda"
+
+msgid "continue_with_gcp"
+msgstr "Google bilen dowam et"
+
+msgid "server_setup_manual"
+msgstr "El bilen gur"
+
+msgid "seamless_integration"
+msgstr "MYX-VPN bilen üznüksiz integrasiýa"
+
+msgid "one_month_included"
+msgstr "%d TB/aý maglumat goşuldy"
+
+msgid "easiest_setup_process"
+msgstr "Iň aňsat gurnama prosesi"
+
+msgid "setup_a_private_server"
+msgstr "Hususy serwer guruň"
+
+msgid "setup_private_server"
+msgstr "Hususy serwer gur"
+
+msgid "previous"
+msgstr "Öňki"
+
+msgid "next"
+msgstr "Indiki"
+
+msgid "error"
+msgstr "Ýalňyşlyk"
+
+msgid "signup_error_user_exists"
+msgstr ""
+"Hasaba durma wagtynda näsazlyk ýüze çykdy öýdýän. Gaýtadan synanyşyň ýa-da "
+"hasabyňyz bar bolsa giriň"
+
+msgid "user_not_found"
+msgstr ""
+"Ulanyjy tanalmaýar. Maglumatlaryňyzy barlaň we täzeden synanyň. Meseler "
+"dowam etse, kömek üçin goldaw toparymyz bilen habarlaşyň."
+
+msgid "invalid_code"
+msgstr "Nädogry kod ýa-da möhleti geçen bolmagy mümkin. Täzeden iberip görüň"
+
+msgid "email_resend_message"
+msgstr "Täze tassyklama kodyňyz iberildi"
+
+msgid "password_has_been_updated"
+msgstr "Parol täzelendi"
+
+msgid "password_has_been_updated_message"
+msgstr "Parolyňyz üstünlikli täzelendi"
+
+msgid "update_pro_account"
+msgstr "Pro hasabyny täzele"
+
+msgid "update_pro_account_message"
+msgstr ""
+"Hasabyňyzy dolandyrmak ýa-da başga enjamda girmek üçin ilki bilen hasabyňyza"
+" e-poçta we parol goşuň."
+
+msgid "subscription_cancelled"
+msgstr "Abunalygyňyz ýatyryldy."
+
+msgid "subscription_updated"
+msgstr "Abunalygyňyz täzelendi."
+
+msgid "subscription_renewed"
+msgstr "Abunalygyňyz täzelendi."
+
+msgid "got_it"
+msgstr "Düşündim"
+
+msgid "server_location"
+msgstr "Serwer ýerleşişi"
+
+msgid "choose"
+msgstr "Saýla"
+
+msgid "choose_your_account"
+msgstr "Hasabyňyzy saýlaň"
+
+msgid "choose_your_project"
+msgstr "Taslamaňyzy saýlaň"
+
+msgid "billing_account"
+msgstr "Hasap hesaby"
+
+msgid "server_name"
+msgstr "Serwer ady"
+
+msgid "change"
+msgstr "Üýtget"
+
+msgid "choose_location"
+msgstr "Ýerleşiş saýla"
+
+msgid "choose_your_location"
+msgstr "Ýerleşişiňizi saýlaň"
+
+msgid "start_deployment"
+msgstr "Ýerleşdirişi başla"
+
+msgid "private_server_setup_in_progress"
+msgstr ""
+"Sabyr ediň! Hususy serweriňiz gurulýar. Bu birnäçe minut alyp biler, şu "
+"ekrany açyk saklaň."
+
+msgid "cancel_server_deployment"
+msgstr "Serwer ýerleşdirmesini ýatyr"
+
+msgid "close"
+msgstr "Ýap"
+
+msgid "connect_now"
+msgstr "Häzir birikdir"
+
+msgid "server_setup_failed"
+msgstr "Serwer gurnama başartmady"
+
+msgid "server_setup_failed_message"
+msgstr ""
+"Hususy serweriňizi gurmakda bir zat nädogry boldy. Täzeden synanyp ýa-da "
+"soňra täzeden synanyp bilersiňiz."
+
+msgid "exit"
+msgstr "Çyk"
+
+msgid "retry"
+msgstr "Täzeden synanyş"
+
+msgid "private_server_ready"
+msgstr "Hususy serwer taýýar!"
+
+msgid "private_server_ready_message"
+msgstr ""
+"(%s) Serwer guruldy we serwer sanawyňyza goşuldy. Birikdirmäge taýýarsiňyz!"
+
+msgid "set_up_your_server"
+msgstr "Serweriňizi guruň"
+
+msgid "view_instructions_github"
+msgstr "GitHub-da görkezmelere göz aýlaň"
+
+msgid "server_access_key"
+msgstr "Serwer giriş açary"
+
+msgid "access_key"
+msgstr "Giriş açary"
+
+msgid "name_your_server"
+msgstr "Serweriňize at beriň"
+
+msgid "how_server_appears"
+msgstr "Serwer saýlama sanawynda serwer nähili görner"
+
+msgid "server_nickname"
+msgstr "Serwer lakamy"
+
+msgid "verify_server"
+msgstr "Serweri barla"
+
+msgid "vpn_client_not_setup"
+msgstr "VPN klient açyň."
+
+msgid "join_a_private_server"
+msgstr "Hususy serwere goşul"
+
+msgid "join_private_server"
+msgstr "Hususy serwere goşul"
+
+msgid "join_server"
+msgstr "Serwere goşul"
+
+msgid "private_server_usage_message"
+msgstr "Hususy serwer ulanyşy MYX-VPN gündelik maglumat çägine goşulmaýar."
+
+msgid "my_servers"
+msgstr "Meniň serwerlerim"
+
+msgid "joined_servers"
+msgstr "Goşulan serwerler"
+
+msgid "access_key_expiration"
+msgstr ""
+"Her giriş açary üýtgeşik we 1 günden soň möhleti geçýär. Islendik wagta "
+"täzesini döredip bilersiňiz."
+
+msgid "share_access_key"
+msgstr "Giriş açaryny paýlaş"
+
+msgid "rename_server"
+msgstr "Serweri täzeden atlandyr"
+
+msgid "rename"
+msgstr "Täzeden atlandyr"
+
+msgid "selected_location"
+msgstr "Saýlanan ýerleşiş"
+
+msgid "remove_server_?"
+msgstr "Serwer aýyrmalymy?"
+
+msgid "remove_server_message"
+msgstr ""
+"%s aýyrmaly? Bu ony diňe programmaňyzdan aýyrar, bulut üpjün edijiden "
+"serweri pozmaz."
+
+msgid "generate_access_key"
+msgstr "Giriş açar döret"
+
+msgid "trust_server_operator"
+msgstr "Serwer operatoryna ynan"
+
+msgid "trust_server_operator_message_one"
+msgstr ""
+"Hususy serwerler MYX-VPN-dan daşarda adamlar ýa-da guramalara eýelik edýär "
+"we dolandyrylýar. Birine birikdirilýänçäňizde, howpsuzlyk we jogapkärçilik "
+"bilen ony dolandyrýan adama ynanyp bilýärsiňiz."
+
+msgid "trust_server_operator_message_two"
+msgstr ""
+"MYX-VPN hususy serwerleri dolandyrmaýar ýa-da gözegçilik etmeýär. "
+"Goşulmazdan öň serwer operatoryny bilýändigiňize we ynanýandygyňyza göz "
+"ýetiriň."
+
+msgid "trust_server_operator_message_three"
+msgstr ""
+"Serweri kimiň dolandyrýandygyny ýa-da onuň nähili sazlanandygyny bilmeseňiz,"
+" serwer sanawyňyzda elýeterli deslapky MYX-VPN serwerleriniň birini ulanmagy"
+" maslahat berýäris."
+
+msgid "lantern_servers"
+msgstr "MYX-VPN serwerleri"
+
+msgid "private_servers"
+msgstr "Hususy serwerler"
+
+msgid "fastest_server"
+msgstr "Iň çalt serwer"
+
+msgid "latency_testing"
+msgstr "Barlanýar…"
+
+msgid "latency_unreachable"
+msgstr "Elýeterli däl"
+
+msgid "join_my_private_server"
+msgstr "Meniň MYX-VPN hususy serwerime goşul"
+
+msgid "your_server"
+msgstr "Siziň serwerleňiz:"
+
+msgid "no_private_server_setup_yet"
+msgstr "Entek hususy serwer gurmadyňyz. Başlamak üçin aşakdaky düwmä basyň."
+
+msgid "connect"
+msgstr "Birikdir"
+
+msgid "disconnect"
+msgstr "Aýyr"
+
+msgid "show"
+msgstr "Görkez"
+
+msgid "status_on"
+msgstr "Birikdirildi"
+
+msgid "status_off"
+msgstr "Aýryldy"
+
+msgid "select_location"
+msgstr "Ýerleşýän ýeri saýlaň"
+
+msgid "select_your_server_location"
+msgstr "Serwer ýerleşişiňizi saýlaň"
+
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "Has çalt tizlik we çäksiz internet giňligi"
+
+msgid "premium_servers_less_congestion"
+msgstr "Az dykyz premium serwerler"
+
+msgid "advanced_anti_censorship"
+msgstr "Öňdebaryjy anti-senzura tehnologiýasy"
+
+msgid "connect_up_to_five_devices"
+msgstr "5 enjama çenli birikdiriň"
+
+msgid "built_in_ad_blocking"
+msgstr "Içerki reklama bloklaýyş"
+
+msgid "get_lantern_pro"
+msgstr "Lantern Pro alyň"
+
+msgid "connected_to_private_server"
+msgstr "Hususy serwere birikdirildi"
+
+msgid "server_already_selected"
+msgstr "Siz eýýäm bu serwere birikdirildiňiz."
+
+msgid "device_limit_reached"
+msgstr "Enjam çägi ýetildi"
+
+msgid "device_limit_reached_message"
+msgstr "5 enjam çägiňize ýetdiňiz. Dowam etmek üçin enjam aýyryň."
+
+msgid "remove_device_and_sign_in"
+msgstr "Enjam aýyr we gir"
+
+msgid "cancel_sign_in"
+msgstr "Girişi ýatyr"
+
+msgid "change_email"
+msgstr "E-poçta üýtget"
+
+msgid "change_email_message"
+msgstr ""
+"Bu siziň täze giriş e-poçtaňyz bolar. Üýtgeşme güýje girmezden ozal "
+"tassyklamaly bolarňyz."
+
+msgid "email_must_be_different"
+msgstr "Başga e-poçta salgysyny giriziň."
+
+msgid "enter_new_email"
+msgstr "Täze e-poçtaňyzy giriziň"
+
+msgid "confirm_password_to_continue"
+msgstr "Dowam etmek üçin parolyňyzy tassyklaň."
+
+msgid "email_updated"
+msgstr "E-poçtaňyz täzelendi."
+
+msgid "enable_network_extension"
+msgstr "Tor giňeltmesini aç"
+
+msgid "enable_network_extension_message"
+msgstr "MYX-VPN ulanmak üçin Mac üçin tor giňeltmesini gurmalydyrys."
+
+msgid "install_now"
+msgstr "Häzir gur"
+
+msgid "learn_more"
+msgstr "Has köp öwren"
+
+msgid "network_extension_required"
+msgstr "Tor giňeltmesi zerur"
+
+msgid "click"
+msgstr "Basyň"
+
+msgid "open_system_settings"
+msgstr "Ulgam sazlamalaryny aç"
+
+msgid "when_prompted"
+msgstr "haýyş edilende."
+
+msgid "activate_extension"
+msgstr "Häzir gur"
+
+msgid "email_optional"
+msgstr "E-poçta (meýletin)"
+
+msgid "please_enter_valid_email"
+msgstr "Dogry e-poçta giriziň"
+
+msgid "please_select_an_issue"
+msgstr "Mesele saýlaň"
+
+msgid "thanks_for_feedback"
+msgstr "Pikirleriňiz üçin sag boluň!"
+
+msgid "no_apps_selected"
+msgstr "Hiç bir programma saýlanmady"
+
+msgid "deselect_all"
+msgstr "Hemmesini saýlama"
+
+msgid "select_all"
+msgstr "Hemmesini saýla"
+
+msgid "no_websites_selected"
+msgstr "Hiç bir web saýt saýlanmady"
+
+msgid "restore_purchase"
+msgstr "Satyn almagy dikelt"
+
+msgid "already_purchased"
+msgstr "Eýýäm satyn aldyňyzmy?"
+
+msgid "do_private_server_setup"
+msgstr "DO hususy serwer gurnama"
+
+msgid "private_server_note"
+msgstr ""
+"Hususy serweriňiz üçin sebiti saýlaň. Ýakyn ýerleşişler tizlik we gijikdirme"
+" gowulaşdyryp biler."
+
+msgid "gcp_private_server_setup"
+msgstr "GCP hususy serwer gurnama"
+
+msgid "gcp_private_server_location"
+msgstr "GCP hususy serwer ýerleşişi"
+
+msgid "do_private_server_location"
+msgstr "DO hususy serwer ýerleşişi"
+
+msgid "confirm"
+msgstr "Tassykla"
+
+msgid "private_server_warning"
+msgstr "Diňe ynanýan adamlar tarapyndan dolandyrylýan serwerleri goşuň "
+
+msgid "go_to_server_locations"
+msgstr "Serwer ýerleşişlerine git"
+
+msgid "lantern_io"
+msgstr "MYX-VPN.io"
+
+msgid "alternative_download_links"
+msgstr "Alternatiw göçürip almak baglanyşyklary"
+
+msgid "github_download_page"
+msgstr "GitHub göçürip almak sahypasy"
+
+msgid "telegram_bot"
+msgstr "Telegram bot"
+
+msgid "if_you_cannot_access_website"
+msgstr ""
+"Web saýtymyza girmekde mesele ýüze çykarýan bolsaňyz, MYX-VPN-i ýokardaky "
+"baglanyşyklardan göçürip alyp bilersiňiz."
+
+msgid "available_on"
+msgstr "Elýeterli:"
+
+msgid "subscription_renewal_date"
+msgstr "Abunalyk täzeleme senesi"
+
+msgid "pro_access_until"
+msgstr "%s çenli Pro elýeterliligi"
+
+msgid "diagnostic_logs"
+msgstr "Diagnostika žurnallary"
+
+msgid "lantern_user_forum"
+msgstr "MYX-VPN ulanyjy formy"
+
+msgid "frequently_asked_questions"
+msgstr "Yzygiderli soralýan soraglar"
+
+msgid "privacy_policy"
+msgstr "Gizlinlik syýasaty"
+
+msgid "terms_of_service"
+msgstr "Hyzmat şertleri"
+
+msgid "get_unlimited_data"
+msgstr "Çäksiz maglumat we has çalt tizlik alyň!"
+
+msgid "private_server_options"
+msgstr "Hususy serwer wariantlary"
+
+msgid "lantern_version"
+msgstr "MYX-VPN wersiýasy"
+
+msgid "quit"
+msgstr "Çyk"
+
+msgid "device_removed"
+msgstr "Enjam aýryldy"
+
+msgid "set_server_alias"
+msgstr "Serwer lakamyny düz"
+
+msgid "this_name_pre_filled"
+msgstr ""
+"Bu at çagyrylan ulanyjy üçin serwer kesgitlemäge kömek etmek üçin öňünden "
+"doldurylar. Olar soňra üýtgedip bilerler."
+
+msgid "server_alias"
+msgstr "Serwer lakamy"
+
+msgid "add_referral_code"
+msgstr "Taýşdyryş kody goş"
+
+msgid "referral_code"
+msgstr "Taýşdyryş kody"
+
+msgid "scan_qr_code"
+msgstr "QR kod skaner et"
+
+msgid "choose_your_server_location"
+msgstr "Serwer ýerleşişiňizi saýlaň"
+
+msgid "we_handle_configuration"
+msgstr "Biz konfigurasiýany dolandyrýarys, diňe ýazylýaň."
+
+msgid "90_day_free_trial"
+msgstr "90 günlük mugt synag"
+
+msgid "server_alias_cannot_be_empty"
+msgstr "Serwer lakamy boş bolup bilmez"
+
+msgid "referral_code_applied"
+msgstr "Rekomendasiýa koduňyz ulanyldy!"
+
+msgid "discount_applied"
+msgstr "%s arzanladyş ulanyldy"
+
+msgid "referral_message_1y"
+msgstr "+ 1 goşmaça aý mugt"
+
+msgid "referral_code_invalid"
+msgstr "Giren salgylanma/promo koduňyz nädogry. Kody barlap, ýene synanyşyň."
+
+msgid "referral_code_own_invalid"
+msgstr "Öz rekomendasiýa koduňyzy ulanyp bilmersiňiz. Başga kod giriziň."
+
+msgid "free"
+msgstr "Mugt"
+
+msgid "lantern_pro_license"
+msgstr "Lantern Pro Ygtyýarnamasy"
+
+msgid "lantern_pro_license_required"
+msgstr "Lantern Pro ygtyýarnamasy zerur"
+
+msgid "lantern_pro_license_invalid"
+msgstr "Nädogry Lantern Pro ygtyýarnamasy"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "Lantern Pro ygtyýarnamasy 25 simwoldan ybarat bolmaly"
+
+msgid "create_an_account"
+msgstr "Hasap döretmek"
+
+msgid "no_projects_found"
+msgstr "Hiç hili taslama tapylmady"
+
+msgid "no_projects_found_desc"
+msgstr ""
+"Hiç hili taslama tapylmady. Ilki bilen bulut üpjün edijiniň hasabynda "
+"taslama dörediň."
+
+msgid "add_billing_details"
+msgstr "Hasap-faktura maglumatlaryny goşuň"
+
+msgid "do_billing_details_message"
+msgstr ""
+"DigitalOcean serwerleri döretmek üçin töleg maglumatlaryny talap edýär."
+
+msgid "1"
+msgstr "1"
+
+msgid "2"
+msgstr "2"
+
+msgid "3"
+msgstr "3"
+
+msgid "add_payment_method"
+msgstr "Töleg usulyny goşuň (kredit kartasy ýa-da PayPal)"
+
+msgid "return_to_lantern"
+msgstr ""
+"MYX-VPN-e gaýdyň we sazlamalary dowam etdirmek üçin \"Dowam et\" düwmesine "
+"basyň"
+
+msgid "how_to_add_billing_details"
+msgstr "Hasap-faktura maglumatlaryny nädip goşmaly:"
+
+msgid "ok"
+msgstr "OK"
+
+msgid "could_not_open_url"
+msgstr "URL açyp bolmady"
+
+msgid "new_to_lantern_pro"
+msgstr "MYX-VPN-da täzemi?"
+
+msgid "an_error_occurred"
+msgstr "Säwlik ýüze çykdy. Soňra täzeden synanyşyň."
+
+msgid "developer_mode"
+msgstr "Dörediji tertibi"
+
+msgid "developer_mode_note"
+msgstr ""
+"Dörediji tertibi diňe MYX-VPN döredijileri üçin ösüş döwründe aýratynlyklary"
+" barlamak üçin niýetlenendir."
+
+msgid "error_while_vpn_connection"
+msgstr "VPN birikdirilende säwlik ýüze çykdy. Täzeden synanyşyň."
+
+msgid "help_improve_lantern"
+msgstr "MYX-VPN-i gowulandyrmaga kömek ediň"
+
+msgid "share_anonymous_usage_data"
+msgstr ""
+"Tizligi we ygtybarlylygyny ýokarlandyrmaga kömek etmek üçin anonim ulanma "
+"maglumatlaryny paýlaşyň."
+
+msgid "data_we_collect"
+msgstr ""
+"Biz hiç haçan gözleg geçmişini, trafik ýerlerini, DNS soraglaryny ýa-da "
+"birikdirme gündelikleri ýygnamarys."
+
+msgid "you_can_change_anytime"
+msgstr "Muny islendik wagt VPN sazlamalarynda üýtgedip bilersiňiz."
+
+msgid "dont_allow"
+msgstr "Rugsat berme"
+
+msgid "allow"
+msgstr "Rugsat ber"
+
+msgid "anonymous_usage_data"
+msgstr "Anonim ulanma maglumatlary"
+
+msgid "helps_improve_lantern_performance"
+msgstr "MYX-VPN-iň öndürijiligini ýokarlandyrmaga kömek edýär"
+
+msgid "email_deliverability_notice"
+msgstr "E-poçta ýetirilişi barada habar"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"163.com, 126.com, qq.com we sina.com salgylaryna iberilen e-poçtalar käwagt "
+"petiklenýär we ýetip bilmeýär"
+
+msgid "email_deliverability_notice_message_two"
+msgstr ""
+"Tassyklama kody almadyk bolsaňyz, başga e-poçta üpjün edijisini ulanmagy göz"
+" öňünde tutuň."
+
+msgid "continue_anyway"
+msgstr "Ýene-de dowam et"
+
+msgid "routing_mode"
+msgstr "Marşrutlaşdyryş tertibi"
+
+msgid "smart_routing"
+msgstr "Akylly marşrutlaşdyryş"
+
+msgid "full_tunnel"
+msgstr "Doly tunel"
+
+msgid "region_optimized_routing"
+msgstr "Sebitiňiz üçin optimizasiýa edilen düzgün esasly marşrutlaşdyryş"
+
+msgid "all_traffic_through_vpn"
+msgstr "Trafigiň hemmesi VPN arkaly"
+
+msgid "smart_routing_description"
+msgstr ""
+"Akylly marşrutlaşdyryş sebite mahsus düzgünleri ulanyp, VPN talap edýän "
+"trafigi MYX-VPN arkaly awtomatiki ugradýar. Beýleki trafikleriň hemmesi "
+"tizlik we ygtybarlylyk üçin göni gidýär."
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "VPN-dan aýlanyp geçmek üçin programmalar we web sahypalar goşuň"
+
+msgid "lantern_pro_license_applied"
+msgstr "Lantern Pro ygtyýarnamaňyz bar bolan hasabyňyza ulanylar"
+
+msgid "daily_data_cap_reached"
+msgstr "Gündelik maglumat çägine ýetildi"
+
+msgid "daily_data_cap_reached_message"
+msgstr "Tizlik 128 kb/s çenli peseldildi - %s-da täzeden dikeldiler."
+
+msgid "subscription_renewal_info"
+msgstr ""
+"Töleg satyn alnanda Apple ID-iňizden alynýar. Abunalar häzirki döwrüň "
+"gutarmagyndan azyndan 24 sagat öň ýatyrylmasa, awtomatik täzelenýär."
+
+msgid "failed_to_update_routing_mode"
+msgstr "Marşrutlaşdyryş tertibini täzelemek başa barmady. Täzeden synanyşyň."
+
+msgid "apps"
+msgstr "Programmalar"
+
+msgid "websites"
+msgstr "Web sahypalar"
+
+msgid "main_channel"
+msgstr "Esasy kanal"
+
+msgid "data_cap_channel"
+msgstr "Maglumat ulanylşy barada duýduryşlar"
+
+msgid "mb_free_data_remaining"
+msgstr "%d MB mugt maglumat galdy"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"Maglumatlaryňyz %s-de täzeden düzüler. Çäklendirilmedik ýokary tizlikli "
+"maglumat üçin Pro-a geçiň."
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"Öňki wagtda Lantern Pro parolyny sazlamadyk bolsaňyz, aşakdaky 'parolyňyzy "
+"ýatdan çykardyňyzmy?' wariantyny saýlaň."
+
+msgid "pro_subscription_expired"
+msgstr "Pro abunaňyzyň möhleti gutardy"
+
+msgid "renew_pro_subscription"
+msgstr "Pro abunany täzele"
+
+msgid "subscription_expired"
+msgstr "Abunaňyň möhleti gutardy"
+
+msgid "pro"
+msgstr "Pro"
+
+msgid "set_account_password"
+msgstr "Hasap parolyny sazla"
+
+msgid "set_password"
+msgstr "Parol sazla"
+
+msgid "set_account_password_message"
+msgstr ""
+"Hasabyňyzy dolandyrmak ýa-da beýleki enjamlarda girmek üçin Lantern Pro hasabyňyz üçin parol sazlamaly.\n"
+"\n"
+"Parolyňyzy döretmek üçin size tassyklama kodyny e-poçta ibereris."
+
+msgid "expired"
+msgstr "Möhleti gutardy"
+
+msgid "lantern_pro_tagline"
+msgstr "Çalt, ygtybarly we gizlin internet elýeterliligi"
+
+msgid "what_makes_lantern_different"
+msgstr "MYX-VPN-i näme tapawutlandyrýar"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "Gizlinlik, tizlik we erkinlik üçin döredildi"
+
+msgid "smart_routing_mode"
+msgstr "Akylly ugrukdyryş tertibi"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"Sebite mahsus düzgünler diňe VPN gerek bolan traffigi ugrukdyrýar, "
+"baglanyşygyňyzy çalt saklaýar."
+
+msgid "advanced_protocols"
+msgstr "Ösen protokollar"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"Iň ýokary ygtybarlylyk üçin beýleki VPN-lerden has köp protokol. AnyTLS, "
+"Hysteria2, VLESS, Kindling, WATER we başgalar."
+
+msgid "private_servers_description"
+msgstr ""
+"Baglanyşygyňyza doly gözegçilik etmek üçin öz serwerleriňizi birikdiriň."
+
+msgid "nonprofit_mission"
+msgstr "Täjirçilik däl wezipe"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"Internet erkinligini ösdürmekde 12+ ýyl tejribesi bolan täjirçilik däl "
+"gurama tarapyndan döredildi"
+
+msgid "choose_your_routing_mode"
+msgstr "Ugrukdyryş tertibiňizi saýlaň"
+
+msgid "fastest"
+msgstr "Iň çalt"
+
+msgid "traditional_vpn_mode"
+msgstr "Adaty VPN tertibi"
+
+msgid "traditional_vpn_mode_description"
+msgstr ""
+"Zerur bolsun ýa-da bolmasyn, ähli traffigi MYX-VPN arkaly ugrukdyrýar."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "Ugrukdyryş tertibi sazlamalarynda islendik wagt üýtgedip bilersiňiz"
+
+msgid "get_started"
+msgstr "Başlaň"
+
+msgid "skip_connect_now"
+msgstr "Geçiň - Häzir birikdiriň"
+
+msgid "renew_pro"
+msgstr "Pro-ny täzeläň"
+
+msgid "payment"
+msgstr "Töleg"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"Näsazlyk ýüze çykan ýaly. Töleg eden bolsaňyz, ýöne abunalygyňyz işjeň "
+"görünmeýän bolsa, birnäçe sagat garaşyp, gaýtadan barlaň."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"Pro meýilnamaňyz Google Play arkaly satyn alyndy. Abunalygyňyzy Google Play "
+"hasaby sazlamalaryndan dolandyryň."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"Pro meýilnamaňyz Apple App Store arkaly satyn alyndy. Abunalygyňyzy Apple ID"
+" hasaby sazlamalaryndan dolandyryň."
+
+msgid "create_account_error"
+msgstr "Hasap döretmekde ýalňyşlyk"
+
+msgid "appearance"
+msgstr "Daşky görnüş"
+
+msgid "light"
+msgstr "Açyk"
+
+msgid "dark"
+msgstr "Garaňky"
+
+msgid "system"
+msgstr "Ulgam"
+
+msgid "lantern_email"
+msgstr "MYX-VPN e-poçtasy"
+
+msgid "confirm_with_account"
+msgstr "Pozmagy tassyklamak üçin aşakdaky %s hasabyňyz bilen tassyklaň:"
+
+msgid "oauth_different_account"
+msgstr ""
+"Girmäge synanyşýan hasabyňyz bu e-poçta bilen baglanyşykly hasaba gabat "
+"gelmeýär. Dogry hasap bilen giriň ýa-da başga e-poçta saýlaň."
+
+msgid "account_deleted"
+msgstr "Hasap pozuldy"
+
+msgid "account_deleted_message"
+msgstr "Hasabyňyz hemişelik pozuldy."
+
+msgid "verify_with"
+msgstr "%s bilen tassyklaň"
+
+msgid "renew"
+msgstr "Uzalt"
+
+msgid "vpn_conflict_title"
+msgstr "VPN gapma-garşylygy ýüze çykaryldy"
+
+msgid "vpn_conflict_body"
+msgstr ""
+"Enjamyňyzda başga VPN işleýär. MYX-VPN ýeke-täk işjeň VPN bolanda iň gowy "
+"işleýär. Iň gowy netije üçin MYX-VPN-i ulanmazdan öň ony öçüriň."
+
+msgid "vpn_conflict_dismiss"
+msgstr "Düşnükli"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Barybir birik"
+
+msgid "err_check_connection"
+msgstr "Birigip bolmady. Internet birikmäňizi barlaň."
+
+msgid "err_service_unavailable"
+msgstr "Hyzmat wagtlaýyn elýeterli däl. Ýene synanyşylýar..."
+
+msgid "err_connection_failed"
+msgstr "Birikme şowsuz boldy. Ýene synanyşyň."
+
+msgid "err_ruleset_failed"
+msgstr "Ugrukdyryş sazlamalaryny ýükläp bolmady. Gaýtadan synanyşylýar..."
+
+msgid "update_now"
+msgstr "Häzir täzele"
+
+msgid "later"
+msgstr "Soňra"
+
+msgid "update_ready_to_install"
+msgstr "MYX-VPN %s gurnamaga taýýar"
+
+msgid "up_to_date"
+msgstr "Iň soňky wersiýa"
+
+msgid "running_latest_version"
+msgstr "MYX-VPN-iň iň soňky %s wersiýasyny ulanýarsyňyz"
+
+msgid "couldnt_check_for_updates"
+msgstr "Täzelenmeleri barlap bolmady"
+
+msgid "check_connection_and_retry"
+msgstr "Birikmäňizi barlap, ýene synanyşyň"
+
+msgid "refresh_configuration"
+msgstr "Sazlamalary täzele"
+
+msgid "configuration_cleared"
+msgstr "Sazlamalar arassalandy"
+
+msgid "turn_off_vpn"
+msgstr "VPN-i öçür"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"Sazlamalaryňyzy täzelemezden öň VPN öçük bolmaly. Ony öçürip, ýene "
+"synanyşyň."
+
+msgid "configuration_message"
+msgstr ""
+"Köne sazlamalaryňyz arassalandy. Iň täzesini awtomatik ýüklemek üçin VPN-i "
+"açyň."
+
+msgid "promo_referral_code"
+msgstr "Promo / salgylanma kody"
+
+msgid "promo_code"
+msgstr "Promo kody"
+
+msgid "promo_code_with"
+msgstr "Promo kody (%s)"
+
+msgid "order_total"
+msgstr "Sargydyň jemi"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"Akylly ýerleşiş iň çalt serwer saýlaýar we has gowy ýollar tapanda awtomatik"
+" çalyşýar."
+
+# Share consent dialog (shown once before any sharing starts, covers both
+# modes)
+msgid "share_consent_title"
+msgstr "Birikmäňizi paýlaşmalymy?"
+
+msgid "share_consent_body_what"
+msgstr ""
+"Paýlaşmak açykka, senzuraly ýurtlardaky adamlar açyk internete ýetmek üçin "
+"öz trafigini siziň birikmäňizden geçirýärler."
+
+msgid "share_consent_body_ip"
+msgstr ""
+"Routeriňiz port ugrukdyrmasyny goldaýan bolsa, öý birikmäňiz çykalga "
+"hökmünde ulanylýar we paýlaşýan wagtyňyz IP salgyňyz barylýan ýeriň "
+"ýazgylarynda görüner. Ýogsa, ol trafik MYX-VPN-iň serwerlerinden geçirilýär "
+"we IP-iňiz şeýle ýol bilen açylmaýar."
+
+msgid "share_consent_body_safety"
+msgstr ""
+"Iki ýagdaýda-da MYX-VPN belli bolan hyýanatçylykly barylýan ýerleri, hususy "
+"tor aralyklaryny we hyýanatçylyga ýykgyn portlary petikleýär, "
+"şahsyýetnamalary çalşyryp durýar we DMCA § 512(a) boýunça \"diňe geçiriji\" "
+"(mere conduit) hökmünde işleýär."
+
+msgid "share_consent_decline"
+msgstr "Häzir däl"
+
+msgid "share_consent_accept"
+msgstr "Paýlaşmagy aç"
+
+msgid "bypass_browser_warning_title"
+msgstr "%s aýlanyp geçme sanawyna goşulsynmy?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s MYX-VPN-iň goragy bolmazdan göni birigär. Käbir web sahypalaryny "
+"petikleýän ýurtlarda käbir sahypalar açylmaz."
+
+msgid "add_anyway"
+msgstr "Barybir goş"
+
+msgid "bypass_all_warning_title"
+msgstr "Ähli programmalar aýlanyp geçme sanawyna goşulsynmy?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Muňa %s ýaly brauzerler hem girýär. Aýlanyp geçme sanawyndaky programmalar "
+"MYX-VPN-iň goragy bolmazdan göni birigýär. Käbir web sahypalaryny petikleýän"
+" ýurtlarda käbir sahypalar açylmaz."
+
+msgid "add_all_except_browsers"
+msgstr "Brauzerlerden başga ählisini goş"
+
+msgid "add_all_anyway"
+msgstr "Barybir ählisini goş"
+
+msgid "bypass_app_first_time_title"
+msgstr "Bu programma üçin VPN aýlanyp geçilsinmi?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s MYX-VPN-iň goragy bolmazdan göni birigär. Ýurduňyzda petiklenen bolsa, "
+"işlemegini bes edip biler."
+
+msgid "bypass_website_first_time_title"
+msgstr "Bu web sahypasy üçin VPN aýlanyp geçilsinmi?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s MYX-VPN-iň goragy bolmazdan göni birigär. Ýurduňyzda petiklenen bolsa, "
+"işlemegini bes edip biler."
+
+msgid "upsell_upgrade_suffix"
+msgstr "Has çalt, çäksiz maglumat!"
+
+msgid "upsell_expired_suffix"
+msgstr "Pro wagtyňyz gutardy"
+
+msgid "pro_expires_days_left"
+msgstr "Pro %s güni gutarýar, %s gün galdy"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro %s güni gutarýar, 1 gün galdy"
+
+msgid "renewing_adds_time"
+msgstr "Täzelemek häzirki gutarýan senäňize wagt goşýar"
+
+msgid "pro_ends_today"
+msgstr "Pro wagty şu gün gutarýar, %s"
+
+msgid "renew_now_keep_data"
+msgstr "Çäksiz maglumaty we Pro aýratynlyklaryny saklamak üçin häzir täzeläň"
+
+msgid "pro_expired_on"
+msgstr "Pro wagtyňyz %s güni gutardy"
+
+msgid "renew_now_get_back_data"
+msgstr "Çäksiz maglumaty yzyna almak üçin häzir täzeläň"
+
+msgid "days_left"
+msgstr "%s gün galdy"
+
+msgid "one_day_left"
+msgstr "1 gün galdy"
+
+msgid "expires_today"
+msgstr "Şu gün gutarýar"
+
+msgid "pro_time_expired_message"
+msgstr ""
+"Lantern Pro wagty gutardy. Çäksiz maglumaty we Pro aýratynlyklaryny "
+"dikeltmek üçin täzeläň."
+
+msgid "pro_expires_today_title"
+msgstr "Pro şu gün gutarýar"
+
+msgid "pro_expires_today_popup_message"
+msgstr ""
+"Pro hasabyňyz şu gün tamamlanýar. Lantern Pro elýeterliligini saklamak üçin "
+"häzir täzeläň."
+
+msgid "renew_now"
+msgstr "Häzir täzele"
+
+msgid "dismiss"
+msgstr "Ýap"
+
+msgid "unbounded_status_waiting"
+msgstr "Başlamaga garaşylýar"
+
+msgid "affiliate_offer_unavailable"
+msgstr "Arzanladylan meýilnamalary dükandan ýükläp bolmady. Haýyş, täzeden synanyşyň."
+
+msgid "action_mode_helping_now"
+msgstr "Häzir kömek edilýär"
+
+msgid "action_mode_total_helped"
+msgstr "Şu wagta çenli kömek edilen adamlaryň jemi"
+
+msgid "show_license"
+msgstr "Ygtyýarnamany görkez"
+
+msgid "hide_license"
+msgstr "Ygtyýarnamany gizle"
+
+msgid "share_logs_warning_title"
+msgstr "Diagnostika ýazgylaryny paýlaşmalymy?"
+
+msgid "share_logs_warning_body"
+msgstr "Bu žurnallarda e-poçtaňyz, IP salgyňyz, enjamyň identifikatorlary we birigen MYX-VPN serwerleriňiz bolup biler. Programmadan çykandan soň olar goralmaýar, şonuň üçin olary alan islendik adam okap biler. Olary diňe MYX-VPN goldaw toparyna support@lantern.io salgysyna iberiň."
+
+msgid "share_logs_anyway"
+msgstr "Žurnallary paýlaş"
+
+msgid "widget"
+msgstr "Widjet"
+
+msgid "add_lantern_widget"
+msgstr "MYX-VPN widjetini goş"
+
+msgid "add_lantern_widget_description"
+msgstr "Programmany açmazdan telefonyňyzyň baş ekranyndan birikiň."
+
+msgid "widget_step_1"
+msgstr "Telefonyňyzyň baş ekranyndaky boş ýere basyp saklaň."
+
+msgid "widget_step_2"
+msgstr "«Üýtget», soňra «Widjet goş» düwmesine basyň."
+
+msgid "widget_step_3"
+msgstr "Gözlegde MYX-VPN ýazyň, ölçeg saýlaň we «Widjet goş» düwmesine basyň."
+
+msgid "people_helped_title"
+msgstr "Siziň kömek eden adamlaryňyz"
+
+msgid "people_helped_subtitle"
+msgstr "Şu güne çenli kömek edilen: %s · häzir: %s"
+
+msgid "advanced_stats_by_country"
+msgstr "Ýurtlar boýunça, ähli wagt"
+
+msgid "advanced_stats_relayed"
+msgstr "Geçirildi: %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "Geçirilen maglumatlar"
+
+msgid "advanced_stats_this_session"
+msgstr "Bu sessiýa"
+
+msgid "advanced_stats_all_time_short"
+msgstr "Ähli wagt"
+
+msgid "advanced_stats_current_speed"
+msgstr "Häzirki tizlik"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "Iberildi %s · Alyndy %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "Entek hiç kime kömek edilmedi. Adamlar siziň üstüňiz bilen birikende, ýurtlar şu ýerde görüner."
+
+msgid "advanced_stats_unknown_country"
+msgstr "Näbelli"
+
+msgid "advanced_stats_one_person"
+msgstr "1 adam"
+
+msgid "advanced_stats_people"
+msgstr "%s adam"
+
+msgid "share_mode_smc"
+msgstr "Göni baglanyşyk"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "Paýlaşma tertibi"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "Göni baglanyşyk elýeterli däl: %s"
+
+msgid "view_advanced_stats"
+msgstr "Giňişleýin statistikany gör"
+
+msgid "error_occurred"
+msgstr "Ýalňyşlyk ýüze çykdy. Haýyş, täzeden synanyşyň."
+
+msgid "unknown_error_occurred"
+msgstr "Näbelli ýalňyşlyk ýüze çykdy."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "Bizde tehniki kynçylyklar ýüze çykdy. Haýyş, soňrak täzeden synanyşyň."
+
+msgid "proxy_error"
+msgstr "Proksi arkaly birikip bolmady. Baglanyşygyňyzy barlaň we täzeden synanyşyň."
+
+msgid "err_while_sending_code"
+msgstr "Tassyklaýyş kodyny iberip bolmady. Täzeden synanyşyň."
+
+msgid "recovery_not_found"
+msgstr "Bu maglumatlar bilen dikeltmek üçin hasap tapylmady."
+
+msgid "wrong_link_code"
+msgstr "Enjamy baglamak üçin kod nädogry. Haýyş edýäris, ony barlaň we täzeden synanyşyň."
+
+msgid "wrong_seller_code"
+msgstr "Gaýtadan satyjy kody nädogry. Haýyş edýäris, ony barlaň we täzeden synanyşyň."
+
+msgid "purchase_not_found"
+msgstr "Bu hasap üçin satyn alma tapyp bilmedik."
+
+msgid "purchase_restored_error"
+msgstr "Satyn almaňyzy dikeldip bilmedik. Gaýtadan synanyşyň."
+
+msgid "empty_url"
+msgstr "Töleg sahypasyny açyp bilmedik. Gaýtadan synanyşyň."
+
+msgid "please_enter_referral_code"
+msgstr "Çagyryş koduny giriziň."
+
+msgid "access_token_missing"
+msgstr "Giriş tokeni tapylmady. Bulut üpjünçiňize gaýtadan giriň."
+
+msgid "private_server_setup_error"
+msgstr "Şahsy serweriňizi sazlap bilmedik. Gaýtadan synanyşyň."
+
+msgid "logs"
+msgstr "Loglar"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "DigitalOcean sahypasyna geçmek üçin aşakdaky %s düwmesine basyň"
+
+msgid "network_extension_disabled_message"
+msgstr "MYX-VPN-iň tor giňeltmesi Ulgam sazlamalarynda öçürilen. Ony Login Items & Extensions > Network Extensions bölüminde açyň, soňra MYX-VPN-e gaýdyp geliň."
+
+msgid "oauth_error_sign_in_failed"
+msgstr "Içeri girip bolmady. Täzeden synanyşyň."
+
+msgid "oauth_error_session_expired"
+msgstr "Içeri giriş sessiýaňyzyň möhleti gutardy. Täzeden synanyşyň."
+
+msgid "oauth_error_provider_failed"
+msgstr "Ol hasap bilen sizi içeri girizip bilmedik. Täzeden synanyşyň."
+
+msgid "oauth_error_no_email"
+msgstr "Ol hasap e-poçta salgysyny paýlaşmady. E-poçta elýeterliligine rugsat beriň we täzeden synanyşyň."
+
+msgid "oauth_error_add_device"
+msgstr "Bu enjamy hasabyňyza baglap bolmady. Goldaw bilen habarlaşmagyňyzy haýyş edýäris."
+
+msgid "helper_error_disabled"
+msgstr "Dostlara kömek etmek bu enjamda entek elýeterli däl."
+
+msgid "helper_error_not_found"
+msgstr "Bu çakylyk ýa-da kömekçi indi ýok."
+
+msgid "helper_error_unavailable"
+msgstr "MYX-VPN bilen baglanyşyp bolmady. Baglanyşygyňyzy barlaň we täzeden synanyşyň."
+
+msgid "helper_error_too_many_invites"
+msgstr "Häzirlikçe iň köp çakylyk iberdiňiz. Ertir täzeden synanyşyň."
+
+msgid "helper_error_too_many_pairings"
+msgstr "Siz 20 adam çägine ýetdiňiz."
+
+msgid "helper_error_no_pending_claim"
+msgstr "Bu çakylyk boýunça eýýäm karar berildi."
+
+msgid "helper_error_bad_name"
+msgstr "Dostuňyzyň tanajak adyny giriziň, iň köp 60 nyşan."
+
+msgid "helper_error_keystore"
+msgstr "Bu enjam atlary howpsuz saklap bilmeýär, şonuň üçin dostlara kömek öçürildi. Linux-da GNOME Keyring ýaly açar ammaryny işlediň."
+
+msgid "helper_error_keystore_reset"
+msgstr "Bu enjamyň howpsuz ammary täzeden düzüldi, şonuň üçin kömekçileriňiziň we çakylyklaryňyzyň atlaryny okap bolmady. Kömekçileriňiz henizem işleýär; atlaryny görmek üçin olary täzeden çagyryň."
+
+msgid "helper_error_copy"
+msgstr "Salgyny göçürip bolmady. Onuň ýerine Salgyny paýlaş ulanyň."
+
+msgid "helpers_your_name_label"
+msgstr "Dostuňyzyň sizi tanaýan adyňyz"
+
+msgid "helpers_your_name_hint"
+msgstr "Mysal üçin, Sara"
+
+msgid "helper_online"
+msgstr "Onlaýn"
+
+msgid "helper_offline"
+msgstr "Oflaýn"
+
+msgid "helper_unnamed"
+msgstr "Kömekçiňiz"
+
+msgid "helper_remove_confirm_title"
+msgstr "Kömekçi aýrylsynmy: %s?"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s indi size kömek etmez. Soňra ony täzeden çagyryp bilersiňiz."
+
+msgid "helpers_remove_all"
+msgstr "Ähli kömekçileri aýyr"
+
+msgid "helpers_remove_all_body"
+msgstr "Ähli kömekçiler size kömek etmegi bes eder we olaryň atlary bu enjamdan pozular."
+
+msgid "manage_private_locations"
+msgstr "Hususy ýerleri dolandyr"
+
+msgid "invite_personal_proxy"
+msgstr "Şahsy proksi çagyr"
+
+msgid "personal_proxies_tab"
+msgstr "Şahsy proksiler"
+
+msgid "invite_another"
+msgstr "Ýene birini çagyr"
+
+msgid "helpers_nudge_second"
+msgstr "Şahsy proksiňiz öçse, onuň üsti bilen baglanyşygyňyz hem kesilýär. Baglanyşykda galmak üçin ikinji dostuňyzy çagyryň."
+
+msgid "personal_proxy_banner_title"
+msgstr "Şahsy proksi alyň"
+
+msgid "personal_proxy_banner_body"
+msgstr "Daşary ýurtdaky dostuňyz sizi birikdirilen ýagdaýda saklap biler."
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Dostuňyz garaşýar"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Kody deňeşdiriň we tassyklaň."
+
+msgid "personal_proxy_nickname_label"
+msgstr "Bu enjamdaky ady"
+
+msgid "invite_share_message"
+msgstr "%s onlaýn galmak üçin siziň kömegiňizi isleýär. %s"
+
+msgid "invite_share_button"
+msgstr "Baglanyşygy paýlaş"
+
+msgid "invite_copy_link"
+msgstr "Baglanyşygy göçür"
+
+msgid "invite_link_copied"
+msgstr "Baglanyşyk göçürildi"
+
+msgid "invite_qr_hint"
+msgstr "Dostuňyz muny MYX-VPN bilen skanirläp biler."
+
+msgid "invite_waiting"
+msgstr "Dostuňyzyň baglanyşygy açmagyna garaşylýar"
+
+msgid "invite_trust_warning"
+msgstr "Çagyrýan adamyňyz siziň MYX-VPN ulanýandygyňyzy biler we siziň haçan onuň üsti bilen birikýändigiňizi görüp biler. Siziň trafigiňiz onuň internet baglanyşygyndan geçýär, şonuň üçin ol haýsy saýtlara girýändigiňizi bilip biler, ýöne howpsuz (https) saýtlarda näme edýändigiňizi bilip bilmez. Diňe ynanýan adamyňyzy çagyryň."
+
+msgid "invite_expires"
+msgstr "Möhleti gutarýar, sagat: %s"
+
+msgid "invite_gone"
+msgstr "Bu çakylyk ulanyldy ýa-da möhleti gutardy."
+
+msgid "invite_claimed_title"
+msgstr "Kimdir biri çakylygyňyzy açdy"
+
+msgid "invite_compare_codes"
+msgstr "Kodlary deňeşdir"
+
+msgid "personal_proxy"
+msgstr "Şahsy proksi"
+
+msgid "private_locations"
+msgstr "Hususy ýerler"
+
+msgid "personal_proxies"
+msgstr "Şahsy proksiler"
+
+msgid "your_personal_proxies"
+msgstr "Şahsy proksileriňiz"
+
+msgid "help_friend_link_label"
+msgstr "Çakylyk salgysy"
+
+msgid "help_friend_paste"
+msgstr "Dostuňyzyň iberen salgysyny goýuň"
+
+msgid "help_friend_scan"
+msgstr "Dostuňyzyň QR koduny skanirläň"
+
+msgid "help_friend_approved"
+msgstr "Siz indi kömek edýärsiňiz: %s."
+
+msgid "help_friend_no_longer_pending"
+msgstr "Bu haýyş indi garaşylmaýar. Dostuňyzdan täze çakylyk soraň."
+
+msgid "help_friend_done"
+msgstr "Taýýar"
+
+msgid "help_friend_already_claimed_title"
+msgstr "Bu çakylyk eýýäm ulanyldy"
+
+msgid "help_friend_already_claimed_body"
+msgstr "Bu baglanyşygy öň başga biri açdy ýa-da onuň möhleti gutardy. Dostuňyzdan täze çakylyk soraň we bu çakylygy başga biriniň gören bolmagynyň mümkindigini oňa aýdyň."
+
+msgid "help_friend_already_helping"
+msgstr "Siz eýýäm bu dostuňyza kömek edýärsiňiz."
+
+msgid "help_friend_already_helping_named"
+msgstr "Siz eýýäm kömek edýärsiňiz: %s."
+
+msgid "help_friend_bad_link"
+msgstr "Bu kömekçi çakylyk baglanyşygy däl."
+
+msgid "help_friend_own_invite"
+msgstr "Bu siziň öz çakylygyňyz. Ony kömek almak isleýän dostuňyza iberiň."
+
+msgid "helping_since"
+msgstr "Başlanan senesi: %s"
+
+msgid "helping_unnamed"
+msgstr "Kömek edýän adamyňyz"
+
+msgid "helping_sharing_off_warning"
+msgstr "Paýlaşmak öçürildi, şonuň üçin kömek edýän adamlaryňyz siziň üstüňiz bilen birigip bilmeýär."
+
+msgid "helping_remove"
+msgstr "Kömegi bes et"
+
+msgid "helping_remove_confirm"
+msgstr "Kömegi bes etmelimi: %s? Siziň üstüňizden täzeden birikmek üçin täze çakylyk gerek bolar."
+
+msgid "help_others_too"
+msgstr "Başgalara-da kömek et"
+
+msgid "help_others_too_body"
+msgstr "Senzura bilen ýüzbe-ýüz bolýan beýleki adamlara artykmaç kuwwatyňyzy beriň; MYX-VPN olara diňe rugsat berlen saýtlara girmäge ýol berýär, bu bolsa baglanyşygyňyzy hyýanatçylykly ulanylyşdan goraýar."
+
+msgid "help_others_too_note"
+msgstr "Muny üýtgetmek kömek edýän adamlaryňyzy gysga wagtlaýyn täzeden birikdirýär."
+
+msgid "helping_duration_hm"
+msgstr "%s sag %s min"
+
+msgid "helping_duration_m"
+msgstr "%s min"
+
+msgid "invite_link_expiry"
+msgstr "Diňe bir gezek işleýär we 48 sagadyň dowamynda möhleti gutarýar."
+
+msgid "approve_title"
+msgstr "%s siziň şahsy proksiňiz bolmak isleýär"
+
+msgid "approve_body"
+msgstr "MYX-VPN-iň görkezýän 4 sanly koduny sorap, %s bilen jaňda ýa-da salgyny iberen programmaňyzdan başga programmada habarlaşyň. Diňe kod gabat gelse tassyklaň."
+
+msgid "approve_codes_match"
+msgstr "Kodlar gabat gelýär, tassykla"
+
+msgid "approve_reject"
+msgstr "Ret et"
+
+msgid "personal_proxy_fallback_group"
+msgstr "Häzir %s bilen baglanyşyp bolmaýar. Şahsy proksileriňiz saýlandy."
+
+msgid "become_means_title"
+msgstr "Şahsy proksi bolmak näme diýmek"
+
+msgid "become_means_traffic"
+msgstr "Bir dostuňyz sizden kömek sorady. Action Mode işleýän wagty ol siziň baglanyşygyňyz arkaly açyk internete girip bilýär. Routeriňize baglylykda, onuň trafigi siziň toruňyzdan çykýar ýa-da MYX-VPN serwerleri arkaly geçirilýär. MYX-VPN onuň onlaýn näme edýändigini size görkezmeýär."
+
+msgid "become_means_seen"
+msgstr "Olar siziň haçan birikendigiňizi görüp bilýär. Diňe tanaýan adamlaryňyzyň çakylyklaryny kabul ediň."
+
+msgid "become_means_remove"
+msgstr "Baglanyşygy islän wagtyňyz aýryň."
+
+msgid "help_friend_form_title"
+msgstr "Kömek edýän adamyňyzdan gelen salgyny goýuň"
+
+msgid "help_friend_link_hint"
+msgstr "Salgyny şu enjamda açan bolsaňyz, bu awtomatik doldurylýar"
+
+msgid "help_friend_name_hint"
+msgstr "Dostuňyzyň MYX-VPN programmasynda siz şeýle görünersiňiz"
+
+msgid "help_friend_become"
+msgstr "Dostuňyzyň şahsy proksisi boluň"
+
+msgid "help_friend_tell_code"
+msgstr "Bu kody dostuňyza aýdyň"
+
+msgid "help_friend_code_check"
+msgstr "Ol muny öz telefonyndaky kod bilen gabat gelýändigini barlar, soňra sizi tassyklar."
+
+msgid "help_friend_waiting_approval"
+msgstr "Tassyklama garaşylýar"
+
+msgid "help_friend_code_note"
+msgstr "Kody jaň arkaly ýa-da çakylyk salgysy gelen programmadan başga programmada aýdyň. Salgyny gören adam kody hem görmeli däl."
+
+msgid "become_personal_proxy"
+msgstr "Şahsy proksi bol"
+
+msgid "become_personal_proxy_body"
+msgstr "Tanaýan adamyňyza onlaýn bolmaga kömek ediň"
+
+msgid "helping_connections_title"
+msgstr "Personal Proxy baglanyşyklaryňyz"
+
+msgid "helping_friends_one"
+msgstr "1 dost"
+
+msgid "helping_friends_count"
+msgstr "%s dost"
+
+msgid "helping_connected_named"
+msgstr "%s häzir birikdirildi"
+
+msgid "helping_connected_count"
+msgstr "Häzir birikdirilen: %s"
+
+msgid "helping_sheet_title"
+msgstr "Kömek edýän dostlaryňyz"
+
+msgid "helping_your_friends"
+msgstr "Dostlaryňyz"
+
+msgid "helping_connected"
+msgstr "Birikdirildi"
+
+msgid "helping_not_connected"
+msgstr "Birikdirilmedik"
+
+msgid "helping_data_relayed"
+msgstr "Şu gün geçirilen maglumat"
+
+msgid "helping_active_today"
+msgstr "Işjeň: %s"
+
+msgid "myx_tap_to_connect"
+msgstr "Tap to connect"
+
+msgid "myx_protected"
+msgstr "Protected"
+
+msgid "myx_not_protected"
+msgstr "Not protected"
+
+msgid "myx_connecting"
+msgstr "Securing connection"
+
+msgid "myx_disconnecting"
+msgstr "Disconnecting"
+
+msgid "myx_session"
+msgstr "Session"
+
+msgid "myx_update_title"
+msgstr "New version available"
+
+msgid "myx_update_body"
+msgstr "MYX-VPN %s is ready. You are using %s."
+
+msgid "myx_update_now"
+msgstr "Update now"
+
+msgid "myx_update_later"
+msgstr "Later"
+
+msgid "myx_whats_new"
+msgstr "What's new"

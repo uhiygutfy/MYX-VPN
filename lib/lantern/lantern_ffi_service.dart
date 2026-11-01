@@ -1,0 +1,2277 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:ffi';
+import 'dart:io';
+import 'dart:isolate';
+
+import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/common/common.dart' hide DeveloperMode;
+import 'package:lantern/core/models/app_data.dart';
+import 'package:lantern/core/models/app_event.dart';
+import 'package:lantern/core/models/datacap_info.dart';
+import 'package:lantern/core/models/lantern_status.dart';
+import 'package:lantern/core/models/private_server_status.dart';
+import 'package:lantern/core/services/app_purchase.dart';
+import 'package:lantern/core/models/restore_subscription_response.dart';
+import 'package:lantern/core/utils/app_data_utils.dart';
+import 'package:lantern/core/utils/radiance_environment.dart';
+import 'package:lantern/core/utils/storage_utils.dart';
+import 'package:lantern/features/report_issue/models/report_issue_attachment.dart';
+import 'package:lantern/lantern/lantern_core_service.dart';
+import 'package:lantern/lantern/lantern_generated_bindings.dart';
+import 'package:lantern/lantern/lantern_service.dart';
+import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/models/user_message.dart';
+import 'package:path/path.dart' as p;
+
+import '../core/models/available_servers.dart';
+import '../core/models/server_location.dart';
+import '../core/models/macos_extension_state.dart';
+import '../core/models/plan_data.dart';
+import '../core/models/referral_attach_response.dart';
+import '../core/utils/compute_worker.dart';
+
+export 'dart:convert';
+export 'dart:ffi'; // For FFI
+
+export 'package:ffi/src/utf8.dart';
+
+const String _libName = 'liblantern';
+const Set<String> _ffiOkResults = {'ok', 'true'};
+
+/// Communicates with the native library via FFI.
+///
+/// This is meant to be used only by [LanternService].
+class LanternFFIService implements LanternCoreService {
+  static final LanternBindings _ffiService = _gen();
+
+  Stream<LanternStatus> _status = _defaultStatusStream();
+
+  Stream<PrivateServerStatus> _privateServerStatus =
+      const Stream<PrivateServerStatus>.empty();
+  Stream<AppEvent> _appEvents = const Stream<AppEvent>.empty();
+  Stream<List<String>> _logBatches = const Stream<List<String>>.empty();
+
+  static final RegExp _newlineRegex = RegExp(r'\r?\n');
+
+  static Stream<LanternStatus> _defaultStatusStream() {
+    // Keep a predictable default (matches the Windows status mapping behavior).
+    return Stream<LanternStatus>.value(
+      LanternStatus.fromJson({'status': 'disconnected', 'error': null}),
+    );
+  }
+
+  static SendPort? _commandSendPort;
+  static final Completer<void> _isolateInitialized = Completer<void>();
+
+  // Receive ports for different app services
+  static final commandReceivePort = ReceivePort();
+  static final statusReceivePort = ReceivePort();
+  static final privateServerReceivePort = ReceivePort();
+  static final appsReceivePort = ReceivePort();
+  static final loggingReceivePort = ReceivePort();
+  static final flutterEventReceivePort = ReceivePort();
+
+  static LanternBindings _gen() {
+    final String basePath = p.dirname(Platform.resolvedExecutable);
+    final String fullPath;
+    appLogger.debug('resolved executable: "${Platform.resolvedExecutable}"');
+
+    if (Platform.isWindows) {
+      final candidates = <String>[
+        p.join(basePath, "$_libName.dll"),
+        p.join(basePath, "bin", "$_libName.dll"),
+        p.join(basePath, "bin", "windows", "$_libName.dll"),
+      ];
+      fullPath = _firstExisting(candidates);
+    } else if (Platform.isLinux) {
+      final envPath = Platform.environment['LANTERN_LIB_PATH'];
+      final candidates = <String>[
+        if (envPath != null && envPath.isNotEmpty) envPath,
+        p.join(basePath, "$_libName.so"),
+        p.join(basePath, "lib", "$_libName.so"),
+        "/usr/lib/lantern/$_libName.so",
+      ];
+      fullPath = _firstExisting(candidates);
+    } else {
+      fullPath = p.join(basePath, "$_libName.so");
+    }
+
+    appLogger.debug('singbox native libs path: "$fullPath"');
+    final lib = DynamicLibrary.open(fullPath);
+    return LanternBindings(lib);
+  }
+
+  static String _firstExisting(List<String> candidates) {
+    for (final candidate in candidates) {
+      if (File(candidate).existsSync()) {
+        return candidate;
+      }
+    }
+    appLogger.warning(
+      'Native library not found in candidates: ${candidates.join(', ')}',
+    );
+    return candidates.first;
+  }
+
+  @override
+  Future<void> init() async {
+    // Set safe defaults up front so callers always have something to listen to.
+    _status = _defaultStatusStream();
+    _privateServerStatus = const Stream<PrivateServerStatus>.empty();
+    _appEvents = const Stream<AppEvent>.empty();
+    _logBatches = const Stream<List<String>>.empty();
+
+    try {
+      final setupResult = await _setupRadiance();
+      setupResult.fold((err) {
+        appLogger.error('Radiance setup failed: $err');
+      }, (_) {});
+
+      _status = statusReceivePort.map((event) {
+        final Map<String, dynamic> result = jsonDecode(event);
+        return LanternStatus.fromJson(result);
+      });
+
+      if (Platform.isWindows && !_isolateInitialized.isCompleted) {
+        await _initializeCommandIsolate();
+      }
+
+      // These streams exist even if Windows IPC doesn't.
+      _privateServerStatus = privateServerReceivePort.map((event) {
+        final Map<String, dynamic> result = jsonDecode(event);
+        return PrivateServerStatus.fromJson(result);
+      });
+
+      _appEvents = flutterEventReceivePort.map((event) {
+        final Map<String, dynamic> result = jsonDecode(event);
+        return AppEvent.fromJson(result);
+      }).asBroadcastStream();
+
+      _logBatches = loggingReceivePort
+          .cast<String>()
+          .map(
+            (s) => s
+                .split(_newlineRegex)
+                .where((l) => l.isNotEmpty)
+                .toList(growable: false),
+          )
+          .where((batch) => batch.isNotEmpty);
+    } catch (e, st) {
+      appLogger.error('Error while setting up radiance', e, st);
+    }
+  }
+
+  Future<Either<String, Unit>> _setupRadiance() async {
+    try {
+      appLogger.debug('Setting up radiance');
+      int consent = 0;
+      final env = await radianceEnvironment();
+      try {
+        // Telemetry consent can be forwarded here when needed.
+      } catch (_) {
+        appLogger.warning(
+          'No app setting found, defaulting telemetry consent to false',
+        );
+      }
+
+      final dataDir = await AppStorageUtils.getAppDirectory();
+      final logDir = await AppStorageUtils.getAppLogDirectory();
+      appLogger.info(
+        "Radiance configuration - env: $env, dataDir: ${dataDir.path}, logDir: $logDir, telemetryConsent: $consent",
+      );
+
+      final dataDirPtr = dataDir.path.toCharPtr;
+      final logDirPtr = logDir.toCharPtr;
+
+      // setup() must run on the main isolate.
+      // It wires up the Dart <-> Go bridge using NativeApi.initializeApiDLData.
+      // Running it from a background isolate will break the Dart DL bridge.
+      final result = _ffiService
+          .setup(
+            logDirPtr,
+            dataDirPtr,
+            Localization.defaultLocale.toCharPtr,
+            env.toCharPtr,
+            loggingReceivePort.sendPort.nativePort,
+            appsReceivePort.sendPort.nativePort,
+            statusReceivePort.sendPort.nativePort,
+            privateServerReceivePort.sendPort.nativePort,
+            flutterEventReceivePort.sendPort.nativePort,
+            consent,
+            NativeApi.initializeApiDLData,
+          )
+          .toDartString();
+
+      checkAPIError(result);
+      if (result != 'ok' && result != 'true') {
+        throw PlatformException(code: 'radiance_setup_failed', message: result);
+      }
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Failed to set up radiance: $e', e, st);
+      return Left(e.toFailure().localizedErrorMessage);
+    }
+  }
+
+  @override
+  Stream<AppEvent> watchAppEvents() {
+    return _appEvents;
+  }
+
+  @override
+  Future<Either<Failure, UserMessage?>> currentUserMessage() async {
+    try {
+      final encoded = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.currentUserMessage();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(encoded);
+      return right(UserMessage.tryParse(encoded));
+    } catch (e) {
+      // The encoded response can contain message copy, so keep it out of logs.
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> refreshUserMessages() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.refreshUserMessages();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> acknowledgeUserMessage(
+    String displayId,
+    String accountId,
+  ) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final displayIDPtr = displayId.toCharPtr;
+        final accountIDPtr = accountId.toCharPtr;
+        try {
+          final resultPtr = _ffiService.acknowledgeUserMessage(
+            displayIDPtr,
+            accountIDPtr,
+          );
+          try {
+            return resultPtr.toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(displayIDPtr);
+          malloc.free(accountIDPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUserMessageActivity(bool active) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.setUserMessageActivity(active ? 1 : 0);
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e) {
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateTelemetryEvents(bool consent) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .updateTelemetryConsent(consent ? 1 : 0)
+            .toDartString();
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Error updating telemetry events', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setRoutingMode(bool mode) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.setSmartRoutingEnabled(mode ? 1 : 0).toDartString();
+      });
+
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Error setting routing mode via FFI', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Stream<List<AppData>> appsDataStream() async* {
+    try {
+      // Installed apps still loaded from Go (already is)
+      final String dataDir = (_ffiService.getAppDataDir().toDartString());
+
+      final String jsonApps = await runInBackground<String>(() async {
+        final ptr = dataDir.toNativeUtf8();
+        try {
+          return _ffiService.loadInstalledApps(ptr.cast<Char>()).toDartString();
+        } finally {
+          malloc.free(ptr);
+        }
+      });
+
+      if (jsonApps.isEmpty) {
+        yield [];
+        return;
+      }
+
+      // Enabled apps from Go (NOT LocalStorage)
+      final enabledJson = await runInBackground<String>(() async {
+        return _ffiService.getEnabledApps().toDartString();
+      });
+      checkAPIError(enabledJson);
+
+      final enabledKeys = (jsonDecode(enabledJson) as List)
+          .cast<String>()
+          .toSet();
+
+      final decoded = jsonDecode(jsonApps) as List<dynamic>;
+      final rawApps = decoded.cast<Map<String, dynamic>>();
+
+      yield rawApps.map((raw) {
+        final name = (raw["name"] as String? ?? "").trim();
+        final bundleId = (raw["bundleId"] as String? ?? "").trim();
+        final key = bundleId.isNotEmpty ? bundleId : name;
+
+        return AppData(
+          name: name,
+          bundleId: bundleId,
+          appPath: raw["appPath"] as String? ?? '',
+          iconPath: raw["iconPath"] as String? ?? '',
+          iconBytes: iconToBytes(raw["icon"] ?? raw["iconBytes"]),
+          isEnabled: enabledKeys.contains(key),
+          isBrowser: raw["isBrowser"] == true,
+          wrappedBundle: raw["wrappedBundle"] as String? ?? '',
+        );
+      }).toList();
+    } catch (e, st) {
+      appLogger.error("Failed to fetch installed apps", e, st);
+      yield [];
+    }
+  }
+
+  @override
+  Future<Uint8List?> loadInstalledAppIconBytes({
+    required String appPath,
+    required String iconPath,
+  }) async {
+    final normalizedAppPath = appPath.trim();
+    final normalizedIconPath = iconPath.trim();
+    if (normalizedAppPath.isEmpty && normalizedIconPath.isEmpty) {
+      return null;
+    }
+
+    try {
+      final encoded = await runInBackground<String>(() async {
+        final appPathPtr = normalizedAppPath.toNativeUtf8();
+        final iconPathPtr = normalizedIconPath.toNativeUtf8();
+        try {
+          return _ffiService
+              .loadInstalledAppIcon(
+                appPathPtr.cast<Char>(),
+                iconPathPtr.cast<Char>(),
+              )
+              .toDartString();
+        } finally {
+          malloc.free(appPathPtr);
+          malloc.free(iconPathPtr);
+        }
+      });
+
+      final trimmed = encoded.trim();
+      if (trimmed.isEmpty) {
+        return null;
+      }
+      if (trimmed.startsWith('{') && trimmed.contains('"error"')) {
+        checkAPIError(trimmed);
+        return null;
+      }
+      return base64Decode(trimmed);
+    } catch (e, st) {
+      appLogger.error('Failed to load installed app icon bytes', e, st);
+      return null;
+    }
+  }
+
+  // Split tunneling
+  static void _commandIsolateEntry(SendPort sendPort) {
+    final commandPort = ReceivePort();
+    sendPort.send(commandPort.sendPort);
+
+    commandPort.listen((message) async {
+      final msg = message as SplitTunnelMessage;
+      try {
+        final result = await _runSplitTunnelCall(
+          msg.type,
+          msg.value,
+          msg.action,
+        );
+
+        if (result.isLeft()) {
+          final failure = result.fold((f) => f, (_) => null)!;
+          msg.replyPort.send({
+            'isError': true,
+            'error': failure.error,
+            'localizedErrorMessage': failure.localizedErrorMessage,
+          });
+        } else {
+          msg.replyPort.send({'isError': false});
+        }
+      } catch (e) {
+        msg.replyPort.send({
+          'isError': true,
+          'error': e.toString(),
+          'localizedErrorMessage': e.toString(),
+        });
+      }
+    });
+  }
+
+  Future<void> _initializeCommandIsolate() async {
+    await Isolate.spawn(_commandIsolateEntry, commandReceivePort.sendPort);
+    final port = await commandReceivePort.first;
+    _commandSendPort = port as SendPort;
+    _isolateInitialized.complete();
+  }
+
+  Future<Either<Failure, Unit>> _sendSplitTunnel(
+    SplitTunnelFilterType type,
+    String value,
+    SplitTunnelActionType action,
+  ) async {
+    final responsePort = ReceivePort();
+
+    if (_commandSendPort == null) {
+      throw StateError('Command isolate not initialized');
+    }
+
+    _commandSendPort!.send(
+      SplitTunnelMessage(type, value, action, responsePort.sendPort),
+    );
+
+    final result = await responsePort.first;
+    responsePort.close();
+
+    if (result is Map && result['isError'] == true) {
+      return left(
+        Failure(
+          error: result['error'] ?? 'Unknown error',
+          localizedErrorMessage:
+              result['localizedErrorMessage'] ??
+              result['error'] ??
+              'Unknown error',
+        ),
+      );
+    }
+
+    return right(unit);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> addSplitTunnelItem(
+    SplitTunnelFilterType type,
+    String value,
+  ) {
+    return _sendSplitTunnel(type, value, SplitTunnelActionType.add);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removeSplitTunnelItem(
+    SplitTunnelFilterType type,
+    String value,
+  ) {
+    return _sendSplitTunnel(type, value, SplitTunnelActionType.remove);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setSplitTunnelingEnabled(bool enabled) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .setSplitTunnelingEnabled(enabled ? 1 : 0)
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error setting split tunneling', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isSplitTunnelingEnabled() async {
+    try {
+      final enabledInt = _ffiService.isSplitTunnelingEnabled();
+      final enabled = enabledInt != 0;
+      return right(enabled);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, DataCapUsageResponse>> getDataCapInfo() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getDataCapInfo().toDartString();
+      });
+      checkAPIError(result);
+      final map = jsonDecode(result);
+      appLogger.debug('Data cap info: $map');
+      final dataCap = DataCapUsageResponse.fromJson(map);
+      return right(dataCap);
+    } catch (e, st) {
+      appLogger.error('Failed to get data cap info: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  static Future<Either<Failure, Unit>> _runSplitTunnelCall(
+    SplitTunnelFilterType type,
+    String value,
+    SplitTunnelActionType action,
+  ) async {
+    final tPtr = type.value.toNativeUtf8();
+    final vPtr = value.toNativeUtf8();
+
+    try {
+      final fn = action == SplitTunnelActionType.add
+          ? _ffiService.addSplitTunnelItem
+          : _ffiService.removeSplitTunnelItem;
+
+      final result = fn(tPtr.cast<Char>(), vPtr.cast<Char>());
+      if (result == nullptr) {
+        return right(unit);
+      }
+      // `result` is a Go-allocated C string, so Dart's malloc.free would
+      // hard-crash (0xC0000409); hand it back to Go via freeCString after
+      // copying it into a Dart string.
+      final String resultStr;
+      try {
+        resultStr = result.cast<Utf8>().toDartString();
+      } finally {
+        _ffiService.freeCString(result);
+      }
+      // The Go FFI returns a non-null C string like "ok" on success; only
+      // treat unexpected payloads as errors.
+      if (_ffiOkResults.contains(resultStr)) {
+        return right(unit);
+      }
+      // Errors may arrive as raw strings or as JSON {"error": "..."}.
+      var errMsg = resultStr;
+      try {
+        final decoded = jsonDecode(resultStr);
+        if (decoded is Map && decoded['error'] != null) {
+          errMsg = decoded['error'].toString();
+        }
+      } catch (_) {
+        // Not JSON — fall through with the raw string.
+      }
+      appLogger.error('$action split tunnel error: $errMsg');
+      return left(
+        Failure(error: errMsg, localizedErrorMessage: localizeRawError(errMsg)),
+      );
+    } catch (e) {
+      return left(
+        Failure(
+          error: e.toString(),
+          localizedErrorMessage: (e is Exception)
+              ? e.localizedDescription
+              : e.toString(),
+        ),
+      );
+    } finally {
+      malloc.free(tPtr);
+      malloc.free(vPtr);
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> reportIssue(
+    String email,
+    String issueType,
+    String description,
+    String device,
+    String model,
+    String logFilePath,
+    List<ReportIssueAttachment> attachments,
+  ) async {
+    try {
+      final attachmentsJson = jsonEncode(
+        attachments
+            .map((attachment) => attachment.toJson())
+            .toList(growable: false),
+      );
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .reportIssue(
+              email.toCharPtr,
+              issueType.toCharPtr,
+              description.toCharPtr,
+              device.toCharPtr,
+              model.toCharPtr,
+              logFilePath.toCharPtr,
+              attachmentsJson.toCharPtr,
+            )
+            .toDartString();
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('Error reporting issue: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> startVPN() async {
+    try {
+      appLogger.debug('Starting VPN');
+      // Run on a background isolate. The FFI call performs ~1s of connect
+      // work and emits intermediate status updates ("connecting", then
+      // "connected") to the Dart status SendPort during that window. If we
+      // run it on the main isolate the event loop is blocked, so the port
+      // messages can't be delivered to listeners until the call returns —
+      // at which point both events fire back-to-back, leaving no frame for
+      // the UI to render the "Connecting" state. See Freshdesk #174072.
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.startVPN();
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
+        appLogger.error('startVPN error: $result');
+        return left(
+          Failure(
+            error: result,
+            localizedErrorMessage: localizeRawError(result),
+          ),
+        );
+      }
+      appLogger.debug('startVPN result: $result');
+      return right(result.isEmpty ? 'ok' : result);
+    } catch (e) {
+      appLogger.error('Error starting VPN: $e');
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<bool> isTagAvailable(String tag) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final tagPtr = tag.toCharPtr;
+        try {
+          final resultPtr = _ffiService.isTagAvailable(tagPtr);
+          if (resultPtr == nullptr) {
+            return 'true';
+          }
+          try {
+            return resultPtr.toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(tagPtr);
+        }
+      });
+      return result == 'true';
+    } catch (e, st) {
+      appLogger.error(
+        'Error checking tag availability, assuming available',
+        e,
+        st,
+      );
+      return true;
+    }
+  }
+
+  @override
+  Future<bool> checkVpnConflict() async => false;
+
+  /// connectToServer is used to connect to a server
+  /// this will work with lantern customer and private server
+  /// requires location and tag
+  @override
+  Future<Either<Failure, String>> connectToServer(
+    String location,
+    String tag,
+  ) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.connectToServer(tag.toCharPtr).toDartString();
+      });
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error connecting to server', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> stopVPN() async {
+    try {
+      appLogger.debug('Stopping VPN');
+      // Run on a background isolate so the main isolate's event loop stays
+      // free to drain the status SendPort while the FFI call is running.
+      // See the comment in startVPN for the full reasoning.
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.stopVPN();
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      if (result.isNotEmpty && !_ffiOkResults.contains(result)) {
+        appLogger.error('stopVPN error: $result');
+        return left(
+          Failure(
+            error: result,
+            localizedErrorMessage: localizeRawError(result),
+          ),
+        );
+      }
+      appLogger.debug('stopVPN result: $result');
+      return right(result.isEmpty ? 'ok' : result);
+    } catch (e) {
+      appLogger.error('Error stopping VPN: $e');
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isVPNConnected() async {
+    try {
+      final connectedInt = _ffiService.isVPNConnected();
+      final connected = connectedInt != 0;
+      return right(connected);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  Future<Either<Failure, Unit>> _okOrFailureFromString(String result) async {
+    try {
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('FFI call returned error', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Stream<List<String>> watchLogs(String path) => _logBatches;
+
+  @override
+  Stream<LanternStatus> watchVPNStatus() => _status;
+
+  @override
+  Future<Either<Failure, Unit>> startInAppPurchaseFlow({
+    required String planId,
+    required PaymentSuccessCallback onSuccess,
+    required PaymentErrorCallback onError,
+    String couponCode = '',
+  }) {
+    throw UnimplementedError("This not supported on desktop");
+  }
+
+  @override
+  Future<Either<Failure, String>> stipeSubscriptionPaymentRedirect({
+    required BillingType type,
+    required String planId,
+    required String email,
+    required String idempotencyKey,
+    String couponCode = '',
+  }) async {
+    try {
+      appLogger.debug('Starting Stripe Subscription Payment Redirect');
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.stripeSubscriptionPaymentRedirect(
+          type.name.toCharPtr,
+          planId.toCharPtr,
+          email.toCharPtr,
+          idempotencyKey.toCharPtr,
+          couponCode.toCharPtr,
+        );
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+
+      checkAPIError(result);
+      return right(result);
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Error getting stripe subscription payment redirect',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> stipeSubscription({
+    required String planId,
+    required String email,
+    String couponCode = '',
+  }) {
+    throw Exception("Desktop flow should not be here, this is just for mobile");
+  }
+
+  @override
+  Future<Either<Failure, String>> stripeBillingPortal() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.stripeBillingPortalUrl();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return Right(result);
+    } catch (e, stackTrace) {
+      appLogger.error('Error getting stipe billing', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, PlansData>> plans() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.plans().toDartString();
+      });
+      checkAPIError(result);
+      final map = jsonDecode(result);
+      final plans = PlansData.fromJson(map)..sortPlansAndProviders();
+      appLogger.info('Plans: $map');
+      return Right(plans);
+    } catch (e, stackTrace) {
+      appLogger.error('error getting plans', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getOAuthLoginUrl(String provider) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.oauthLoginUrl(provider.toCharPtr).toDartString();
+      });
+      return Right(result);
+    } catch (e, stackTrace) {
+      appLogger.error('error getting oauth url', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(
+    String token,
+  ) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.oAuthLoginCallback(token.toCharPtr).toDartString();
+      });
+      checkAPIError(result);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
+      return Right(user);
+    } catch (e, stackTrace) {
+      appLogger.error('error oauth callback', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(String token) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .oAuthDeviceLimitCallback(token.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('error oauth device-limit callback', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponseModel>> getUserData() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getUserData().toDartString();
+      });
+      checkAPIError(result);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
+      return Right(user);
+    } catch (e, stackTrace) {
+      appLogger.error('Error getting user data', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> showManageSubscriptions() {
+    throw UnimplementedError(
+      "This is not supported on desktop; this is only for mobile",
+    );
+  }
+
+  @override
+  Future<Either<Failure, UserResponseModel>> fetchUserData() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.fetchUserData().toDartString();
+      });
+      checkAPIError(result);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
+      return Right(user);
+    } catch (e, stackTrace) {
+      appLogger.error('error fetchUser data', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> acknowledgeInAppPurchase({
+    required String purchaseToken,
+    required String planId,
+    String couponCode = '',
+  }) {
+    throw UnimplementedError(
+      "This is not supported on desktop; this is only for mobile",
+    );
+  }
+
+  @override
+  Future<Either<Failure, RestoreSubscriptionResponse>> restoreInAppPurchase({
+    required String purchaseToken,
+  }) {
+    throw UnimplementedError(
+      "This is not supported on desktop; this is only for mobile",
+    );
+  }
+
+  @override
+  Future<Either<Failure, String>> paymentRedirect({
+    required String provider,
+    required String planId,
+    required String email,
+    required String idempotencyKey,
+    String couponCode = '',
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.paymentRedirect(
+          planId.toCharPtr,
+          provider.toCharPtr,
+          email.toCharPtr,
+          idempotencyKey.toCharPtr,
+          couponCode.toCharPtr,
+        );
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return Right(result);
+    } catch (e, stackTrace) {
+      appLogger.error('error payment redirect', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponseModel>> logout(String email) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.logout(email.toCharPtr).toDartString();
+      });
+      checkAPIError(result);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
+      return Right(user);
+    } catch (e, stackTrace) {
+      appLogger.error('error while logout', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponseModel>> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .login(email.toCharPtr, password.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
+      return Right(user);
+    } catch (e, stackTrace) {
+      appLogger.error('error while login', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> startRecoveryByEmail(String email) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.startRecoveryByEmail(email.toCharPtr).toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting recovery by email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> validateRecoveryCode({
+    required String email,
+    required String code,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .validateEmailRecoveryCode(email.toCharPtr, code.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error validating recovery code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> completeRecoveryByEmail({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .completeRecoveryByEmail(
+              email.toCharPtr,
+              newPassword.toCharPtr,
+              code.toCharPtr,
+            )
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error validating recovery code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> signUp({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .signup(email.toCharPtr, password.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error validating recovery code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserResponseModel>> deleteAccount({
+    required String email,
+    required String password,
+    bool isSSO = false,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .deleteAccount(email.toCharPtr, password.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+      final map = jsonDecode(result) as Map<String, dynamic>;
+      final user = UserResponseModel.fromJson(map);
+      return Right(user);
+    } catch (e, stackTrace) {
+      appLogger.error('Error deleting account', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> activationCode({
+    required String email,
+    required String resellerCode,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .activationCode(email.toCharPtr, resellerCode.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error activating code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> digitalOceanPrivateServer() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.digitalOceanPrivateServer().toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.info(
+        'Error starting Digital Ocean private server',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> googleCloudPrivateServer() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.googleCloudPrivateServer().toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.info(
+        'Error starting Digital Ocean private server',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Stream<PrivateServerStatus> watchPrivateServerStatus() {
+    return _privateServerStatus;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> validateSession() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.validateSession().toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.info('Error validating session', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUserInput({
+    required PrivateServerInput methodType,
+    required String input,
+  }) async {
+    try {
+      final value = input.toCharPtr;
+      final result = await runInBackground<String>(() async {
+        switch (methodType) {
+          case PrivateServerInput.selectAccount:
+            return _ffiService.selectAccount(value).toDartString();
+          case PrivateServerInput.selectProject:
+            return _ffiService.selectProject(value).toDartString();
+        }
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.info(
+        'Error starting Digital Ocean private server',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> startDeployment({
+    required String location,
+    required String serverName,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .startDepolyment(location.toCharPtr, serverName.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> cancelDeployment() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.cancelDepolyment().toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting deployment', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> addServerManually({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String serverName,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .addServerManagerInstance(
+              ip.toCharPtr,
+              port.toCharPtr,
+              accessToken.toCharPtr,
+              serverName.toCharPtr,
+            )
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error adding server manually', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> addServerBasedOnURLs({
+    required String urls,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .addServerBasedOnURLs(urls.toCharPtr, 0)
+            .toDartString();
+      });
+      checkAPIError(result);
+      final tags = (jsonDecode(result) as List).cast<String>();
+      return Right(tags);
+    } catch (e, stackTrace) {
+      appLogger.error('Error adding server based on URLs', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> inviteToServerManagerInstance({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String inviteName,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .inviteToServerManagerInstance(
+              ip.toCharPtr,
+              port.toCharPtr,
+              accessToken.toCharPtr,
+              inviteName.toCharPtr,
+            )
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Error inviting to server manager instance',
+        e,
+        stackTrace,
+      );
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> revokeServerManagerInstance({
+    required String ip,
+    required String port,
+    required String accessToken,
+    required String inviteName,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .revokeServerManagerInvite(
+              ip.toCharPtr,
+              port.toCharPtr,
+              accessToken.toCharPtr,
+              inviteName.toCharPtr,
+            )
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error revoking server manager instance', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> deletePrivateServerByName(String name) async {
+    try {
+      final namePtr = name.toNativeUtf8();
+
+      try {
+        final result = await runInBackground<String>(() async {
+          return _ffiService
+              .deletePrivateServerByName(namePtr.cast<Char>())
+              .toDartString();
+        });
+
+        return _okOrFailureFromString(result);
+      } finally {
+        malloc.free(namePtr);
+      }
+    } catch (e, st) {
+      appLogger.error('deletePrivateServerByName failed', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updatePrivateServerName(
+    String oldName,
+    String newName,
+  ) async {
+    try {
+      final oldPtr = oldName.toNativeUtf8();
+      final newPtr = newName.toNativeUtf8();
+
+      try {
+        final result = await runInBackground<String>(() async {
+          return _ffiService
+              .updatePrivateServerName(oldPtr.cast<Char>(), newPtr.cast<Char>())
+              .toDartString();
+        });
+
+        return _okOrFailureFromString(result);
+      } finally {
+        malloc.free(oldPtr);
+        malloc.free(newPtr);
+      }
+    } catch (e, st) {
+      appLogger.error('updatePrivateServerName failed', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> featureFlag() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.availableFeatures().toDartString();
+      });
+      checkAPIError(result);
+      return Right(result);
+    } catch (e, stackTrace) {
+      appLogger.error('Error getting feature flag', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, AvailableServers>> getLanternAvailableServers() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getAvailableServers().toDartString();
+      });
+      checkAPIError(result);
+      final servers = AvailableServers.fromJson(
+        jsonDecode(result) as List<dynamic>,
+      );
+      return Right(servers);
+    } catch (e, stackTrace) {
+      appLogger.error('Error getting available servers', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> deviceRemove({
+    required String deviceId,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.removeDevice(deviceId.toCharPtr).toDartString();
+      });
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error removing device', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> attachReferralCode(String code) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.referralAttachment(code.toCharPtr).toDartString();
+      });
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error attaching referral code', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, ReferralAttachV2Response>> attachReferralCodeV2(
+    String code,
+  ) async {
+    try {
+      final distributionChannel = isStoreVersion() ? 'store' : 'non-store';
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.referralAttachmentV2(
+          code.toCharPtr,
+          distributionChannel.toCharPtr,
+        );
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      final response = ReferralAttachV2Response.fromJson(jsonDecode(result));
+      return Right(response);
+    } catch (e, stackTrace) {
+      appLogger.error('Error attaching referral code v2', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> completeChangeEmail({
+    required String newEmail,
+    required String password,
+    required String code,
+  }) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .completeChangeEmail(
+              newEmail.toCharPtr,
+              password.toCharPtr,
+              code.toCharPtr,
+            )
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error completing change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> verifyPassword(
+    String email,
+    String password,
+  ) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final emailPtr = email.toCharPtr;
+        final passwordPtr = password.toCharPtr;
+        try {
+          final resultPtr = _ffiService.verifyPassword(emailPtr, passwordPtr);
+          try {
+            return resultPtr.toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(emailPtr);
+          malloc.free(passwordPtr);
+        }
+      });
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error verifying password', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> startChangeEmail(
+    String newEmail,
+    String password,
+  ) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .startChangeEmail(newEmail.toCharPtr, password.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+      return Right('ok');
+    } catch (e, stackTrace) {
+      appLogger.error('Error starting change email', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Server>> getAutoServerLocation() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getAutoLocation().toDartString();
+      });
+      checkAPIError(result);
+      return Right(Server.fromJson(jsonDecode(result)));
+    } catch (e, stackTrace) {
+      appLogger.error('Error while getting auto location', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, ServerLocation>> getSelectedServerLocation() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getSelectedServerJSON().toDartString();
+      });
+      checkAPIError(result);
+      // Normalize a missing selection to an empty JSON object so callers
+      // fall into the "auto" branch below instead of throwing.
+      final raw = result.isEmpty ? '{}' : result;
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      final serverJson = json['server'] as Map<String, dynamic>?;
+      if (serverJson == null) {
+        return Right(
+          ServerLocation(
+            serverType: ServerLocationType.auto.name,
+            serverName: '',
+          ),
+        );
+      }
+      final server = Server.fromJson(serverJson);
+      return Right(ServerLocation.selected(server));
+    } catch (e, stackTrace) {
+      appLogger.error('Error while getting selected server', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setBlockAdsEnabled(bool enabled) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .setBlockAdsEnabled(enabled ? 1 : 0)
+            .cast<Utf8>()
+            .toDartString();
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setBlockAdsEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isBlockAdsEnabled() async {
+    try {
+      final res = _ffiService.isBlockAdsEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isBlockAdsEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setPeerProxyEnabled(bool enabled) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        // The Go side returns C.CString-allocated memory; free via
+        // freeCString after copying into a Dart string, otherwise
+        // every toggle leaks a small heap allocation.
+        final resultPtr = _ffiService.setPeerProxyEnabled(enabled ? 1 : 0);
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setPeerProxyEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isPeerProxyEnabled() async {
+    try {
+      final res = _ffiService.isPeerProxyEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isPeerProxyEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setPeerManualPort(int port) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        // Go returns C.CString-allocated memory; free via freeCString
+        // after copying into a Dart string.
+        final resultPtr = _ffiService.setPeerManualPort(port);
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setPeerManualPort error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getPeerManualPort() async {
+    try {
+      final res = _ffiService.getPeerManualPort();
+      return right(res);
+    } catch (e, st) {
+      appLogger.error('getPeerManualPort error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getPeerStatusJSON() async {
+    try {
+      final res = await runInBackground<String>(() async {
+        // Go returns C.CString-allocated memory; free via freeCString
+        // after copying into a Dart string.
+        final resultPtr = _ffiService.getPeerStatusJSON();
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      // requireCore hands back {"error":...} when the core is not up. The
+      // service contract promises "" for a status that could not be read,
+      // so normalize here instead of making every caller recognize the
+      // envelope.
+      return right(_looksLikePeerStatus(res) ? res : '');
+    } catch (e, st) {
+      appLogger.error('getPeerStatusJSON error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  // A peer.Status always carries a phase; the error envelope never does.
+  bool _looksLikePeerStatus(String raw) {
+    if (raw.isEmpty) return false;
+    try {
+      final payload = jsonDecode(raw) as Map<String, dynamic>;
+      return payload['phase'] != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> helperCall(
+    String op,
+    Map<String, dynamic> args,
+  ) async {
+    try {
+      final payload = jsonEncode(args);
+      final result = await runInBackground<String>(() async {
+        final opPtr = op.toNativeUtf8();
+        final argsPtr = payload.toNativeUtf8();
+        try {
+          final resultPtr = _ffiService.helperCall(
+            opPtr.cast<Char>(),
+            argsPtr.cast<Char>(),
+          );
+          try {
+            return resultPtr.cast<Utf8>().toDartString();
+          } finally {
+            _ffiService.freeCString(resultPtr);
+          }
+        } finally {
+          malloc.free(opPtr);
+          malloc.free(argsPtr);
+        }
+      });
+      return right(result);
+    } catch (e, st) {
+      appLogger.error('helperCall failed', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setUnboundedEnabled(bool enabled) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        // Go returns C.CString-allocated memory; free via freeCString
+        // after copying into a Dart string.
+        final resultPtr = _ffiService.setUnboundedEnabled(enabled ? 1 : 0);
+        try {
+          return resultPtr.cast<Utf8>().toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('setUnboundedEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isUnboundedEnabled() async {
+    try {
+      final res = _ffiService.isUnboundedEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isUnboundedEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> probeUPnP() async {
+    try {
+      // UPnP M-SEARCH waits for multicast replies (~5-6s upper bound
+      // in the LanternCore-side timeout). Off-main-thread mandatory;
+      // a direct call from the UI isolate stalls every frame for the
+      // duration of the wait.
+      final res = await runInBackground<int>(() async {
+        return _ffiService.probeUPnP();
+      });
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('probeUPnP error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isSmartRoutingEnabled() async {
+    try {
+      final res = _ffiService.isSmartRoutingEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isSmartRoutingEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isTelemetryEnabled() async {
+    try {
+      final res = _ffiService.isTelemetryEnabled();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isTelemetryEnabled error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isOAuthLogin() async {
+    try {
+      final res = _ffiService.isOAuthLogin();
+      return right(res != 0);
+    } catch (e, st) {
+      appLogger.error('isOAuthLogin error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getOAuthProvider() async {
+    try {
+      final res = _ffiService.getOAuthProvider().toDartString();
+      return right(res);
+    } catch (e, st) {
+      appLogger.error('getOAuthProvider error: $e', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> triggerSystemExtension() {
+    throw Exception("This is not supported on desktop");
+  }
+
+  @override
+  Future<Either<Failure, Unit>> openSystemExtension() {
+    // TODO: implement openSystemExtension
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<MacOSExtensionState> watchSystemExtensionStatus() {
+    // TODO: implement watchSystemExtensionStatus
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> isSystemExtensionInstalled() {
+    // TODO: implement isSystemExtensionInstalled
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> addAllItems(
+    SplitTunnelFilterType type,
+    List<String> value,
+  ) async {
+    final items = value
+        .map((v) => v.trim())
+        .where((v) => v.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    for (final item in items) {
+      final result = await addSplitTunnelItem(type, item);
+      if (result.isLeft()) {
+        return result;
+      }
+    }
+
+    return right(unit);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removeAllItems(
+    SplitTunnelFilterType type,
+    List<String> value,
+  ) async {
+    final items = value
+        .map((v) => v.trim())
+        .where((v) => v.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    for (final item in items) {
+      final result = await removeSplitTunnelItem(type, item);
+      if (result.isLeft()) {
+        return result;
+      }
+    }
+
+    return right(unit);
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> getSplitTunnelItems(
+    SplitTunnelFilterType type,
+  ) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService
+            .getSplitTunnelItems(type.value.toCharPtr)
+            .toDartString();
+      });
+      checkAPIError(result);
+
+      if (result.trim().isEmpty) {
+        return right(<String>[]);
+      }
+
+      final decoded = jsonDecode(result);
+      if (decoded is! List) {
+        return right(<String>[]);
+      }
+
+      final items = decoded
+          .whereType<String>()
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList(growable: false);
+
+      return right(items);
+    } catch (e, st) {
+      appLogger.error('getSplitTunnelItems failed', e, st);
+      return left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<void> updateWidgetLocation({
+    required String city,
+    required String country,
+    required String countryCode,
+    required String displayName,
+    required String serverName,
+  }) async {
+    // Desktop has no home-screen widget.
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateLocal(String locale) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.updateLocale(locale.toCharPtr).toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e, stackTrace) {
+      appLogger.error('Error while updating local', e, stackTrace);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateTimeZone(String timeZone) async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.updateTimeZone(timeZone.toCharPtr).toDartString();
+      });
+      checkAPIError(result);
+      return Right(unit);
+    } catch (e) {
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> diagnosticLogFiles() {
+    // TODO: implement diagnosticLogFiles
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> patchSettings(
+    Map<String, dynamic> updates,
+  ) async {
+    try {
+      final payload = jsonEncode(updates);
+      final result = await runInBackground<String>(() async {
+        final ptr = payload.toNativeUtf8();
+        try {
+          return _ffiService.patchSettings(ptr.cast<Char>()).toDartString();
+        } finally {
+          malloc.free(ptr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('patchSettings error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getSettings() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getSettings().toDartString();
+      });
+      checkAPIError(result);
+      final decoded = jsonDecode(result);
+      if (decoded is! Map) return right(<String, dynamic>{});
+      return right(Map<String, dynamic>.from(decoded));
+    } catch (e, st) {
+      appLogger.error('getSettings error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, String>>> patchEnvVars(
+    Map<String, String> updates,
+  ) async {
+    try {
+      final payload = jsonEncode(updates);
+      final result = await runInBackground<String>(() async {
+        final ptr = payload.toNativeUtf8();
+        try {
+          return _ffiService.patchEnvVars(ptr.cast<Char>()).toDartString();
+        } finally {
+          malloc.free(ptr);
+        }
+      });
+      checkAPIError(result);
+      final decoded = jsonDecode(result);
+      if (decoded is! Map) return right(<String, String>{});
+      return right(
+        decoded.map((k, v) => MapEntry(k.toString(), v?.toString() ?? '')),
+      );
+    } catch (e, st) {
+      appLogger.error('patchEnvVars error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, String>>> getEnvVars() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        return _ffiService.getEnvVars().toDartString();
+      });
+      checkAPIError(result);
+      final decoded = jsonDecode(result);
+      if (decoded is! Map) return right(<String, String>{});
+      return right(
+        decoded.map((k, v) => MapEntry(k.toString(), v?.toString() ?? '')),
+      );
+    } catch (e, st) {
+      appLogger.error('getEnvVars error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> runURLTests() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.runURLTests();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('runURLTests error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> sendConfigRequest() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.updateConfig();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('updateConfig error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> clearTunnelCache() async {
+    try {
+      final result = await runInBackground<String>(() async {
+        final resultPtr = _ffiService.clearTunnelCache();
+        try {
+          return resultPtr.toDartString();
+        } finally {
+          _ffiService.freeCString(resultPtr);
+        }
+      });
+      checkAPIError(result);
+      return right(unit);
+    } catch (e, st) {
+      appLogger.error('clearTunnelCache error', e, st);
+      return Left(e.toFailure());
+    }
+  }
+}
+
+void checkAPIError(dynamic result) {
+  if (result is String) {
+    if (result == 'true' || result == 'ok') {
+      return;
+    }
+    dynamic decoded;
+    try {
+      decoded = jsonDecode(result);
+    } catch (_) {
+      return;
+    }
+    if (decoded is Map && decoded.containsKey('error')) {
+      appLogger.error('API Error: ${decoded['error']}');
+      throw PlatformException(
+        code: decoded['error'].toString(),
+        message: decoded['error'].toString(),
+      );
+    }
+    return;
+  }
+  if (result.error != "") {
+    throw PlatformException(code: result.error, message: result.error);
+  }
+}
+
+class SplitTunnelMessage {
+  final SplitTunnelFilterType type;
+  final String value;
+  final SplitTunnelActionType action;
+  final SendPort replyPort;
+
+  SplitTunnelMessage(this.type, this.value, this.action, this.replyPort);
+}
+
+class PlatformFfiUtils {
+  static Future<FfiPlatformPaths> getFfiPlatformPaths() async {
+    final logFile = await AppStorageUtils.appLogFile();
+    final dataDir = await AppStorageUtils.getAppDirectory();
+    final locale = PlatformDispatcher.instance.locale.toString();
+
+    final logFilePathPtr = logFile.path.toNativeUtf8();
+    final dataDirPtr = dataDir.path.toNativeUtf8();
+    final localePtr = locale.toNativeUtf8();
+
+    return FfiPlatformPaths(
+      logFilePathPtr: logFilePathPtr,
+      dataDirPtr: dataDirPtr,
+      localePtr: localePtr,
+    );
+  }
+}
+
+class FfiPlatformPaths {
+  final Pointer<Utf8> logFilePathPtr;
+  final Pointer<Utf8> dataDirPtr;
+  final Pointer<Utf8> localePtr;
+
+  FfiPlatformPaths({
+    required this.logFilePathPtr,
+    required this.dataDirPtr,
+    required this.localePtr,
+  });
+
+  void free() {
+    malloc.free(logFilePathPtr);
+    malloc.free(dataDirPtr);
+    malloc.free(localePtr);
+  }
+}
+
+class MockLanternFFIService extends LanternFFIService {
+  @override
+  Future<void> init() async {}
+}

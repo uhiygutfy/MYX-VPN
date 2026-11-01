@@ -1,0 +1,84 @@
+import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/widgets/setting_tile.dart';
+import 'package:lantern/features/vpn/personal_proxies_section.dart';
+import 'package:lantern/features/vpn/provider/server_location_notifier.dart';
+
+import '../../core/common/common.dart';
+
+class LocationSetting extends HookConsumerWidget {
+  const LocationSetting({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final serverLocation = ref.watch(serverLocationProvider);
+    final serverType = serverLocation.serverType.toServerLocationType;
+
+    String title = '';
+    String value = '';
+    String flag = '';
+    String protocol = '';
+    // A friend's name is shown as typed, never looked up as a string key.
+    var translate = true;
+
+    switch (serverType) {
+      case ServerLocationType.auto:
+        title = 'smart_location'.i18n;
+        final autoLoc = serverLocation.autoLocation;
+
+        value = autoLoc != null && autoLoc.displayName.isNotEmpty
+            ? autoLoc.displayName
+            : 'fastest_server'.i18n;
+
+        flag = autoLoc?.countryCode ?? '';
+        protocol = autoLoc?.protocol ?? '';
+        break;
+
+      case ServerLocationType.lanternLocation:
+        title = 'selected_location'.i18n;
+        value = serverLocation.displayName;
+        flag = serverLocation.countryCode;
+        protocol = serverLocation.protocol;
+        break;
+
+      case ServerLocationType.privateServer:
+        title = serverLocation.serverName;
+        value = serverLocation.displayName;
+        flag = serverLocation.countryCode;
+        protocol = serverLocation.protocol;
+        break;
+
+      // Never a flag or a place: the generic location icon, the group's or
+      // the selected friend's name, and "Personal Proxy" under it.
+      case ServerLocationType.personalProxy:
+        title = 'selected_location'.i18n;
+        final friend = serverLocation.personalProxyFriendTag;
+        if (friend == null) {
+          value = 'your_personal_proxies'.i18n;
+        } else {
+          value = personalProxyFriendName(ref, friend);
+          translate = false;
+        }
+        protocol = 'personal_proxy'.i18n;
+        break;
+    }
+
+    return SettingTile(
+      tileKey: const Key('home.location_setting'),
+      label: title,
+      value: translate ? value.i18n : value,
+      subtitle: protocol,
+      icon: flag.isEmpty ? AppImagePaths.location : Flag(countryCode: flag),
+      // Small screens drop the > chevron; the row stays tappable via onTap.
+      actions: [
+        if (serverType == ServerLocationType.auto)
+          AppImage(path: AppImagePaths.blot, useThemeColor: false),
+        if (!isSmallScreen(context)) ...[
+          const SizedBox(width: 8),
+          const AppImage(path: AppImagePaths.arrowForward),
+        ],
+      ],
+      onTap: () => appRouter.push(const ServerSelection()),
+    );
+  }
+}

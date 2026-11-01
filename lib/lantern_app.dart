@@ -1,0 +1,398 @@
+import 'dart:async';
+import 'dart:ui';
+
+import 'package:app_links/app_links.dart';
+import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:i18n_extension/i18n_extension.dart';
+import 'package:lantern/core/widgets/tv_frame.dart';
+import 'package:lantern/core/localization/localization_constants.dart';
+import 'package:lantern/core/router/router.dart';
+import 'package:lantern/core/updater/updater.dart';
+import 'package:lantern/core/utils/referral_code.dart';
+import 'package:lantern/core/widgets/loading_indicator.dart';
+import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/plans/provider/payment_notifier.dart';
+import 'package:lantern/features/user_message/user_message_action_dispatcher.dart';
+import 'package:lantern/features/user_message/user_message_host.dart';
+import 'package:lantern/features/user_message/user_message_route_observer.dart';
+import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
+import 'package:lantern/features/window/window_wrapper.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:loader_overlay/loader_overlay.dart';
+
+import 'core/common/common.dart';
+import 'core/services/injection_container.dart';
+import 'core/utils/deeplink_utils.dart'
+    show
+        DeepLinkCallbackManager,
+        helperInviteLink,
+        isHelperInviteUri,
+        isOAuthCallbackResult;
+import 'features/system_tray/system_tray_wrapper.dart';
+
+final globalRouter = sl<AppRouter>();
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+// Nothing opens on its own over these. The QR scanner keeps scanning under a
+// sheet and pops itself with the scanned code, which would pop the sheet.
+final UserMessageRouteObserver userMessageRouteObserver =
+    UserMessageRouteObserver(
+      blockedRouteNames: {
+        Onboarding.name,
+        ChoosePaymentMethod.name,
+        QrCodeScanner.name,
+      },
+    );
+
+class LanternApp extends StatefulHookConsumerWidget {
+  const LanternApp({super.key});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _LanternAppState();
+}
+
+class _LanternAppState extends ConsumerState<LanternApp>
+    with WidgetsBindingObserver {
+  late final AppLifecycleListener _lifecycle;
+  StreamSubscription<Uri>? _deepLinkSubscription;
+  Uri? _lastHandledUri;
+  DateTime? _lastHandledTime;
+  bool _invalidDeepLinkPending = false;
+  bool _invalidDeepLinkScheduled = false;
+  late final UserMessageActionDispatcher _userMessageActionDispatcher;
+
+  @override
+  void initState() {
+    super.initState();
+    _userMessageActionDispatcher = UserMessageActionDispatcher.application();
+    WidgetsBinding.instance.addObserver(this);
+    initDeepLinks();
+    initLifecycleListener();
+  }
+
+  void initLifecycleListener() {
+    _lifecycle = AppLifecycleListener(
+      onResume: _onResume,
+      onExitRequested: () async {
+        appLogger.info("Exit requested");
+        await ref
+            .read(lanternServiceProvider)
+            .stopVPN()
+            .timeout(const Duration(seconds: 5));
+        return AppExitResponse.exit;
+      },
+    );
+  }
+
+  void _onResume() {
+    _retryPendingUpdate();
+    unawaited(ref.read(lanternServiceProvider).syncTimeZone());
+    unawaited(ref.read(helpersProvider.notifier).refreshIfUsed());
+  }
+
+  void _retryPendingUpdate() {
+    if (sl.isRegistered<Updater>()) sl<Updater>().retryPendingCheck();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    globalRouter.removeListener(_scheduleInvalidDeepLinkMessage);
+    _lifecycle.dispose();
+    _deepLinkSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    super.didChangePlatformBrightness();
+    ref
+        .read(appSettingProvider.notifier)
+        .syncDesktopBrightnessFromCurrentTheme();
+  }
+
+  Future<void> initDeepLinks() async {
+    final appLinks = AppLinks();
+    _deepLinkSubscription = appLinks.uriLinkStream.listen(_handleDeepLinkUri);
+  }
+
+  void _handleDeepLinkUri(Uri uri) {
+    if (!context.mounted) return;
+    final safeLogUri = '${uri.scheme}://${uri.host}';
+
+    // Deduplicate: on cold start macOS may deliver the same URI via multiple
+    // OS callbacks (URL scheme + NSAppleEventManager), causing a double push.
+    final now = DateTime.now();
+    if (_lastHandledUri == uri &&
+        _lastHandledTime != null &&
+        now.difference(_lastHandledTime!) < const Duration(seconds: 3)) {
+      appLogger.debug("DeepLink deduplicated (already handled): $safeLogUri");
+      return;
+    }
+    _lastHandledUri = uri;
+    _lastHandledTime = now;
+
+    appLogger.debug("DeepLink received: $safeLogUri");
+    final path = uri.path;
+
+    if (isHelperInviteUri(uri)) {
+      // The invite secret is the fragment: never log it.
+      appLogger.debug('DeepLink helper invite');
+      // Held by the notifier, not put in route arguments.
+      ref.read(helpersProvider.notifier).holdLink(helperInviteLink(uri));
+      // A second link replaces the screen, so it takes the new link.
+      _pushWithHome(HelpFriend(fromLink: true), replaceIfOnTop: true);
+    } else if (path.startsWith('/affiliate') ||
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'affiliate')) {
+      final code = affiliateCodeFromUri(uri);
+      if (code == null) {
+        appLogger.debug('DeepLink affiliate: invalid link or code');
+        _showInvalidDeepLink();
+        return;
+      }
+      _pushWithHome(Plans(referralCode: code));
+    } else if (path.startsWith('/report-issue') ||
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'report-issue')) {
+      final queryParams = uri.queryParameters;
+      final foundType = queryParams.containsKey('type');
+      final fragment = uri.fragment;
+      final hasFragment = fragment.isNotEmpty;
+      appLogger.debug(
+        "DeepLink report-issue: hasFragment=$hasFragment, foundType=$foundType, fragment=${hasFragment ? fragment : 'N/A'}, type=${queryParams['type'] ?? 'N/A'}",
+      );
+      if (hasFragment && foundType) {
+        _pushWithHome(
+          ReportIssue(description: '#$fragment', type: queryParams['type']),
+        );
+      } else if (hasFragment) {
+        _pushWithHome(ReportIssue(description: '#$fragment'));
+      } else if (foundType) {
+        _pushWithHome(ReportIssue(type: queryParams['type']));
+      } else {
+        _pushWithHome(ReportIssue());
+      }
+    } else if (path.startsWith('/auth') ||
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'auth')) {
+      if (isOAuthCallbackResult(uri)) {
+        sl<DeepLinkCallbackManager>().handleDeepLink(uri.queryParameters);
+      }
+    } else if (path.startsWith('/private-server') ||
+        (AppBuildInfo.isAppAuthUri(uri) && uri.host == 'private-server')) {
+      final data = Map.of(uri.queryParameters);
+      appLogger.debug("DeepLink private-server params: ${data.keys.toList()}");
+      data['accessKey'] = _buildPrivateServerAccessKey(uri);
+      final expiration = int.tryParse((data['exp'] ?? '').toString());
+      if (expiration == null) {
+        appLogger.debug(
+          "DeepLink private-server: missing or invalid exp param",
+        );
+        _showInvalidDeepLink();
+        return;
+      }
+      final expired = DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
+      appLogger.debug(
+        "DeepLink private-server: exp=$expired, now=${DateTime.now()}, expired=${expired.isBefore(DateTime.now())}",
+      );
+      if (expired.isBefore(DateTime.now())) {
+        AppDialog.dialog(
+          context: context,
+          title: 'expired'.i18n,
+          content: 'deep_link_expired'.i18n,
+        );
+        return;
+      }
+      appLogger.debug(
+        "DeepLink private-server: navigating to JoinPrivateServer",
+      );
+      _pushWithHome(JoinPrivateServer(deepLinkData: data));
+    }
+  }
+
+  void _showInvalidDeepLink() {
+    if (!_invalidDeepLinkPending) {
+      globalRouter.addListener(_scheduleInvalidDeepLinkMessage);
+    }
+    _invalidDeepLinkPending = true;
+    _scheduleInvalidDeepLinkMessage();
+  }
+
+  void _scheduleInvalidDeepLinkMessage() {
+    if (!mounted || !_invalidDeepLinkPending || _invalidDeepLinkScheduled) {
+      return;
+    }
+    _invalidDeepLinkScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _invalidDeepLinkScheduled = false;
+      if (!mounted || !_invalidDeepLinkPending) return;
+
+      // On cold start the router has no Scaffold until its first route builds.
+      final navigatorContext = globalRouter.navigatorKey.currentContext;
+      if (!globalRouter.hasEntries ||
+          navigatorContext == null ||
+          !navigatorContext.mounted) {
+        return;
+      }
+      _invalidDeepLinkPending = false;
+      globalRouter.removeListener(_scheduleInvalidDeepLinkMessage);
+      navigatorContext.showSnackBar('invalid_deep_link'.i18n);
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
+  }
+
+  /// Pushes [route] on the current stack when the app is in the foreground
+  /// (Home already loaded). On a cold start the router stack is empty, so we
+  /// seed it with Home first to ensure the user always has a back button.
+  /// With [replaceIfOnTop], a same-named route on top is replaced so the new
+  /// arguments take effect.
+  void _pushWithHome(PageRouteInfo route, {bool replaceIfOnTop = false}) {
+    final stack = appRouter.stack;
+    // Guard against double-push: if the same route is already on top, skip.
+    if (stack.isNotEmpty && stack.last.name == route.routeName) {
+      if (replaceIfOnTop) {
+        appLogger.debug("Route ${route.routeName} already on top, replacing");
+        appRouter.replace(route);
+        return;
+      }
+      appLogger.debug("Route ${route.routeName} already on top, skipping push");
+      return;
+    }
+    final homeInStack = stack.any((r) => r.name == Home.name);
+    if (homeInStack) {
+      appLogger.debug("Pushing route $route on top of Home");
+      appRouter.push(route);
+    } else {
+      appLogger.debug(
+        "Home not in stack, replacing with Home and then pushing $route",
+      );
+      appRouter.replaceAll([Home(), route]);
+    }
+  }
+
+  String _buildPrivateServerAccessKey(Uri uri) {
+    if (uri.scheme == 'https' &&
+        (uri.host == 'lantern.io' || uri.host == 'www.lantern.io')) {
+      final pathWithoutLeadingSlash = uri.path.startsWith('/')
+          ? uri.path.substring(1)
+          : uri.path;
+      var accessKey = 'lantern//$pathWithoutLeadingSlash';
+      if (uri.hasQuery) {
+        accessKey += '?${uri.query}';
+      }
+      return accessKey;
+    }
+    if (uri.scheme == 'lantern' || AppBuildInfo.isAppAuthUri(uri)) {
+      // The downstream parser only accepts the canonical `lantern//` prefix, so
+      // a per-build custom scheme (APP_AUTH_SCHEME) is normalized here:
+      // <scheme>://private-server?key=value → lantern//private-server?key=value
+      var accessKey = 'lantern//${uri.host}';
+      if (uri.hasQuery) {
+        accessKey += '?${uri.query}';
+      }
+      return accessKey;
+    }
+    return uri.toString();
+  }
+
+  Color _tvBackground(BuildContext context, String themeMode) {
+    final mode = resolveThemeMode(themeMode);
+    final dark =
+        mode == ThemeMode.dark ||
+        (mode == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+    return dark ? AppColors.gray9 : AppColors.gray1;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(vpnProvider, (previous, next) {
+      if (next == VPNStatus.connected && previous != next) {
+        _retryPendingUpdate();
+      }
+    });
+    final appSetting = ref.watch(appSettingProvider);
+    final locale = appSetting.locale;
+    final isStaging = appSetting.isStaging;
+    final paymentSessionActive = ref.watch(paymentSessionProvider);
+    Localization.defaultLocale = locale;
+    return GlobalLoaderOverlay(
+      overlayColor: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.5),
+      overlayWidgetBuilder: (_) => Center(child: LoadingIndicator()),
+      child: WindowWrapper(
+        child: SystemTrayWrapper(
+          child: TvFrame(
+            background: _tvBackground(context, appSetting.themeMode),
+            child: Builder(
+              builder: (context) => ScreenUtilInit(
+                ensureScreenSize: true,
+                designSize: designSizeFor(context),
+                minTextAdapt: true,
+                child: I18n(
+                  initialLocale: locale.toLocale,
+                  localizationsDelegates: [
+                    GlobalMaterialLocalizations.delegate,
+                    GlobalWidgetsLocalizations.delegate,
+                    GlobalCupertinoLocalizations.delegate,
+                  ],
+                  child: MaterialApp.router(
+                    locale: locale.toLocale,
+                    debugShowCheckedModeBanner: false,
+                    builder: (context, child) {
+                      final router = child ?? const SizedBox.shrink();
+                      final shell = isStaging
+                          ? Banner(
+                              message: 'STAGING',
+                              location: BannerLocation.topEnd,
+                              color: AppColors.red6,
+                              child: router,
+                            )
+                          : router;
+                      return UserMessageHost(
+                        routeObserver: userMessageRouteObserver,
+                        actionDispatcher: _userMessageActionDispatcher,
+                        enabled:
+                            appSetting.onboardingCompleted &&
+                            !paymentSessionActive,
+                        child: shell,
+                      );
+                    },
+                    theme: AppTheme.appTheme(),
+                    darkTheme: AppTheme.darkTheme(),
+                    themeMode: resolveThemeMode(appSetting.themeMode),
+                    supportedLocales: languages
+                        .map(
+                          (lang) => Locale(
+                            lang.split('_').first,
+                            lang.split('_').last,
+                          ),
+                        )
+                        .toList(),
+                    // List of supported languages
+                    routerConfig: globalRouter.config(
+                      deepLinkBuilder: (deepLink) {
+                        return DeepLink
+                            .defaultPath; // We handle deep links manually, so return null to use the default route
+                      },
+                      navigatorObservers: () => [
+                        routeObserver,
+                        userMessageRouteObserver,
+                      ],
+                    ),
+                    localizationsDelegates: const [
+                      GlobalMaterialLocalizations.delegate,
+                      GlobalWidgetsLocalizations.delegate,
+                      GlobalCupertinoLocalizations.delegate,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

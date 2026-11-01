@@ -1,0 +1,1626 @@
+//
+//  MethodHandler.swift
+//  Lantern
+//
+
+import Flutter
+import Foundation
+import Liblantern
+import NetworkExtension
+import StoreKit
+
+/// Handles Flutter method channel interactions for VPN operations.
+class MethodHandler {
+
+  private var channel: FlutterMethodChannel
+  private var vpnManager: VPNManager
+
+  init(channel: FlutterMethodChannel, vpnManager: VPNManager = VPNManager.shared) {
+    self.channel = channel
+    self.vpnManager = vpnManager
+    setupMethodCallHandler()
+  }
+
+  // MARK: - Method channel setup
+
+  /// Sets up the method call handler for the main method channel.
+  private func setupMethodCallHandler() {
+    channel.setMethodCallHandler { [weak self] call, result in
+      guard let self = self else { return }
+
+      switch call.method {
+      case "startVPN":
+        self.startVPN(result: result)
+
+      case "isTagAvailable":
+        guard let tag: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.isTagAvailable(result: result, tag: tag)
+
+      case "connectToServer":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.connectToServer(result: result, data: data)
+
+      case "stopVPN":
+        self.stopVPN(result: result)
+
+      case "isVPNConnected":
+        self.isVPNConnected(result: result)
+
+      case "plans":
+        self.plans(result: result)
+
+      case "oauthLoginUrl":
+        guard let provider: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.oauthLoginUrl(result: result, provider: provider)
+
+      case "oauthLoginCallback":
+        guard let token: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.oauthLoginCallback(result: result, token: token)
+
+      case "oauthDeviceLimitCallback":
+        guard let token: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.oauthDeviceLimitCallback(result: result, token: token)
+
+      case "getUserData":
+        self.getUserData(result: result)
+
+      case "fetchUserData":
+        self.fetchUserData(result: result)
+
+      case "getDataCapInfo":
+        self.getDataCapInfo(result: result)
+
+      case "showManageSubscriptions":
+        self.showManageSubscriptions(result: result)
+
+      case "acknowledgeInAppPurchase":
+        guard
+          let map = call.arguments as? [String: Any],
+          let token = map["purchaseToken"] as? String,
+          let planId = map["planId"] as? String
+        else {
+          result(
+            FlutterError(
+              code: "INVALID_ARGUMENTS",
+              message: "Missing or invalid purchaseToken or planId",
+              details: nil
+            )
+          )
+          return
+        }
+        let couponCode = map["couponCode"] as? String ?? ""
+        self.acknowledgeInAppPurchase(
+          token: token, planId: planId, couponCode: couponCode, result: result)
+
+      case "restoreInAppPurchase":
+        guard
+          let map = call.arguments as? [String: Any],
+          let token = map["purchaseToken"] as? String
+        else {
+          result(
+            FlutterError(
+              code: "INVALID_ARGUMENTS",
+              message: "Missing or invalid purchaseToken",
+              details: nil
+            )
+          )
+          return
+        }
+        self.restoreInAppPurchase(token: token, result: result)
+
+      // user management
+      case "startRecoveryByEmail":
+        let map = (call.arguments as? [String: Any]) ?? [:]
+        let email = map["email"] as? String ?? ""
+        self.startRecoveryByEmail(result: result, email: email)
+
+      case "validateRecoveryCode":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.validateRecoveryCode(result: result, data: data)
+
+      case "completeRecoveryByEmail":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.completeRecoveryByEmail(result: result, data: data)
+
+      case "login":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.login(result: result, data: data)
+
+      case "signUp":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.signUp(result: result, data: data)
+
+      case "logout":
+        guard let email: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.logout(result: result, email: email)
+
+      case "deleteAccount":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.deleteAccount(result: result, data: data)
+
+      case "activationCode":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.activationCode(result: result, data: data)
+
+      case "verifyPassword":
+        self.verifyPassword(
+          result: result,
+          data: call.arguments as? [String: Any] ?? [:]
+        )
+
+      case "startChangeEmail":
+        self.startChangeEmail(
+          result: result,
+          data: call.arguments as? [String: Any] ?? [:]
+        )
+
+      case "completeChangeEmail":
+        self.completeChangeEmail(
+          result: result,
+          data: call.arguments as? [String: Any] ?? [:]
+        )
+
+      case "removeDevice":
+        let data = call.arguments as? [String: Any]
+        let deviceId = data?["deviceId"] as? String ?? ""
+        self.deviceRemove(result: result, deviceId: deviceId)
+
+      case "attachReferralCode":
+        let code = call.arguments as? String ?? ""
+        self.referralAttach(result: result, code: code)
+
+      case "attachReferralCodeV2":
+        let data = call.arguments as? [String: Any] ?? [:]
+        let code = data["code"] as? String ?? ""
+        let distributionChannel = data["distributionChannel"] as? String ?? ""
+        self.referralAttachV2(
+          result: result, code: code, distributionChannel: distributionChannel)
+
+      // Private server methods
+      case "digitalOcean":
+        self.digitalOcean(result: result)
+
+      case "selectAccount":
+        let account = call.arguments as? String ?? ""
+        self.selectAccount(result: result, account: account)
+
+      case "selectProject":
+        let project = call.arguments as? String ?? ""
+        self.selectProject(result: result, project: project)
+
+      case "startDeployment":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.startDeployment(result: result, data: data)
+
+      case "cancelDeployment":
+        self.cancelDeployment(result: result)
+
+      case "addServerManually":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.addServerManually(result: result, data: data)
+
+      case "inviteToServerManagerInstance":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.inviteToServerManagerInstance(result: result, data: data)
+
+      case "revokeServerManagerInstance":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.revokeServerManagerInstance(result: result, data: data)
+
+      case "validateSession":
+        self.validateSession(result: result)
+
+      case "addServerBasedOnURLs":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.addServerBasedOnURLs(result: result, data: data)
+
+      case "deletePrivateServerByName":
+        guard let name: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.deletePrivateServerByName(result: result, name: name)
+
+      case "updatePrivateServerName":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.updatePrivateServerName(result: result, data: data)
+
+      // Server Selection
+      case "getLanternAvailableServers":
+        self.getLanternAvailableServers(result: result)
+
+      case "getAutoServerLocation":
+        self.getAutoServerLocation(result: result)
+
+      case "getSelectedServerJSON":
+        self.getSelectedServerJSON(result: result)
+
+      // Utils
+      case "featureFlag":
+        self.featureFlags(result: result)
+
+      case "updateLocale":
+        let locale = call.arguments as? String ?? ""
+        self.updateLocale(result: result, locale: locale)
+
+      case "updateTimeZone":
+        let timeZone = call.arguments as? String ?? ""
+        self.updateTimeZone(result: result, timeZone: timeZone)
+
+      case "updateWidgetLocation":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.updateWidgetLocation(result: result, data: data)
+
+      case "currentUserMessage":
+        self.currentUserMessage(result: result)
+
+      case "refreshUserMessages":
+        self.refreshUserMessages(result: result)
+
+      case "acknowledgeUserMessage":
+        guard let data = self.decodeDict(from: call.arguments, result: result),
+          let displayID: String = self.decodeValue(from: data["displayId"], result: result),
+          let accountID: String = self.decodeValue(from: data["accountId"], result: result)
+        else { return }
+        self.acknowledgeUserMessage(result: result, displayID: displayID, accountID: accountID)
+
+      case "setUserMessageActivity":
+        guard let active: Bool = self.decodeValue(from: call.arguments, result: result)
+        else { return }
+        self.setUserMessageActivity(result: result, active: active)
+
+      case "reportIssue":
+        guard let data = self.decodeDict(from: call.arguments, result: result) else { return }
+        self.reportIssue(result: result, data: data)
+
+      case "diagnosticLogFiles":
+        self.diagnosticLogFiles(result: result)
+
+      case "isBlockAdsEnabled":
+        Task {
+          await MainActor.run { result(MobileIsBlockAdsEnabled()) }
+        }
+
+      case "setBlockAdsEnabled":
+        let data = call.arguments as? [String: Any]
+        let enabled = data?["enabled"] as? Bool ?? false
+        self.setBlockAdsEnabled(result: result, enabled: enabled)
+      case "updateTelemetryEvents":
+        guard let consent: Bool = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.updateTelemetryEvents(consent: consent, result: result)
+      case "setRoutingMode":
+        guard let mode: Bool = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.setSmartRouteMode(mode: mode, result: result)
+
+      case "isSmartRoutingEnabled":
+        Task {
+          await MainActor.run { result(MobileIsSmartRoutingEnabled()) }
+        }
+
+      // Share My Connection (samizdat) + Unbounded (broflake) peer-share.
+      // Phones on cellular data won't have UPnP, but home WiFi does — and
+      // manual port forwarding works on any network where the user owns
+      // the router. The whole stack is exposed on iOS rather than
+      // desktop-only.
+      case "setPeerProxyEnabled":
+        // requireArg surfaces a FlutterError on missing/invalid
+        // argument shape instead of silently defaulting to false
+        // (which would disable sharing on caller bugs).
+        guard let enabled: Bool = requireArg(call: call, name: "enabled", result: result) else { return }
+        self.setPeerProxyEnabled(result: result, enabled: enabled)
+
+      case "isPeerProxyEnabled":
+        Task {
+          await MainActor.run { result(MobileIsPeerShareEnabled()) }
+        }
+
+      case "setPeerManualPort":
+        // requireArg surfaces a FlutterError on missing/invalid
+        // argument shape instead of silently defaulting to 0
+        // (which has the real semantic of clearing the manual port
+        // override — caller bugs would silently wipe the user's
+        // setting).
+        guard let port: Int = requireArg(call: call, name: "port", result: result) else { return }
+        self.setPeerManualPort(result: result, port: port)
+
+      case "getPeerManualPort":
+        Task {
+          await MainActor.run { result(Int(MobileGetPeerManualPort())) }
+        }
+
+      // Returns the marshalled radiance peer.Status, or "" when it could
+      // not be read. The peer-status event stream carries transitions
+      // only, and peer sharing resumes from persisted settings before the
+      // UI is listening, so the UI needs to be able to ask outright.
+      //
+      // Detached like probeUPnP: this is an IPC round-trip bounded by a 5s
+      // Go-side timeout, and the caller runs it from a post-frame callback
+      // at first paint. Evaluating it on the main actor would stall
+      // rendering for as long as the daemon takes to answer.
+      case "getPeerStatus":
+        Task.detached {
+          let status = MobileGetPeerStatus()
+          await MainActor.run { result(status) }
+        }
+
+      case "setUnboundedEnabled":
+        guard let enabled: Bool = requireArg(call: call, name: "enabled", result: result) else { return }
+        self.setUnboundedEnabled(result: result, enabled: enabled)
+
+      case "isUnboundedEnabled":
+        Task {
+          await MainActor.run { result(MobileIsUnboundedEnabled()) }
+        }
+
+      case "probeUPnP":
+        // UPnP M-SEARCH multicast wait — up to ~6s in MobileProbeUPnP.
+        // Hop off the main actor so the wait doesn't stall the UI, then
+        // deliver the bool back on MainActor for the Flutter result
+        // callback.
+        Task.detached {
+          let available = MobileProbeUPnP()
+          await MainActor.run { result(available) }
+        }
+
+      // One helper-invite operation (lantern-core/helper). Network-bound,
+      // so it runs off the main actor. Never log the arguments.
+      case "helperCall":
+        let data = call.arguments as? [String: Any] ?? [:]
+        let op = data["op"] as? String ?? ""
+        let args = data["args"] as? String ?? "{}"
+        Task.detached {
+          var error: NSError?
+          let json = MobileHelperCall(op, args, &error)
+          await MainActor.run {
+            if let error {
+              result(FlutterError(code: "HELPER_CALL_FAILED", message: error.localizedDescription, details: nil))
+            } else {
+              result(json)
+            }
+          }
+        }
+
+      case "isTelemetryEnabled":
+        Task {
+          await MainActor.run { result(MobileIsTelemetryEnabled()) }
+        }
+
+      case "isOAuthLogin":
+        Task {
+          await MainActor.run { result(MobileIsOAuthLogin()) }
+        }
+
+      case "getOAuthProvider":
+        Task {
+          await MainActor.run { result(MobileGetOAuthProvider()) }
+        }
+
+      case "patchSettings":
+        guard let payload: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.patchSettings(payload: payload, result: result)
+
+      case "getSettings":
+        self.getSettings(result: result)
+
+      case "patchEnvVars":
+        guard let payload: String = self.decodeValue(from: call.arguments, result: result) else {
+          return
+        }
+        self.patchEnvVars(payload: payload, result: result)
+
+      case "getEnvVars":
+        self.getEnvVars(result: result)
+
+      case "runURLTests":
+        self.runURLTests(result: result)
+
+      case "sendConfigRequest":
+        self.sendConfigRequest(result: result)
+
+      case "clearTunnelCache":
+        self.clearTunnelCache(result: result)
+
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+  }
+
+  // MARK: - Argument helpers
+
+  private func decodeDict(
+    from arguments: Any?,
+    result: @escaping FlutterResult,
+    code: String = "INVALID_ARGUMENTS"
+  ) -> [String: Any]? {
+    guard let dict = arguments as? [String: Any] else {
+      result(
+        FlutterError(
+          code: code,
+          message: "Missing or invalid arguments",
+          details: nil
+        )
+      )
+      return nil
+    }
+    return dict
+  }
+
+  private func decodeValue<T>(
+    from arguments: Any?,
+    result: @escaping FlutterResult,
+    code: String = "INVALID_ARGUMENTS"
+  ) -> T? {
+    guard let value = arguments as? T else {
+      result(
+        FlutterError(
+          code: code,
+          message: "Missing or invalid arguments",
+          details: nil
+        )
+      )
+      return nil
+    }
+    return value
+  }
+
+  // MARK: - VPN
+
+  private func startVPN(result: @escaping FlutterResult) {
+    Task {
+      do {
+        try await vpnManager.startTunnel()
+        await MainActor.run {
+          result("VPN started successfully.")
+        }
+      } catch {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "START_FAILED",
+              message: "Unable to start VPN tunnel.",
+              details: error.localizedDescription
+            )
+          )
+        }
+      }
+    }
+  }
+
+  private func isTagAvailable(result: @escaping FlutterResult, tag: String) {
+    let available = MobileIsTagAvailable(tag)
+    result(available)
+  }
+
+  private func connectToServer(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      do {
+        let serverName = data["serverName"] as? String ?? ""
+        try await self.vpnManager.connectToServer(serverName: serverName)
+        await MainActor.run {
+          result("VPN connected successfully to \(serverName).")
+        }
+      } catch {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "CONNECT_TO_SERVER_FAILED",
+              message: "Unable to connect to VPN server.",
+              details: error.localizedDescription
+            )
+          )
+        }
+      }
+    }
+  }
+
+  private func stopVPN(result: @escaping FlutterResult) {
+    Task {
+      do {
+        try await vpnManager.stopTunnel()
+        await MainActor.run {
+          result("VPN stopped successfully.")
+        }
+      } catch {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "STOP_FAILED",
+              message: "Unable to stop VPN tunnel.",
+              details: error.localizedDescription
+            )
+          )
+        }
+      }
+    }
+  }
+
+  private func isVPNConnected(result: @escaping FlutterResult) {
+    let status = vpnManager.connectionStatus
+    let isConnected = status == .connected
+    result(isConnected)
+  }
+
+  // MARK: - Plans / OAuth / User data
+
+  private func plans(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let data = try MobilePlans("store", &error)
+
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "PLANS_ERROR")
+        return
+      }
+
+      await MainActor.run {
+        result(data)
+      }
+    }
+  }
+
+  private func oauthLoginUrl(result: @escaping FlutterResult, provider: String) {
+    Task {
+      var error: NSError?
+      let data = try MobileOAuthLoginUrl(provider, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "OAUTH_LOGIN")
+        return
+      }
+      await MainActor.run {
+        result(data)
+      }
+    }
+  }
+
+  private func oauthLoginCallback(result: @escaping FlutterResult, token: String) {
+    Task {
+      var error: NSError?
+      let json = try MobileOAuthLoginCallback(token, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "OAUTH_LOGIN_CALLBACK")
+        return
+      }
+      await MainActor.run {
+        // Dart side expects bytes to utf8.decode — convert the gomobile-returned
+        // string back to Data to preserve the Flutter contract.
+        result(json.data(using: .utf8))
+      }
+    }
+  }
+
+  private func oauthDeviceLimitCallback(result: @escaping FlutterResult, token: String) {
+    Task {
+      var error: NSError?
+      MobileOAuthDeviceLimitCallback(token, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "OAUTH_DEVICE_LIMIT_CALLBACK")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  private func getUserData(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let json = try MobileUserData(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "USER_DATA_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(json.data(using: .utf8))
+      }
+    }
+  }
+
+  private func getDataCapInfo(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let data = MobileGetDataCapInfo(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "FETCH_DATA_CAP_INFO_FAILED")
+        return
+      }
+      await MainActor.run {
+        result(data)
+      }
+    }
+  }
+
+  private func fetchUserData(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let json = MobileFetchUserData(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "FETCH_USER_DATA_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(json.data(using: .utf8))
+      }
+    }
+  }
+
+  private func showManageSubscriptions(result: @escaping FlutterResult) {
+    if #available(iOS 15.0, *) {
+      guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+        result(
+          FlutterError(
+            code: "NO_WINDOW_SCENE",
+            message: "No active window scene found",
+            details: nil
+          )
+        )
+        return
+      }
+
+      Task {
+        do {
+          try await AppStore.showManageSubscriptions(in: windowScene)
+          await MainActor.run {
+            result(nil)
+          }
+        } catch {
+          await MainActor.run {
+            result(
+              FlutterError(
+                code: "FAILED_TO_OPEN",
+                message: "Failed to show subscriptions: \(error.localizedDescription)",
+                details: nil
+              )
+            )
+          }
+        }
+      }
+    } else {
+      result(
+        FlutterError(
+          code: "UNAVAILABLE",
+          message: "iOS 15 or higher is required to manage subscriptions natively",
+          details: nil
+        )
+      )
+    }
+  }
+
+  func acknowledgeInAppPurchase(
+    token: String, planId: String, couponCode: String, result: @escaping FlutterResult
+  ) {
+    Task {
+      var error: NSError?
+      let json = MobileAcknowledgeApplePurchase(token, planId, couponCode, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "ACKNOWLEDGE_FAILED")
+        return
+      }
+      await MainActor.run {
+        result(json.data(using: .utf8))
+      }
+    }
+  }
+
+  func restoreInAppPurchase(token: String, result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let json = MobileRestoreApplePurchase(token, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "RESTORE_FAILED")
+        return
+      }
+      await MainActor.run {
+        result(json.data(using: .utf8))
+      }
+    }
+  }
+
+  // MARK: - User management
+
+  func startRecoveryByEmail(result: @escaping FlutterResult, email: String) {
+    Task {
+      var error: NSError?
+      MobileStartRecoveryByEmail(email, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "RECOVERY_FAILED")
+        return
+      }
+      await MainActor.run {
+        result("Recovery email sent successfully.")
+      }
+    }
+  }
+
+  func validateRecoveryCode(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let code = data["code"] as? String ?? ""
+      var error: NSError?
+      MobileValidateChangeEmailCode(email, code, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "VALIDATE_RECOVERY_CODE_FAILED")
+        return
+      }
+      await MainActor.run {
+        result("Recovery code validated successfully.")
+      }
+    }
+  }
+
+  func completeRecoveryByEmail(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let code = data["code"] as? String ?? ""
+      let newPassword = data["newPassword"] as? String ?? ""
+      var error: NSError?
+      MobileCompleteRecoveryByEmail(email, newPassword, code, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "COMPLETE_RECOVERY_FAILED")
+        return
+      }
+      await MainActor.run {
+        result("Change email completed successfully.")
+      }
+    }
+  }
+
+  func login(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let password = data["password"] as? String ?? ""
+      var error: NSError?
+      let payload = MobileLogin(email, password, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "LOGIN_FAILED")
+        return
+      }
+      await MainActor.run {
+        result(payload.data(using: .utf8))
+      }
+    }
+  }
+
+  func signUp(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let password = data["password"] as? String ?? ""
+      var error: NSError?
+      try await MobileSignUp(email, password, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SIGNUP_FAILED")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func logout(result: @escaping FlutterResult, email: String) {
+    Task {
+      var error: NSError?
+      let payload = try MobileLogout(email, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "LOGOUT_FAILED")
+        return
+      }
+      await MainActor.run {
+        result(payload.data(using: .utf8))
+      }
+    }
+  }
+
+  func deleteAccount(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let password = data["password"] as? String ?? ""
+      var error: NSError?
+      let payload = MobileDeleteAccount(email, password, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "DELETE_ACCOUNT_FAILED")
+        return
+      }
+      await MainActor.run {
+        result(payload.data(using: .utf8))
+      }
+    }
+  }
+
+  func activationCode(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let resellerCode = data["resellerCode"] as? String ?? ""
+      var error: NSError?
+      MobileActivationCode(email, resellerCode, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "ACTIVATION_CODE_FAILED")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func verifyPassword(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      guard
+        let email = data["email"] as? String, !email.isEmpty,
+        let password = data["password"] as? String, !password.isEmpty
+      else {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "INVALID_ARGUMENTS",
+              message: "Missing or invalid email/password",
+              details: nil
+            )
+          )
+        }
+        return
+      }
+      var error: NSError?
+      MobileVerifyPassword(email, password, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "VERIFY_PASSWORD_FAILED")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func startChangeEmail(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["newEmail"] as? String ?? ""
+      let password = data["password"] as? String ?? ""
+      var error: NSError?
+      MobileStartChangeEmail(email, password, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "START_CHANGE_EMAIL_FAILED")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func completeChangeEmail(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let newEmail = data["newEmail"] as? String ?? ""
+      let password = data["password"] as? String ?? ""
+      let code = data["code"] as? String ?? ""
+
+      var error: NSError?
+      MobileCompleteChangeEmail(newEmail, password, code, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "COMPLETE_CHANGE_EMAIL_FAILED")
+        return
+      }
+
+      await self.replyOK(result)
+    }
+  }
+
+  func deviceRemove(result: @escaping FlutterResult, deviceId: String) {
+    Task {
+      var error: NSError?
+      MobileRemoveDevice(deviceId, &error)
+      if let error {
+        appLogger.error("Failed to remove device: \(error.localizedDescription)")
+        await self.handleFlutterError(error, result: result, code: "REMOVE_DEVICE_FAILED")
+        return
+      }
+      await MainActor.run {
+        appLogger.info("Device removed successfully.")
+        result("ok")
+      }
+    }
+  }
+
+  func referralAttach(result: @escaping FlutterResult, code: String) {
+    Task {
+      var error: NSError?
+      MobileReferralAttachment(code, &error)
+      if let error {
+        appLogger.error("Failed to attach referral code: \(error.localizedDescription)")
+        await self.handleFlutterError(error, result: result, code: "ATTACH_REFERRAL_CODE_FAILED")
+        return
+      }
+      await MainActor.run {
+        appLogger.info("Referral code attached successfully.")
+        result("ok")
+      }
+    }
+  }
+
+  func referralAttachV2(
+    result: @escaping FlutterResult, code: String, distributionChannel: String
+  ) {
+    Task {
+      var error: NSError?
+      let json = MobileReferralAttachmentV2(code, distributionChannel, &error)
+      if let error {
+        appLogger.error("Failed to attach referral code v2: \(error.localizedDescription)")
+        await self.handleFlutterError(error, result: result, code: "ATTACH_REFERRAL_CODE_V2_FAILED")
+        return
+      }
+      await MainActor.run {
+        appLogger.info("Referral code attached successfully (v2).")
+        result(json)
+      }
+    }
+  }
+
+  // MARK: - Private server methods
+
+  func digitalOcean(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileDigitalOceanPrivateServer(PrivateServerListener.shared, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "DIGITAL_OCEAN_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func selectAccount(result: @escaping FlutterResult, account: String) {
+    Task {
+      var error: NSError?
+      MobileSelectAccount(account, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SELECT_ACCOUNT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func selectProject(result: @escaping FlutterResult, project: String) {
+    Task {
+      var error: NSError?
+      MobileSelectProject(project, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SELECT_PROJECT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func startDeployment(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let location = data["location"] as? String ?? ""
+      let serverName = data["serverName"] as? String ?? ""
+
+      var error: NSError?
+      let success = MobileStartDeployment(location, serverName, &error)
+
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "START_DEPLOYMENT_ERROR")
+        return
+      }
+
+      await MainActor.run {
+        result(success ? "ok" : "failed")
+      }
+    }
+  }
+
+  func cancelDeployment(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let success = MobileCancelDeployment(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "CANCEL_DEPLOYMENT_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(success ? "ok" : "failed")
+      }
+    }
+  }
+
+  func addServerManually(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let ip = data["ip"] as? String
+      let port = data["port"] as? String
+      let accessToken = data["accessToken"] as? String
+      let serverName = data["serverName"] as? String
+      var error: NSError?
+      MobileAddServerManagerInstance(
+        ip, port, accessToken, serverName, PrivateServerListener.shared, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "ADD_SERVER_MANUALLY_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func inviteToServerManagerInstance(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let ip = data["ip"] as? String ?? ""
+      let port = data["port"] as? String ?? ""
+      let accessToken = data["accessToken"] as? String ?? ""
+      let inviteName = data["inviteName"] as? String ?? ""
+      var error: NSError?
+      let successKey = MobileInviteToServerManagerInstance(
+        ip, port, accessToken, inviteName, &error)
+      if let error {
+        await self.handleFlutterError(
+          error, result: result, code: "INVITE_TO_SERVER_MANAGER_INSTANCE_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(successKey)
+      }
+    }
+  }
+
+  func revokeServerManagerInstance(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let ip = data["ip"] as? String ?? ""
+      let port = data["port"] as? String ?? ""
+      let accessToken = data["accessToken"] as? String ?? ""
+      let inviteName = data["inviteName"] as? String ?? ""
+      var error: NSError?
+      _ = MobileRevokeServerManagerInvite(ip, port, accessToken, inviteName, &error)
+      if let error {
+        await self.handleFlutterError(
+          error, result: result, code: "REVOKE_SERVER_MANAGER_INSTANCE_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func validateSession(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileValidateSession(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "VALIDATE_SESSION_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func addServerBasedOnURLs(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let urls = data["urls"] as? String ?? ""
+      let skipVerification = data["skipValidation"] as? Bool ?? false
+      var error: NSError?
+
+      let tags = MobileAddServerBasedOnURLs(urls, skipVerification, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "ADD_SERVER_BASED_ON_URLS_ERROR")
+        return
+      }
+      await MainActor.run { result(tags) }
+    }
+  }
+
+  func deletePrivateServerByName(result: @escaping FlutterResult, name: String) {
+    Task {
+      var error: NSError?
+      MobileDeletePrivateServerByName(name, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "DELETE_PRIVATE_SERVER_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func updatePrivateServerName(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let oldName = data["oldName"] as? String ?? ""
+      let newName = data["newName"] as? String ?? ""
+      var error: NSError?
+      MobileUpdatePrivateServerName(oldName, newName, &error)
+      if let error {
+        await self.handleFlutterError(
+          error, result: result, code: "UPDATE_PRIVATE_SERVER_NAME_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  // MARK: - Feature flags / locale / servers / issues
+
+  func featureFlags(result: @escaping FlutterResult) {
+    Task {
+      let flags = MobileAvailableFeatures() ?? ""
+      await MainActor.run {
+        result(flags.isEmpty ? "{}" : flags)
+      }
+    }
+  }
+
+  func updateLocale(result: @escaping FlutterResult, locale: String) {
+    Task {
+      var error: NSError?
+      MobileUpdateLocale(locale, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "UPDATE_LOCALE_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func updateTimeZone(result: @escaping FlutterResult, timeZone: String) {
+    Task {
+      var error: NSError?
+      MobileUpdateTimeZone(timeZone, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "UPDATE_TIME_ZONE_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  /// Mirrors the location the app shows on Home into the widget snapshot.
+  /// Prefers "City, Country"; falls back to the app's display name (private
+  /// servers have no geo data).
+  func updateWidgetLocation(result: @escaping FlutterResult, data: [String: Any]) {
+    let city = (data["city"] as? String ?? "").trimmingCharacters(in: .whitespaces)
+    let country = (data["country"] as? String ?? "").trimmingCharacters(in: .whitespaces)
+    let displayName = (data["displayName"] as? String ?? "").trimmingCharacters(in: .whitespaces)
+    let countryCode = data["countryCode"] as? String ?? ""
+
+    let name: String
+    switch (city.isEmpty, country.isEmpty) {
+    case (false, false): name = "\(city), \(country)"
+    case (false, true): name = city
+    case (true, false): name = country
+    case (true, true): name = displayName
+    }
+    VPNWidgetStore.setLocation(name: name, city: city, country: country, countryCode: countryCode)
+    // The app's current selection, published on every change: a widget or
+    // Control Center connect dials it. Empty means auto. Mirroring it here,
+    // not only in connectToServer, keeps a fallback to auto (which skips
+    // startTunnel) and any write made mid-switch from leaving it stale.
+    if let serverName = data["serverName"] as? String {
+      VPNWidgetStore.setServerName(serverName)
+    }
+    result(nil)
+  }
+
+  func currentUserMessage(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let message = MobileCurrentUserMessage(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "CURRENT_USER_MESSAGE_ERROR")
+        return
+      }
+      await MainActor.run { result(message ?? "null") }
+    }
+  }
+
+  func refreshUserMessages(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileRefreshUserMessages(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "REFRESH_USER_MESSAGES_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func acknowledgeUserMessage(result: @escaping FlutterResult, displayID: String, accountID: String) {
+    Task {
+      var error: NSError?
+      MobileAcknowledgeUserMessage(displayID, accountID, &error)
+      if let error {
+        await self.handleFlutterError(
+          error, result: result, code: "ACKNOWLEDGE_USER_MESSAGE_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func setUserMessageActivity(result: @escaping FlutterResult, active: Bool) {
+    Task {
+      var error: NSError?
+      MobileSetUserMessageActivity(active, &error)
+      if let error {
+        await self.handleFlutterError(
+          error, result: result, code: "SET_USER_MESSAGE_ACTIVITY_ERROR")
+        return
+      }
+      await self.replyOK(result)
+    }
+  }
+
+  func getLanternAvailableServers(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let servers = MobileGetAvailableServers(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GET_LANTERN_SERVERS_ERROR")
+        return
+      }
+      await MainActor.run {
+        let s = servers ?? ""
+        result(s.isEmpty ? "[]" : s)
+      }
+    }
+  }
+
+  func getAutoServerLocation(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let location = MobileGetAutoLocation(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GET_AUTO_LOCATION_ERROR")
+        return
+      }
+      await MainActor.run {
+        result(location ?? "")
+      }
+    }
+  }
+
+  func getSelectedServerJSON(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let data = MobileGetSelectedServerJSON(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GET_SELECTED_SERVER_ERROR")
+        return
+      }
+      let s = data ?? ""
+      let json = s.isEmpty ? "{}" : s
+      await MainActor.run {
+        result(json)
+      }
+    }
+  }
+
+  func reportIssue(result: @escaping FlutterResult, data: [String: Any]) {
+    Task {
+      let email = data["email"] as? String ?? ""
+      let issueType = data["issueType"] as? String ?? ""
+      let description = data["description"] as? String ?? ""
+      let device = data["device"] as? String ?? ""
+      let model = data["model"] as? String ?? ""
+      let logFilePath = data["logFilePath"] as? String ?? ""
+      let attachments = data["attachments"] as? [[String: Any]] ?? []
+      let attachmentsJSON = reportIssueAttachmentsJSON(attachments)
+
+      var error: NSError?
+      MobileReportIssue(
+        email,
+        issueType,
+        description,
+        device,
+        model,
+        logFilePath,
+        attachmentsJSON,
+        &error
+      )
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "REPORT_ISSUE_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  private func reportIssueAttachmentsJSON(_ attachments: [[String: Any]]) -> String {
+    guard JSONSerialization.isValidJSONObject(attachments),
+      let data = try? JSONSerialization.data(withJSONObject: attachments),
+      let json = String(data: data, encoding: .utf8)
+    else {
+      return "[]"
+    }
+    return json
+  }
+
+  func diagnosticLogFiles(result: @escaping FlutterResult) {
+    Task {
+      let logDirectory = FilePath.logsDirectory
+      let fileManager = FileManager.default
+
+      guard fileManager.fileExists(atPath: logDirectory.path) else {
+        await MainActor.run { result([String]()) }
+        return
+      }
+
+      do {
+        let entries = try fileManager.contentsOfDirectory(
+          at: logDirectory,
+          includingPropertiesForKeys: [.isRegularFileKey],
+          options: [.skipsHiddenFiles]
+        )
+
+        let files =
+          try entries
+          .filter { entry in
+            let values = try entry.resourceValues(forKeys: [.isRegularFileKey])
+            return values.isRegularFile ?? false
+          }
+          .map(\.path)
+          .sorted()
+
+        await MainActor.run {
+          result(files)
+        }
+      } catch {
+        await MainActor.run {
+          result(
+            FlutterError(
+              code: "DIAGNOSTIC_LOG_FILES_ERROR",
+              message: "Unable to read diagnostic logs",
+              details: error.localizedDescription
+            )
+          )
+        }
+      }
+    }
+  }
+
+  func setBlockAdsEnabled(result: @escaping FlutterResult, enabled: Bool) {
+    Task {
+      var error: NSError?
+      MobileSetBlockAdsEnabled(enabled, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_BLOCK_ADS_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  // Share My Connection (samizdat) toggle. Mirrors the macOS handler's
+  // pattern: blocking Mobile call goes onto a Task; result and error
+  // delivery hop to MainActor. Plain Task (not Task.detached) is fine
+  // for these PatchSettings calls — they finish in milliseconds, so
+  // inheriting the current actor's executor is cheap. probeUPnP is
+  // the one exception that uses Task.detached because its M-SEARCH
+  // wait is multi-second.
+  func setPeerProxyEnabled(result: @escaping FlutterResult, enabled: Bool) {
+    Task {
+      var error: NSError?
+      MobileSetPeerShareEnabled(enabled, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_PEER_PROXY_ENABLED_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  // Manual port forward setting for the SmC residential-proxy path.
+  // Pass 0 to clear and revert to UPnP-discovered port behavior.
+  func setPeerManualPort(result: @escaping FlutterResult, port: Int) {
+    Task {
+      var error: NSError?
+      MobileSetPeerManualPort(port, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_PEER_MANUAL_PORT_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  // Local opt-in for the broflake / Unbounded widget proxy ("Basic mode"
+  // in the SmC UI). Actual run state also depends on the server's
+  // unbounded feature flag and supplied UnboundedConfig.
+  func setUnboundedEnabled(result: @escaping FlutterResult, enabled: Bool) {
+    Task {
+      var error: NSError?
+      MobileSetUnboundedEnabled(enabled, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_UNBOUNDED_ENABLED_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  func updateTelemetryEvents(consent: Bool, result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileUpdateTelemetryConsent(consent, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "UPDATE_TELEMETRY_EVENTS_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+  }
+
+  func setSmartRouteMode(mode: Bool, result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileSetSmartRoutingEnabled(mode, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SET_SMART_ROUTE_MODE_ERROR")
+        return
+      }
+      await MainActor.run {
+        result("ok")
+      }
+    }
+
+  }
+
+  // MARK: - Developer mode
+
+  func patchSettings(payload: String, result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobilePatchSettings(payload, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "PATCH_SETTINGS_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  func getSettings(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let json = MobileGetSettings(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GET_SETTINGS_ERROR")
+        return
+      }
+      await MainActor.run { result(json ?? "{}") }
+    }
+  }
+
+  func patchEnvVars(payload: String, result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let json = MobilePatchEnvVars(payload, &error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "PATCH_ENV_VARS_ERROR")
+        return
+      }
+      await MainActor.run { result(json ?? "{}") }
+    }
+  }
+
+  func getEnvVars(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      let json = MobileGetEnvVars(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "GET_ENV_VARS_ERROR")
+        return
+      }
+      await MainActor.run { result(json ?? "{}") }
+    }
+  }
+
+  func runURLTests(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileRunURLTests(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "RUN_URL_TESTS_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  func sendConfigRequest(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileSendConfigRequest(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "SEND_CONFIG_REQUEST_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  func clearTunnelCache(result: @escaping FlutterResult) {
+    Task {
+      var error: NSError?
+      MobileClearTunnelCache(&error)
+      if let error {
+        await self.handleFlutterError(error, result: result, code: "CLEAR_TUNNEL_CACHE_ERROR")
+        return
+      }
+      await MainActor.run { result("ok") }
+    }
+  }
+
+  // MARK: - Argument helpers
+
+  func requireArg<T>(
+    call: FlutterMethodCall,
+    name: String,
+    result: FlutterResult
+  ) -> T? {
+    guard
+      let arguments = call.arguments as? [String: Any],
+      let value = arguments[name] as? T
+    else {
+      result(
+        FlutterError(
+          code: "INVALID_ARGUMENTS",
+          message: "Missing or invalid argument: \(name)",
+          details: nil
+        )
+      )
+      return nil
+    }
+
+    return value
+  }
+
+  // MARK: - Utils
+
+  /// Helper for handling Flutter errors
+  private func handleFlutterError(
+    _ error: Error?,
+    result: @escaping FlutterResult,
+    code: String = "UNKNOWN_ERROR"
+  ) async {
+    guard let error = error else { return }
+    let nsError = error as NSError
+    await MainActor.run {
+      result(
+        FlutterError(
+          code: code,
+          message: nsError.localizedDescription,
+          details: nsError.debugDescription
+        )
+      )
+    }
+  }
+
+  @MainActor
+  private func replyOK(_ result: FlutterResult) {
+    result("ok")
+  }
+
+}

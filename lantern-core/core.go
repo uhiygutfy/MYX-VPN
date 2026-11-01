@@ -1,0 +1,1671 @@
+package lanterncore
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"runtime"
+	"slices"
+	"strconv"
+	"strings"
+	"sync"
+	"sync/atomic"
+	"time"
+
+	"github.com/getlantern/radiance/account"
+	"github.com/getlantern/radiance/common"
+	"github.com/getlantern/radiance/common/env"
+	"github.com/getlantern/radiance/common/settings"
+	"github.com/getlantern/radiance/events"
+	"github.com/getlantern/radiance/ipc"
+	"github.com/getlantern/radiance/issue"
+	"github.com/getlantern/radiance/peer"
+	"github.com/getlantern/radiance/portforward"
+	"github.com/getlantern/radiance/servers"
+	"github.com/getlantern/radiance/unbounded"
+	"github.com/getlantern/radiance/vpn"
+
+	"github.com/getlantern/lantern/lantern-core/apps"
+	"github.com/getlantern/lantern/lantern-core/helper"
+	privateserver "github.com/getlantern/lantern/lantern-core/private-server"
+	"github.com/getlantern/lantern/lantern-core/utils"
+	"github.com/getlantern/lantern/lantern-core/utils/reportissue"
+	"github.com/getlantern/lantern/lantern-core/vpn_tunnel"
+)
+
+type EventType = string
+
+const (
+	EventTypeServerLocation EventType = "server-location"
+	EventTypeConfig         EventType = "config"
+	EventTypeCountryCode    EventType = "country-code"
+	// EventTypePeerConnection signals a peer accept/close on the local
+	// peer-share inbound. Both donor protocols emit this event type:
+	// samizdat-over-UPnP "Share My Connection" and broflake
+	// "Unbounded". Message is JSON
+	// {"state": +1|-1, "source": "...", "timestamp": <unix-millis>}.
+	// Source is "host:port" / "[host]:port" for SmC, bare consumer IP
+	// for Unbounded. Consumers extract the IP for geo-lookup or
+	// rate-limit attribution; timestamp is useful for ordering when
+	// the event-bus dispatch is async.
+	EventTypePeerConnection EventType = "peer-connection"
+	// EventTypePeerStatus signals a peer.Client lifecycle phase change
+	// (mapping_port → registering → verifying → serving on the way up,
+	// stopping → idle on the way down, error on failure). Message is the
+	// JSON-marshalled peer.Status struct. The Dart side switches on
+	// .phase to render progress text and on .error to surface
+	// diagnostics on the failure path.
+	EventTypePeerStatus EventType = "peer-status"
+	// EventTypeUserData signals the cached user data was refreshed from the
+	// server; Dart re-reads it via UserData(). Message is empty.
+	EventTypeUserData EventType = "user-data"
+	// EventTypeUserMessageAvailable carries no payload. Flutter pulls the
+	// message from Radiance, which keeps copy out of event logs and makes a
+	// missed event harmless.
+	EventTypeUserMessageAvailable EventType = "user-message-available"
+	// Release default. Trace in production kept always-on tunnels writing
+	// per-read log lines around the clock (battery + disk, FD #184449);
+	// debug builds and staging opt back into trace at the call sites.
+	DefaultLogLevel = "info"
+)
+
+// Backoff between startup user-data fetch retries; the first attempt is
+// immediate. Early failures are expected while the tunnel comes up.
+var startupUserDataFetchDelays = []time.Duration{
+	2 * time.Second,
+	5 * time.Second,
+	10 * time.Second,
+	20 * time.Second,
+	40 * time.Second,
+}
+
+// LanternCore wraps an IPC client and provides the interface expected by the FFI and mobile layers.
+type LanternCore struct {
+	client         *ipc.Client
+	userMessages   userMessageClient
+	serverImporter serverURLImporter
+	serverStore    serverStore
+	ctx            context.Context
+	cancel         context.CancelFunc
+	initOnce       sync.Once
+	eventEmitter   utils.FlutterEventEmitter
+	helpers        *helper.Engine
+}
+
+var (
+	core      = &LanternCore{}
+	initError atomic.Pointer[error]
+)
+
+type App interface {
+	AvailableFeatures() []byte
+	ReportIssue(
+		email, issueType, description, device, model, logFilePath, attachmentsJSON string,
+	) error
+	IsRadianceConnected() bool
+	IsVPNRunning() (bool, error)
+	GetAvailableServers() []byte
+	MyDeviceId() string
+	GetServerByTagJSON(tag string) ([]byte, bool, error)
+	GetSelectedServerJSON() ([]byte, error)
+	GetSelectedServerTag() (string, error)
+	GetAutoLocationJSON() ([]byte, error)
+	CheckDaemonReachable() error
+	PatchSettings(settings.Settings) error
+	GetSettingsJSON() ([]byte, error)
+	PatchEnvVars(map[string]string) (map[string]string, error)
+	GetEnvVars() map[string]string
+	RunOfflineURLTests() error
+	UpdateConfig() error
+	ClearTunnelCache() error
+	ReferralAttachment(referralCode string) (bool, error)
+	ReferralAttachmentV2(referralCode, channel string) ([]byte, error)
+	UpdateLocale(locale string) error
+	UpdateTimeZone(timeZone string) error
+	CurrentUserMessage() (string, error)
+	RefreshUserMessages() error
+	AcknowledgeUserMessage(displayID, accountID string) error
+	SetUserMessageActivity(active bool) error
+	UpdateTelemetryConsent(consent bool) error
+	IsTelemetryEnabled() bool
+	IsOAuthLogin() bool
+	GetOAuthProvider() string
+	GetEnabledApps() (string, error)
+}
+
+type User interface {
+	UserData() ([]byte, error)
+	DataCapInfo() (string, error)
+	FetchUserData() ([]byte, error)
+	OAuthLoginUrl(provider string) (string, error)
+	OAuthLoginCallback(oAuthToken string) ([]byte, error)
+	OAuthDeviceLimitCallback(oAuthToken string) error
+
+	Login(email, password string) ([]byte, error)
+	SignUp(email, password string) error
+	Logout(email string) ([]byte, error)
+	StartRecoveryByEmail(email string) error
+	ValidateChangeEmailCode(email, code string) error
+	CompleteRecoveryByEmail(email, password, code string) error
+	DeleteAccount(email, password string) ([]byte, error)
+	RemoveDevice(deviceId string) (*account.LinkResponse, error)
+	VerifyPassword(email, password string) error
+	StartChangeEmail(newEmail, password string) error
+	CompleteChangeEmail(email, password, code string) error
+}
+
+type PrivateServer interface {
+	DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error
+	GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error
+	ValidateSession() error
+	SelectAccount(account string) error
+	SelectProject(project string) error
+	CancelDeployment() error
+	AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error
+	InviteToServerManagerInstance(ip string, port string, accessToken string, inviteName string) (string, error)
+	RevokeServerManagerInvite(ip string, port string, accessToken string, inviteName string) error
+	StartDeployment(location, serverName string) error
+	AddServersByURL(urls string, skipCertVerification bool) ([]byte, error)
+	DeleteServer(tag string) error
+	UpdatePrivateServerName(oldTag, newTag string) error
+}
+
+type Payment interface {
+	StripeSubscription(email, planID, couponCode string) (string, error)
+	Plans(channel string) (string, error)
+	StripeBillingPortalUrl() (string, error)
+	AcknowledgeGooglePurchase(purchaseToken, planId, couponCode string) (string, error)
+	AcknowledgeApplePurchase(receipt, planII, couponCode string) (string, error)
+	RestoreGooglePlayPurchase(purchaseToken string) (string, error)
+	RestoreApplePurchase(receipt string) (string, error)
+	PaymentRedirect(provider, planID, email, idempotencyKey, couponCode string) (string, error)
+	ActivationCode(email, resellerCode string) error
+	SubscriptionPaymentRedirectURL(redirectBody account.PaymentRedirectData) (string, error)
+	StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey, couponCode string) (string, error)
+}
+
+type SplitTunnel interface {
+	LoadInstalledApps(dataDir string) (string, error)
+	IsSplitTunnelingEnabled() bool
+	SetSplitTunnelingEnabled(bool) error
+	AddSplitTunnelItem(filterType, item string) error
+	AddSplitTunnelItems(items string) error
+	RemoveSplitTunnelItem(filterType, item string) error
+	RemoveSplitTunnelItems(items string) error
+	GetSplitTunnelItems() (string, error)
+	GetSplitTunnelItemsFor(filterType string) (string, error)
+}
+
+type Ads interface {
+	SetBlockAdsEnabled(bool) error
+	IsBlockAdsEnabled() bool
+}
+
+type SmartRouting interface {
+	SetSmartRoutingEnabled(bool) error
+	IsSmartRoutingEnabled() bool
+}
+
+type PeerShare interface {
+	SetPeerShareEnabled(bool) error
+	IsPeerShareEnabled() bool
+	// PeerStatusJSON reports the peer client's current lifecycle state as
+	// the same JSON the peer-status event carries.
+	//
+	// The event stream is edge-triggered, and the peer client resumes from
+	// persisted settings at process start — before the UI subscribes — so a
+	// UI that only listens can miss every transition and never learn that
+	// sharing is already running. This is how it reads the state instead of
+	// assuming one.
+	PeerStatusJSON() string
+	// SetPeerManualPort persists the user's manually-configured router
+	// port forward (Advanced setting in the Share My Connection UI).
+	// 0 clears the override, restoring UPnP-discovered port behavior.
+	SetPeerManualPort(port int) error
+	GetPeerManualPort() int
+	// SetUnboundedEnabled is the local opt-in for the broflake /
+	// Unbounded widget proxy ("Basic mode" in the SmC UI). The
+	// proxy actually runs only when this is true AND the server-side
+	// Features[unbounded] flag is on AND the server provides
+	// UnboundedConfig — see radiance/unbounded.shouldRunUnbounded.
+	SetUnboundedEnabled(bool) error
+	IsUnboundedEnabled() bool
+	// ProbeUPnP runs IGD discovery on the local network and reports
+	// whether a usable gateway is reachable. Called by the SmC toggle
+	// path to decide between SmC mode (residential-proxy, needs UPnP
+	// or a manual port forward) and Unbounded mode (WebRTC, works
+	// anywhere) when no manual port is configured.
+	ProbeUPnP() bool
+}
+
+type VPN interface {
+	ConnectVPN(tag string) error
+	SelectServer(tag string) error
+	DisconnectVPN() error
+	VPNStatus() (vpn.VPNStatus, error)
+	VPNStatusEvents(ctx context.Context, callback func(evt vpn.StatusUpdateEvent)) error
+}
+
+type Helper interface {
+	// HelperCall runs one helper-invite operation (see lantern-core/helper)
+	// and returns its JSON result, or {"error": code}. It never returns a raw
+	// error, so nothing about a failure but its code crosses into Dart.
+	// The ops "personal_proxy_status" (radiance's status of each friend this
+	// device invited) and "selected_server" (the selection radiance has
+	// persisted) run without the engine.
+	HelperCall(op, argsJSON string) string
+}
+
+type Core interface {
+	App
+	User
+	Payment
+	PrivateServer
+	SplitTunnel
+	Ads
+	SmartRouting
+	PeerShare
+	Helper
+	VPN
+	Client() *ipc.Client
+}
+
+var _ Core = (*LanternCore)(nil)
+
+func New(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) (Core, error) {
+	if opts == nil || eventEmitter == nil {
+		return nil, fmt.Errorf("opts and eventEmitter cannot be nil")
+	}
+
+	core.initOnce.Do(func() {
+		if opts.LogLevel == "" {
+			opts.LogLevel = DefaultLogLevel
+		}
+		slog.Debug("Initializing LanternCore with opts: ", "opts", opts)
+		if err := core.initialize(opts, eventEmitter); err != nil {
+			initError.Store(&err)
+		}
+	})
+	if initError.Load() != nil {
+		return nil, *initError.Load()
+	}
+
+	return core, nil
+}
+
+func (lc *LanternCore) initialize(opts *utils.Opts, eventEmitter utils.FlutterEventEmitter) error {
+	// Wire up slog for the host process according to how the backend is
+	// hosted on each platform:
+	//
+	//   - windows/linux: the UI is a separate process talking to a daemon
+	//     over IPC, so it needs its own full common.Init.
+	//   - darwin/ios: the UI shares its logDir with the tunnel extension,
+	//     which is the process that called common.Init. Re-running it here
+	//     would collide; instead we set up app-process-only logging into a
+	//     distinct file so the two lumberjacks don't race on rotation.
+	//   - android: the backend is embedded in the same process as the UI
+	//     (see init_mobile.go), and Mobile.SetupRadiance has already called
+	//     common.Init by the time we reach here. Fall through with no
+	//     additional setup.
+	switch runtime.GOOS {
+	case "windows", "linux":
+		if err := common.Init(opts.DataDir, opts.LogDir, opts.LogLevel); err != nil {
+			return fmt.Errorf("common.Init: %w", err)
+		}
+	case "darwin", "ios":
+		setupAppLogging(opts.LogDir, opts.LogLevel)
+	}
+	slog.Debug("Starting LanternCore initialization")
+
+	if opts.IsStaging() {
+		slog.Debug("Setting staging environment")
+		env.SetStagingEnv()
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	client, err := createClient(ctx, opts)
+	if err != nil {
+		cancel()
+		return fmt.Errorf("failed to create IPC client: %w", err)
+	}
+
+	lc.client = client
+	lc.userMessages = client
+	lc.serverImporter = client
+	lc.serverStore = client
+	lc.ctx = ctx
+	lc.cancel = cancel
+	lc.eventEmitter = eventEmitter
+	lc.helpers = helper.NewEngine(filepath.Join(opts.DataDir, "helper"), lc.relayHelper, lc.helperActivity)
+
+	go lc.listenAutoSelectedEvents()
+	go lc.listenConfigEvents()
+	go lc.listenDataCapEvents()
+	go lc.listenPeerConnectionEvents()
+	go lc.listenUnboundedSnapshots()
+	go lc.listenPeerSnapshots()
+	go lc.listenHelperLive()
+	go lc.listenPersonalProxyFallbackEvents()
+	go lc.listenSelectionSavedEvents()
+	go lc.listenPeerStatusEvents()
+	go lc.listenUserMessageAvailability()
+	go lc.fetchUserDataIfNeeded()
+
+	slog.Debug("LanternCore initialized successfully")
+	return nil
+}
+
+func (lc *LanternCore) Client() *ipc.Client {
+	return lc.client
+}
+
+// notifyFlutter sends an event to the Flutter frontend via the event emitter.
+func (lc *LanternCore) notifyFlutter(event EventType, message string) {
+	slog.Debug("Notifying Flutter")
+	lc.eventEmitter.SendEvent(&utils.FlutterEvent{
+		Type:    string(event),
+		Message: message,
+	})
+}
+
+// fetchUserDataIfNeeded pulls fresh user data from the server at startup,
+// retrying with backoff, and notifies Flutter so the UI picks up changes
+// (e.g. a purchase credited while the app was closed).
+func (lc *LanternCore) fetchUserDataIfNeeded() {
+	raw := lc.settings()[settings.UserIDKey]
+	userID := userIDAsInt64(raw)
+	if userID == 0 {
+		slog.Debug("Skipping startup user-data fetch: no user ID set", "raw", raw)
+		return
+	}
+	attempts := len(startupUserDataFetchDelays) + 1
+	for i := 0; i < attempts; i++ {
+		_, err := lc.client.FetchUserData(lc.ctx)
+		if err == nil {
+			slog.Debug("Startup user-data fetch succeeded", "userID", userID, "attempt", i+1)
+			lc.notifyFlutter(EventTypeUserData, "")
+			return
+		}
+		if lc.ctx.Err() != nil {
+			return
+		}
+		if i == attempts-1 {
+			slog.Error("Startup user-data fetch failed; giving up", "error", err, "attempts", attempts)
+			return
+		}
+		delay := startupUserDataFetchDelays[i]
+		slog.Warn("Startup user-data fetch failed; retrying", "error", err, "attempt", i+1, "retryIn", delay)
+		select {
+		case <-lc.ctx.Done():
+			return
+		case <-time.After(delay):
+		}
+	}
+}
+
+// userIDAsInt64 normalizes the radiance UserIDKey value across the storage
+// types it can have: int64 (in-process), float64 (after JSON IPC round-trip),
+// int (defensive), or a decimal string (mobile.go purchase flow). Returns 0
+// for any unrecognized type so the caller treats the user as anonymous.
+func userIDAsInt64(v any) int64 {
+	switch x := v.(type) {
+	case int64:
+		return x
+	case float64:
+		return int64(x)
+	case int:
+		return int64(x)
+	case string:
+		n, _ := strconv.ParseInt(x, 10, 64)
+		return n
+	}
+	return 0
+}
+
+// listenAutoSelectedEvents listens for auto-selected server changes from the IPC client and forwards
+// them to Flutter. Blocks until lc.ctx is cancelled.
+func (lc *LanternCore) listenAutoSelectedEvents() {
+	err := lc.client.AutoSelectedEvents(lc.ctx, func(evt vpn.AutoSelectedEvent) {
+		tag := strings.TrimSpace(evt.Selected)
+		if tag == "" {
+			slog.Debug("auto-selected server not available yet")
+			return
+		}
+		server, found, err := lc.client.GetServerByTag(lc.ctx, tag)
+		if err != nil || !found {
+			slog.Error("no server found with tag", "tag", tag, "error", err)
+			return
+		}
+		jsonBytes, err := json.Marshal(server)
+		if err != nil {
+			slog.Error("Error marshalling server location", "error", err)
+			return
+		}
+		slog.Debug("Auto location server:", "tag", tag)
+		lc.notifyFlutter(EventTypeServerLocation, string(jsonBytes))
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("auto-selected event stream exited unexpectedly", "error", err)
+	}
+}
+
+// listenConfigEvents listens for config updates from the IPC client and notifies Flutter when they
+// occur. Blocks until lc.ctx is cancelled.
+func (lc *LanternCore) listenConfigEvents() {
+	err := lc.client.ConfigEvents(lc.ctx, func() {
+		slog.Debug("Config updated, notifying Flutter")
+		lc.notifyFlutter(EventTypeConfig, "")
+		// Forward the country from the latest config fetch.
+		countryCode, _ := lc.settings()[settings.CountryCodeKey].(string)
+		if countryCode != "" {
+			slog.Debug("Config event: country code updated", "countryCode", countryCode)
+			lc.notifyFlutter(EventTypeCountryCode, countryCode)
+		}
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("config event stream exited unexpectedly", "error", err)
+	}
+}
+
+// listenDataCapEvents listens for DataCapInfo updates from the IPC client and forwards them to Flutter.
+// Blocks until lc.ctx is cancelled.
+func (lc *LanternCore) listenDataCapEvents() {
+	err := lc.client.DataCapStream(lc.ctx, func(info account.DataCapInfo) {
+		jsonBytes, err := json.Marshal(info)
+		if err != nil {
+			slog.Error("Error marshalling DataCap event", "error", err)
+			return
+		}
+		lc.notifyFlutter("data-cap-event", string(jsonBytes))
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("datacap event stream exited unexpectedly", "error", err)
+	}
+}
+
+// listenPeerConnectionEvents forwards inbound accept/close events from
+// either of the two donor protocols (samizdat-over-UPnP "Share My
+// Connection" and broflake "Unbounded") to the Flutter side via the
+// existing FlutterEvent emitter, so the same globe widget can render
+// arcs without caring which protocol produced them. Subscription is
+// process-lifetime; events.Subscribe silently delivers nothing while
+// no peer / widget is active.
+//
+// The wire format unifies both protocols on a single event type
+// (EventTypePeerConnection) with a {state, source, timestamp}
+// payload — peer.ConnectionEvent and unbounded.ConnectionEvent both
+// carry the same three fields on the radiance side, so the Dart
+// consumer can deserialize each frame uniformly without caring
+// which protocol produced it. Source is "host:port" /
+// "[host]:port" for peer-share, and the broflake-reported consumer
+// IP (no port) for Unbounded. Timestamp is Unix milliseconds.
+func (lc *LanternCore) listenPeerConnectionEvents() {
+	// unbounded.ConnectionEvent stays on in-process events.Subscribe for
+	// now. Unbounded runs in the same process as the consumer in mobile
+	// builds (broflake-as-library); the desktop path doesn't yet have a
+	// gomobile-bridged Unbounded peer, so the cross-process gap doesn't
+	// hit here today. Worth revisiting if Unbounded ever moves out of
+	// process.
+	//
+	// defer Unsubscribe so cleanup runs whenever this function
+	// returns. In practice that's process shutdown — the function
+	// is started once from initialize(), the PeerConnectionEvents
+	// call below blocks until ctx cancellation, and there's no
+	// retry loop wrapping it. But if PeerConnectionEvents ever did
+	// exit early on stream error (or a future caller adds retries),
+	// defer keeps the subscription lifetime bound to this function's
+	// scope rather than leaking until the next reinitialization —
+	// which the previous ctx-watching goroutine implicitly relied on.
+	unbSub := events.Subscribe(func(evt unbounded.ConnectionEvent) {
+		jsonBytes, err := json.Marshal(map[string]any{
+			"state":     evt.State,
+			"source":    evt.Source,
+			"timestamp": evt.Timestamp,
+		})
+		if err != nil {
+			slog.Error("marshal unbounded connection event", "error", err)
+			return
+		}
+		lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
+	})
+	defer unbSub.Unsubscribe()
+
+	// peer.ConnectionEvent: subscribe via the IPC client's SSE stream.
+	// The events package's globals are process-scoped — events.Emit in
+	// lanternd (where radiance/peer runs) doesn't reach events.Subscribe
+	// in Liblantern. The /peer/connection/events SSE endpoint bridges
+	// the two processes. PeerConnectionEvents blocks until ctx is done,
+	// so this goroutine (the caller spawned us with
+	// `go lc.listenPeerConnectionEvents()`) blocks on it directly —
+	// wrapping in another go would just exit the outer goroutine
+	// immediately.
+	err := lc.client.PeerConnectionEvents(lc.ctx, func(evt peer.ConnectionEvent) {
+		jsonBytes, err := json.Marshal(map[string]any{
+			"state":     evt.State,
+			"source":    evt.Source,
+			"timestamp": evt.Timestamp,
+		})
+		if err != nil {
+			slog.Error("marshal peer connection event", "error", err)
+			return
+		}
+		lc.notifyFlutter(EventTypePeerConnection, string(jsonBytes))
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("peer-connection event stream exited unexpectedly", "error", err)
+	}
+}
+
+// listenPeerStatusEvents forwards peer.Client lifecycle phase changes to
+// the Flutter side. radiance's peer module emits one StatusEvent per
+// stage during Start (mapping_port → detecting_ip → registering →
+// starting_proxy → verifying → serving) and during Stop (stopping →
+// idle), plus an "error" terminal event with Status.Error populated on
+// failure. The Dart side renders each phase as user-facing progress
+// text instead of a single active/inactive flip.
+//
+// Message body is the JSON-marshalled peer.Status — the struct already
+// carries phase, error, active, sharing_since, external_ip,
+// external_port, route_id with stable JSON tags.
+func (lc *LanternCore) listenPeerStatusEvents() {
+	// Same cross-process bridging story as listenPeerConnectionEvents: the
+	// peer.StatusEvent emits live in lanternd, so subscribing in this
+	// process via events.Subscribe gets us nothing. /peer/status/events
+	// SSE in radiance/ipc/server.go is the canonical source.
+	err := lc.client.PeerStatusEvents(lc.ctx, func(evt peer.StatusEvent) {
+		jsonBytes, err := json.Marshal(evt.Status)
+		if err != nil {
+			slog.Error("marshal peer status event", "error", err)
+			return
+		}
+		lc.notifyFlutter(EventTypePeerStatus, string(jsonBytes))
+	})
+	if err != nil && lc.ctx.Err() == nil {
+		slog.Error("peer-status event stream exited unexpectedly", "error", err)
+	}
+}
+
+/////////////////
+//     VPN     //
+/////////////////
+
+// Per-call IPC timeouts. These bound the worst case if lanternd is hung
+// (pipe open, no replies). They're long enough to never fire during normal
+// operation — the connect path involves real DNS / TLS / sing-box bring-up
+// that can take many seconds, while a /vpn/status query should be near-
+// instant — but tight enough that a stuck daemon surfaces as a UI error
+// instead of an indefinite spinner. The dialer already has a 10 s connect
+// timeout (radiance/ipc/conn_windows.go), so these only matter once the
+// pipe is established.
+const (
+	ipcConnectTimeout     = 60 * time.Second
+	ipcStateChangeTimeout = 30 * time.Second
+	ipcStatusTimeout      = 10 * time.Second
+)
+
+// ConnectVPN routes a connect request through vpn_tunnel.ConnectToServer,
+// which picks between /vpn/connect (fresh tunnel) and /server/selected
+// (live-tunnel outbound swap) based on VPNStatus. This is load-bearing for
+// the Smart-from-connected flow: Jigar's onSmartLocation rewrite
+// (server_selection.dart) routes "switch back to auto" through
+// startVPN(force: true) → ffi.go:startVPN → c.ConnectVPN(""). Without the
+// dispatch the call 500s with ErrTunnelAlreadyConnected from
+// radiance/vpn/vpn.go:130 and the user sees a snackbar.
+//
+// Fixes getlantern/engineering#3291 issue 3.
+func (lc *LanternCore) ConnectVPN(tag string) error {
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcConnectTimeout)
+	defer cancel()
+	return vpn_tunnel.ConnectToServer(ctx, lc.client, tag)
+}
+
+func (lc *LanternCore) SelectServer(tag string) error {
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStateChangeTimeout)
+	defer cancel()
+	return lc.client.SelectServer(ctx, tag)
+}
+
+func (lc *LanternCore) DisconnectVPN() error {
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStateChangeTimeout)
+	defer cancel()
+	return lc.client.DisconnectVPN(ctx)
+}
+
+func (lc *LanternCore) VPNStatus() (vpn.VPNStatus, error) {
+	ctx, cancel := context.WithTimeout(lc.ctx, ipcStatusTimeout)
+	defer cancel()
+	return lc.client.VPNStatus(ctx)
+}
+
+func (lc *LanternCore) IsVPNRunning() (bool, error) {
+	status, err := lc.VPNStatus()
+	if err != nil {
+		return false, err
+	}
+	return status == vpn.Connected, nil
+}
+
+func (lc *LanternCore) VPNStatusEvents(ctx context.Context, callback func(evt vpn.StatusUpdateEvent)) error {
+	return lc.client.VPNStatusEvents(ctx, callback)
+}
+
+/////////////////
+//  Settings   //
+/////////////////
+
+// settings returns the current settings from radiance.
+func (lc *LanternCore) settings() settings.Settings {
+	s, err := lc.client.Settings(lc.ctx)
+	if err != nil {
+		slog.Error("Error fetching settings", "error", err)
+		return settings.Settings{}
+	}
+	return s
+}
+
+func (lc *LanternCore) UpdateTelemetryConsent(consent bool) error {
+	return lc.client.EnableTelemetry(lc.ctx, consent)
+}
+
+func (lc *LanternCore) SetBlockAdsEnabled(enabled bool) error {
+	return lc.client.EnableAdBlocking(lc.ctx, enabled)
+}
+
+func (lc *LanternCore) IsBlockAdsEnabled() bool {
+	b, _ := lc.settings()[settings.AdBlockKey].(bool)
+	return b
+}
+
+func (lc *LanternCore) SetSmartRoutingEnabled(enabled bool) error {
+	return lc.client.EnableSmartRouting(lc.ctx, enabled)
+}
+
+func (lc *LanternCore) IsSmartRoutingEnabled() bool {
+	b, _ := lc.settings()[settings.SmartRoutingKey].(bool)
+	return b
+}
+
+func (lc *LanternCore) SetPeerShareEnabled(enabled bool) error {
+	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.PeerShareEnabledKey: enabled})
+	return err
+}
+
+func (lc *LanternCore) IsPeerShareEnabled() bool {
+	b, _ := lc.settings()[settings.PeerShareEnabledKey].(bool)
+	return b
+}
+
+// PeerStatusJSON returns the marshalled peer.Status, or "" if it cannot be
+// read. Empty rather than an error string or a synthesized "idle": a caller
+// that cannot tell "not sharing" from "could not ask" would render a
+// confident wrong answer, which is the failure this exists to remove.
+func (lc *LanternCore) PeerStatusJSON() string {
+	ctx, cancel := context.WithTimeout(lc.ctx, peerStatusTimeout)
+	defer cancel()
+
+	status, err := lc.client.PeerStatus(ctx)
+	if err != nil {
+		slog.Warn("could not read peer status", "error", err)
+		return ""
+	}
+	b, err := json.Marshal(status)
+	if err != nil {
+		slog.Error("marshal peer status", "error", err)
+		return ""
+	}
+	return string(b)
+}
+
+// peerStatusTimeout bounds the read. It is called on the UI's path to first
+// paint, so a hung daemon must degrade to "unknown" quickly rather than
+// blocking the screen.
+const peerStatusTimeout = 5 * time.Second
+
+func (lc *LanternCore) SetPeerManualPort(port int) error {
+	if port < 0 || port > 65535 {
+		return fmt.Errorf("port %d out of range (0-65535)", port)
+	}
+	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.PeerManualPortKey: port})
+	return err
+}
+
+func (lc *LanternCore) GetPeerManualPort() int {
+	// koanf typically stores numeric settings as float64 after JSON
+	// round-trip; handle both float64 and int paths so loads from disk
+	// and freshly-set values both work.
+	switch v := lc.settings()[settings.PeerManualPortKey].(type) {
+	case int:
+		return v
+	case float64:
+		return int(v)
+	}
+	return 0
+}
+
+// ProbeUPnP reports whether the local network has a UPnP / IGD gateway
+// that could host a port mapping. The Share My Connection UI flow
+// uses this to decide between SmC mode (requires a routable inbound)
+// and Unbounded mode (works on any network). The result is a binary
+// "available / not available" — distinguishing "no gateway" from
+// "discovery timed out" doesn't change anything productive in the UI.
+//
+// Bounded by an internal 6-second timeout because UPnP M-SEARCH is
+// multicast-and-wait: a too-aggressive deadline misses slower
+// consumer gateways, while a too-loose one stalls the UI's mode
+// decision. The Dart-side FFI wrapper runs this on a background
+// isolate so the wait doesn't block the main thread.
+func (lc *LanternCore) ProbeUPnP() bool {
+	ctx, cancel := context.WithTimeout(lc.ctx, 6*time.Second)
+	defer cancel()
+	return portforward.ProbeUPnP(ctx)
+}
+
+func (lc *LanternCore) SetUnboundedEnabled(enabled bool) error {
+	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.UnboundedKey: enabled})
+	return err
+}
+
+func (lc *LanternCore) IsUnboundedEnabled() bool {
+	b, _ := lc.settings()[settings.UnboundedKey].(bool)
+	return b
+}
+
+func (lc *LanternCore) IsTelemetryEnabled() bool {
+	b, _ := lc.settings()[settings.TelemetryKey].(bool)
+	return b
+}
+
+func (lc *LanternCore) IsOAuthLogin() bool {
+	b, _ := lc.settings()[settings.OAuthLoginKey].(bool)
+	return b
+}
+
+func (lc *LanternCore) GetOAuthProvider() string {
+	v, _ := lc.settings()[settings.OAuthProviderKey].(string)
+	return v
+}
+
+func (lc *LanternCore) IsRadianceConnected() bool {
+	return lc.client != nil
+}
+
+func (lc *LanternCore) MyDeviceId() string {
+	v, _ := lc.settings()[settings.DeviceIDKey].(string)
+	return v
+}
+
+func (lc *LanternCore) UpdateLocale(locale string) error {
+	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.LocaleKey: locale})
+	return err
+}
+
+func (lc *LanternCore) UpdateTimeZone(timeZone string) error {
+	_, err := lc.client.PatchSettings(lc.ctx, settings.Settings{settings.TimeZoneKey: timeZone})
+	return err
+}
+
+func (lc *LanternCore) AvailableFeatures() []byte {
+	features, err := lc.client.Features(lc.ctx)
+	if err != nil {
+		slog.Error("Error getting features", "error", err)
+		return nil
+	}
+	jsonBytes, err := json.Marshal(features)
+	if err != nil {
+		slog.Error("Error marshalling features", "error", err)
+		return nil
+	}
+	return jsonBytes
+}
+
+func (lc *LanternCore) GetAvailableServers() []byte {
+	data, err := lc.client.ServersJSON(lc.ctx)
+	if err != nil {
+		slog.Error("Error getting servers", "error", err)
+		return nil
+	}
+	return data
+}
+
+func (lc *LanternCore) GetServerByTagJSON(tag string) ([]byte, bool, error) {
+	return lc.client.GetServerByTagJSON(lc.ctx, tag)
+}
+
+func (lc *LanternCore) GetSelectedServerJSON() ([]byte, error) {
+	return lc.client.SelectedServerJSON(lc.ctx)
+}
+
+func (lc *LanternCore) GetSelectedServerTag() (string, error) {
+	server, exists, err := lc.client.SelectedServer(lc.ctx)
+	if err != nil {
+		return "", err
+	}
+	if !exists {
+		return "", nil
+	}
+	return server.Tag, nil
+}
+
+func (lc *LanternCore) GetAutoLocationJSON() ([]byte, error) {
+	server, err := lc.client.AutoSelected(lc.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get auto location: %w", err)
+	}
+	return json.Marshal(server)
+}
+
+func (lc *LanternCore) CheckDaemonReachable() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	defer cancel()
+	_, err := lc.client.VPNStatus(ctx)
+	return err
+}
+
+func (lc *LanternCore) PatchSettings(s settings.Settings) error {
+	_, err := lc.client.PatchSettings(lc.ctx, s)
+	return err
+}
+
+func (lc *LanternCore) GetSettingsJSON() ([]byte, error) {
+	s, err := lc.client.Settings(lc.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(s)
+}
+
+func (lc *LanternCore) PatchEnvVars(updates map[string]string) (map[string]string, error) {
+	return lc.client.PatchEnvVars(lc.ctx, updates)
+}
+
+// GetEnvVars returns the daemon's in-memory env vars. Uses an empty PATCH
+// because ipc.Client exposes no dedicated GET; the daemon returns the full
+// env map on both GET and PATCH.
+func (lc *LanternCore) GetEnvVars() map[string]string {
+	vars, err := lc.client.PatchEnvVars(lc.ctx, map[string]string{})
+	if err != nil {
+		slog.Error("Error fetching env vars", "error", err)
+		return nil
+	}
+	return vars
+}
+
+func (lc *LanternCore) RunOfflineURLTests() error {
+	return lc.client.RunOfflineURLTests(lc.ctx)
+}
+
+func (lc *LanternCore) UpdateConfig() error {
+	return lc.client.UpdateConfig(lc.ctx)
+}
+
+func (lc *LanternCore) ClearTunnelCache() error {
+	return lc.client.ClearTunnelCache(lc.ctx)
+}
+
+/////////////////
+// Split Tunnel //
+/////////////////
+
+// TODO: ??? not sure what to do about this one. it can't access dataDir
+func (lc *LanternCore) LoadInstalledApps(dataDir string) (string, error) {
+	appsList := []*apps.AppData{}
+	apps.LoadInstalledApps(dataDir, func(a ...*apps.AppData) error {
+		appsList = append(appsList, a...)
+		return nil
+	})
+	b, err := json.Marshal(appsList)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+func (lc *LanternCore) SetSplitTunnelingEnabled(enabled bool) error {
+	return lc.client.EnableSplitTunneling(lc.ctx, enabled)
+}
+
+func (lc *LanternCore) IsSplitTunnelingEnabled() bool {
+	b, _ := lc.settings()[settings.SplitTunnelKey].(bool)
+	return b
+}
+
+func (lc *LanternCore) AddSplitTunnelItem(filterType, item string) error {
+	filter := filterFromTypeAndItems(filterType, []string{item})
+	return lc.client.AddSplitTunnelItems(lc.ctx, filter)
+}
+
+func (lc *LanternCore) AddSplitTunnelItems(items string) error {
+	split := splitCSVClean(items)
+	filter := platformFilter(split)
+	return lc.client.AddSplitTunnelItems(lc.ctx, filter)
+}
+
+func (lc *LanternCore) RemoveSplitTunnelItem(filterType, item string) error {
+	filter := filterFromTypeAndItems(filterType, []string{item})
+	return lc.client.RemoveSplitTunnelItems(lc.ctx, filter)
+}
+
+func (lc *LanternCore) RemoveSplitTunnelItems(items string) error {
+	split := splitCSVClean(items)
+	filter := platformFilter(split)
+	return lc.client.RemoveSplitTunnelItems(lc.ctx, filter)
+}
+
+func (lc *LanternCore) GetSplitTunnelItems() (string, error) {
+	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
+	if err != nil {
+		return "{}", nil
+	}
+	b, err := json.Marshal(filter)
+	if err != nil {
+		return "{}", nil
+	}
+	return string(b), nil
+}
+
+func (lc *LanternCore) GetSplitTunnelItemsFor(filterType string) (string, error) {
+	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
+	if err != nil {
+		return "", err
+	}
+	items := itemsForType(filter, filterType)
+	b, err := json.Marshal(items)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+func (lc *LanternCore) GetEnabledApps() (string, error) {
+	filter, err := lc.client.SplitTunnelFilters(lc.ctx)
+	if err != nil {
+		return "", err
+	}
+	// Initialize as empty slice so json.Marshal emits "[]" rather than
+	// "null" when no items are enabled — Dart's jsonDecode("null") returns
+	// null and the receiver does `as List`, which throws. Was the actual
+	// cause of "Failed to fetch installed apps" empty list in
+	// Freshdesk #173774 / #173778 / #173826.
+	enabledApps := []string{}
+	enabledApps = append(enabledApps, filter.ProcessPath...)
+	enabledApps = append(enabledApps, filter.ProcessPathRegex...)
+	enabledApps = append(enabledApps, filter.PackageName...)
+	b, err := json.Marshal(enabledApps)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+/////////////////
+// Issue Report //
+/////////////////
+
+func (lc *LanternCore) ReportIssue(email, issueType, description, device, model, logFilePath, attachmentsJSON string) error {
+	it := parseIssueType(issueType)
+	var attachments []string
+	// Windows + Linux have separate UI and daemon logDirs, so the daemon's
+	// own archive glob misses UI-process logs — pass them through as paths.
+	// Mobile + macOS already share the directory; no pass-through needed.
+	// Relies on the UI logDir being readable by the daemon (SYSTEM on
+	// Windows); %PUBLIC%\Lantern\logs is chosen for that.
+	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
+		attachments = collectLocalLogs(settings.GetString(settings.LogPathKey))
+	}
+	if logFilePath != "" {
+		attachments = append(attachments, logFilePath)
+	}
+
+	firstClassAttachments, err := reportissue.LoadAttachments(attachmentsJSON)
+	if err != nil {
+		return fmt.Errorf("load issue attachments: %w", err)
+	}
+
+	return lc.client.ReportIssue(lc.ctx, it, description, email, attachments, firstClassAttachments)
+}
+
+// collectLocalLogs returns every *.log directly under dir, with paths shaped
+// however filepath.Glob returns them (relative if dir is relative; the
+// daemon-side ReportIssue path on windows/linux passes the absolute
+// settings.LogPathKey so this is absolute in practice).
+//
+// Files we can't os.Stat from the UI process are dropped. That's a
+// best-effort screen, not a guarantee — the daemon runs as SYSTEM on
+// Windows and may be able to read files this process can't, and vice
+// versa. The drop avoids attaching obviously-broken paths to issue
+// reports; the daemon's own readability check is authoritative.
+func collectLocalLogs(dir string) []string {
+	if dir == "" {
+		return nil
+	}
+	matches, err := filepath.Glob(filepath.Join(dir, "*.log"))
+	if err != nil {
+		slog.Warn("ReportIssue: unable to glob local logs", "dir", dir, "err", err)
+		return nil
+	}
+	out := matches[:0]
+	for _, p := range matches {
+		if _, err := os.Stat(p); err != nil {
+			slog.Warn("ReportIssue: skipping log (unreadable from this process)", "path", p, "err", err)
+			continue
+		}
+		out = append(out, p)
+	}
+	return out
+}
+
+func parseIssueType(s string) issue.IssueType {
+	switch strings.ToLower(s) {
+	case "cannot_complete_purchase":
+		return issue.CannotCompletePurchase
+	case "cannot_sign_in":
+		return issue.CannotSignIn
+	case "spinner_loads_endlessly":
+		return issue.SpinnerLoadsEndlessly
+	case "cannot_access_blocked_sites":
+		return issue.CannotAccessBlockedSites
+	case "slow":
+		return issue.Slow
+	// the app's dropdown key is plural; accept both forms.
+	case "cannot_link_device", "cannot_link_devices":
+		return issue.CannotLinkDevice
+	case "application_crashes":
+		return issue.ApplicationCrashes
+	case "update_fails":
+		return issue.UpdateFails
+	case "split_tunnel":
+		return issue.SplitTunnel
+	case "smart_routing_not_working":
+		return issue.SmartRouting
+	case "server_selection_not_working":
+		return issue.ServerSelection
+	case "upgrade_fail":
+		return issue.UpgradeFail
+	default:
+		if s != "" && !strings.EqualFold(s, "other") {
+			slog.Warn("parseIssueType: unrecognized issue type", "type", s)
+		}
+		return issue.Other
+	}
+}
+
+/////////////////
+//   Account   //
+/////////////////
+
+func (lc *LanternCore) DataCapInfo() (string, error) {
+	info, err := lc.client.DataCapInfo(lc.ctx)
+	if err != nil {
+		return "", err
+	}
+	jsonBytes, err := json.Marshal(info)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling DataCapInfo: %w", err)
+	}
+	return string(jsonBytes), nil
+}
+
+func (lc *LanternCore) UserData() ([]byte, error) {
+	userData, err := lc.client.UserData(lc.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(userData)
+}
+
+func (lc *LanternCore) FetchUserData() ([]byte, error) {
+	userData, err := lc.client.FetchUserData(lc.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(userData)
+}
+
+func (lc *LanternCore) OAuthLoginUrl(provider string) (string, error) {
+	return lc.client.OAuthLoginURL(lc.ctx, provider)
+}
+
+func (lc *LanternCore) OAuthLoginCallback(oAuthToken string) ([]byte, error) {
+	userData, err := lc.client.OAuthLoginCallback(lc.ctx, oAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(userData)
+}
+
+// OAuthDeviceLimitCallback loads the account identity from a device-limit
+// OAuth callback token so the follow-up device removal authenticates as that
+// account, without logging the user in.
+func (lc *LanternCore) OAuthDeviceLimitCallback(oAuthToken string) error {
+	return lc.client.OAuthDeviceLimitCallback(lc.ctx, oAuthToken)
+}
+
+func (lc *LanternCore) Login(email, password string) ([]byte, error) {
+	userData, err := lc.client.Login(lc.ctx, email, password)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(userData)
+}
+
+func (lc *LanternCore) SignUp(email, password string) error {
+	_, _, err := lc.client.SignUp(lc.ctx, email, password)
+	return err
+}
+
+func (lc *LanternCore) Logout(email string) ([]byte, error) {
+	userData, err := lc.client.Logout(lc.ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(userData)
+}
+
+func (lc *LanternCore) StartRecoveryByEmail(email string) error {
+	return lc.client.StartRecoveryByEmail(lc.ctx, email)
+}
+
+func (lc *LanternCore) ValidateChangeEmailCode(email, code string) error {
+	return lc.client.ValidateEmailRecoveryCode(lc.ctx, email, code)
+}
+
+func (lc *LanternCore) CompleteRecoveryByEmail(email, password, code string) error {
+	return lc.client.CompleteRecoveryByEmail(lc.ctx, email, password, code)
+}
+
+func (lc *LanternCore) DeleteAccount(email, password string) ([]byte, error) {
+	userData, err := lc.client.DeleteAccount(lc.ctx, email, password)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(userData)
+}
+
+func (lc *LanternCore) RemoveDevice(deviceID string) (*account.LinkResponse, error) {
+	return lc.client.RemoveDevice(lc.ctx, deviceID)
+}
+
+func (lc *LanternCore) VerifyPassword(email, password string) error {
+	return lc.client.VerifyPassword(lc.ctx, email, password)
+}
+
+func (lc *LanternCore) StartChangeEmail(newEmail, password string) error {
+	return lc.client.StartChangeEmail(lc.ctx, newEmail, password)
+}
+
+func (lc *LanternCore) CompleteChangeEmail(email, password, code string) error {
+	return lc.client.CompleteChangeEmail(lc.ctx, email, password, code)
+}
+
+func (lc *LanternCore) ReferralAttachment(referralCode string) (bool, error) {
+	// Empty channel selects the legacy v1 referral-attach API.
+	if _, err := lc.client.ReferralAttach(lc.ctx, referralCode, ""); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// ReferralAttachmentV2 attaches a referral code and returns the resulting
+// plans, providers, code, and discount marshalled as JSON.
+func (lc *LanternCore) ReferralAttachmentV2(referralCode, channel string) ([]byte, error) {
+	resp, err := lc.client.ReferralAttach(lc.ctx, referralCode, channel)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(resp)
+}
+
+/////////////////
+//  Payments   //
+/////////////////
+
+func (lc *LanternCore) StripeSubscription(email, planID, couponCode string) (string, error) {
+	return lc.client.NewStripeSubscription(lc.ctx, email, planID, couponCode)
+}
+
+func (lc *LanternCore) Plans(channel string) (string, error) {
+	return lc.client.SubscriptionPlans(lc.ctx, channel)
+}
+
+func (lc *LanternCore) StripeBillingPortalUrl() (string, error) {
+	return lc.client.StripeBillingPortalURL(lc.ctx)
+}
+
+func (lc *LanternCore) AcknowledgeGooglePurchase(purchaseToken, planId, couponCode string) (string, error) {
+	params := map[string]string{
+		"purchaseToken": purchaseToken,
+		"planId":        planId,
+	}
+	// Affiliate/referral attribution: forward the applied code so the backend
+	// can credit the purchase to the affiliate. Google Play already applies the
+	// price discount via the offer SKU; this only carries attribution.
+	if couponCode != "" {
+		params["couponCode"] = couponCode
+	}
+	return lc.client.VerifySubscription(lc.ctx, account.GoogleService, params)
+}
+
+func (lc *LanternCore) AcknowledgeApplePurchase(receipt, planII, couponCode string) (string, error) {
+	params := map[string]string{
+		"receipt": receipt,
+		"planId":  planII,
+	}
+	if couponCode != "" {
+		params["couponCode"] = couponCode
+	}
+	return lc.client.VerifySubscription(lc.ctx, account.AppleService, params)
+}
+
+func (lc *LanternCore) RestoreGooglePlayPurchase(purchaseToken string) (string, error) {
+	params := map[string]string{
+		"purchaseToken":  purchaseToken,
+		"idempotencyKey": strconv.FormatInt(time.Now().UnixNano(), 10),
+	}
+	resp, err := lc.client.RestoreSubscription(lc.ctx, account.GoogleService, params)
+	if err != nil {
+		return "", err
+	}
+	data, err := json.Marshal(resp)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling restore google play purchase response: %w", err)
+	}
+	return string(data), nil
+}
+
+func (lc *LanternCore) RestoreApplePurchase(receipt string) (string, error) {
+	params := map[string]string{
+		"receipt":        receipt,
+		"idempotencyKey": strconv.FormatInt(time.Now().UnixNano(), 10),
+	}
+	resp, err := lc.client.RestoreSubscription(lc.ctx, account.AppleService, params)
+	if err != nil {
+		return "", err
+	}
+	data, err := json.Marshal(resp)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling restore apple purchase response: %w", err)
+	}
+	return string(data), nil
+}
+
+func (lc *LanternCore) SubscriptionPaymentRedirectURL(redirectBody account.PaymentRedirectData) (string, error) {
+	return lc.client.SubscriptionPaymentRedirectURL(lc.ctx, redirectBody)
+}
+
+func (lc *LanternCore) StripeSubscriptionPaymentRedirect(subscriptionType, planID, email, idempotencyKey, couponCode string) (string, error) {
+	idempotencyKey, err := normalizePaymentRedirectIdempotencyKey(idempotencyKey)
+	if err != nil {
+		return "", err
+	}
+	deviceID := lc.MyDeviceId()
+	redirectBody := account.PaymentRedirectData{
+		Provider:       "stripe",
+		Plan:           planID,
+		DeviceName:     deviceID,
+		Email:          email,
+		BillingType:    account.SubscriptionType(subscriptionType),
+		IdempotencyKey: idempotencyKey,
+		CouponCode:     couponCode,
+	}
+	return lc.SubscriptionPaymentRedirectURL(redirectBody)
+}
+
+func (lc *LanternCore) PaymentRedirect(provider, planId, email, idempotencyKey, couponCode string) (string, error) {
+	idempotencyKey, err := normalizePaymentRedirectIdempotencyKey(idempotencyKey)
+	if err != nil {
+		return "", err
+	}
+	deviceName := lc.MyDeviceId()
+	body := account.PaymentRedirectData{
+		Provider:       provider,
+		Plan:           planId,
+		DeviceName:     deviceName,
+		Email:          email,
+		IdempotencyKey: idempotencyKey,
+		CouponCode:     couponCode,
+	}
+	return lc.client.PaymentRedirect(lc.ctx, body)
+}
+
+func normalizePaymentRedirectIdempotencyKey(idempotencyKey string) (string, error) {
+	idempotencyKey = strings.TrimSpace(idempotencyKey)
+	if idempotencyKey == "" {
+		return "", fmt.Errorf("payment redirect idempotency key is required")
+	}
+	return idempotencyKey, nil
+}
+
+func (lc *LanternCore) ActivationCode(email, resellerCode string) error {
+	purchase, err := lc.client.ActivationCode(lc.ctx, email, resellerCode)
+	if err != nil {
+		return fmt.Errorf("error getting activation code: %w", err)
+	}
+	if purchase.Status != "ok" {
+		return fmt.Errorf("activation code failed: %s", purchase.Status)
+	}
+	return nil
+}
+
+/////////////////////
+// Private Servers //
+/////////////////////
+
+func (lc *LanternCore) DigitalOceanPrivateServer(events utils.PrivateServerEventListener) error {
+	return privateserver.StartDigitalOceanPrivateServerFlow(events, lc.client)
+}
+
+func (lc *LanternCore) GoogleCloudPrivateServer(events utils.PrivateServerEventListener) error {
+	return privateserver.StartGoogleCloudPrivateServerFlow(events, lc.client)
+}
+
+func (lc *LanternCore) ValidateSession() error {
+	return privateserver.ValidateSession(context.Background())
+}
+
+func (lc *LanternCore) SelectAccount(account string) error {
+	return privateserver.SelectAccount(account)
+}
+
+func (lc *LanternCore) SelectProject(project string) error {
+	return privateserver.SelectProject(project)
+}
+
+func (lc *LanternCore) StartDeployment(location, serverName string) error {
+	return privateserver.StartDeployment(location, serverName)
+}
+
+func (lc *LanternCore) CancelDeployment() error {
+	return privateserver.CancelDeployment()
+}
+
+func (lc *LanternCore) AddServerManagerInstance(ip, port, accessToken, tag string, events utils.PrivateServerEventListener) error {
+	return privateserver.AddServerManually(ip, port, accessToken, tag, false, lc.client, events)
+}
+
+func (lc *LanternCore) InviteToServerManagerInstance(ip, port, accessToken, inviteName string) (string, error) {
+	portInt, err := parsePort(port)
+	if err != nil {
+		return "", err
+	}
+	return lc.client.InviteToPrivateServer(lc.ctx, ip, portInt, accessToken, inviteName)
+}
+
+func (lc *LanternCore) RevokeServerManagerInvite(ip, port, accessToken, inviteName string) error {
+	portInt, err := parsePort(port)
+	if err != nil {
+		return err
+	}
+	return lc.client.RevokePrivateServerInvite(lc.ctx, ip, portInt, accessToken, inviteName)
+}
+
+func (lc *LanternCore) DeleteServer(tag string) error {
+	return lc.client.RemoveServers(lc.ctx, []string{tag})
+}
+
+func (lc *LanternCore) UpdatePrivateServerName(oldTag, newTag string) error {
+	if oldTag == "" || newTag == "" {
+		return fmt.Errorf("old and new server names must be non-empty")
+	}
+	if oldTag == newTag {
+		return nil
+	}
+	// radiance refuses these at AddServers, which here runs after the
+	// remove; refuse them before touching the server.
+	if slices.Contains(servers.ReservedTags(), newTag) {
+		return fmt.Errorf("server name %q: %w", newTag, servers.ErrReservedTag)
+	}
+
+	// Find source server
+	source, exists, err := lc.serverStore.GetServerByTag(lc.ctx, oldTag)
+	if err != nil {
+		return fmt.Errorf("failed to get server %q: %w", oldTag, err)
+	}
+	if !exists {
+		return fmt.Errorf("server with tag %q not found", oldTag)
+	}
+
+	// Check new tag doesn't collide
+	_, collision, _ := lc.serverStore.GetServerByTag(lc.ctx, newTag)
+	if collision {
+		return fmt.Errorf("server with tag %q already exists", newTag)
+	}
+
+	// Remove old, add renamed copy. radiance saves or deletes before it
+	// updates the tunnel, so an error does not say what is stored: a failed
+	// add is reconciled from what the store holds afterwards.
+	original := *source
+	if err := lc.serverStore.RemoveServers(lc.ctx, []string{oldTag}); err != nil {
+		return fmt.Errorf("failed to remove old server %q: %w", oldTag, err)
+	}
+	renamed := *source
+	renamed.Tag = newTag
+	list := servers.ServerList{Servers: []*servers.Server{&renamed}}
+	if err := lc.serverStore.AddServers(lc.ctx, list); err != nil {
+		return lc.reconcileRename(oldTag, newTag, &original, err)
+	}
+	return nil
+}
+
+// reconcileRename settles a rename whose add failed, from the stored state
+// rather than the errors, with at most one corrective call. It always
+// returns an error wrapping addErr, describing the final state.
+func (lc *LanternCore) reconcileRename(oldTag, newTag string, original *servers.Server, addErr error) error {
+	hasOld, hasNew, err := lc.renameState(oldTag, newTag)
+	if err != nil {
+		return fmt.Errorf("failed to add renamed server %q: %w (stored state unknown: %v)", newTag, addErr, err)
+	}
+	switch {
+	case hasOld && hasNew:
+		// Best effort: the result is read back below.
+		_ = lc.serverStore.RemoveServers(lc.ctx, []string{newTag})
+	case !hasOld && !hasNew:
+		_ = lc.serverStore.AddServers(lc.ctx, servers.ServerList{Servers: []*servers.Server{original}})
+	}
+	if hasOld != hasNew {
+		return lc.renameResult(oldTag, newTag, hasOld, hasNew, addErr)
+	}
+	hasOld, hasNew, err = lc.renameState(oldTag, newTag)
+	if err != nil {
+		return fmt.Errorf("failed to add renamed server %q: %w (stored state unknown: %v)", newTag, addErr, err)
+	}
+	return lc.renameResult(oldTag, newTag, hasOld, hasNew, addErr)
+}
+
+func (lc *LanternCore) renameState(oldTag, newTag string) (hasOld, hasNew bool, err error) {
+	if _, hasOld, err = lc.serverStore.GetServerByTag(lc.ctx, oldTag); err != nil {
+		return false, false, err
+	}
+	_, hasNew, err = lc.serverStore.GetServerByTag(lc.ctx, newTag)
+	return hasOld, hasNew, err
+}
+
+func renameError(newTag string, addErr error, state string) error {
+	return fmt.Errorf("failed to add renamed server %q: %w (%s)", newTag, addErr, state)
+}
+
+func (lc *LanternCore) renameResult(oldTag, newTag string, hasOld, hasNew bool, addErr error) error {
+	switch {
+	case hasOld && !hasNew:
+		return renameError(newTag, addErr, fmt.Sprintf("kept as %q", oldTag))
+	case hasNew && !hasOld:
+		// The rename was saved; only the tunnel update after it failed.
+		return renameError(newTag, addErr, fmt.Sprintf("saved as %q", newTag))
+	case hasOld && hasNew:
+		return renameError(newTag, addErr, fmt.Sprintf("both %q and %q are stored", oldTag, newTag))
+	default:
+		return renameError(newTag, addErr, fmt.Sprintf("server %q is no longer stored", oldTag))
+	}
+}
+
+// serverStore is the part of the IPC client a rename uses.
+type serverStore interface {
+	GetServerByTag(context.Context, string) (*servers.Server, bool, error)
+	RemoveServers(context.Context, []string) error
+	AddServers(context.Context, servers.ServerList) error
+}
+
+type serverURLImporter interface {
+	AddServersByURL(context.Context, []string, bool) ([]string, error)
+}
+
+// AddServersByURL imports servers; the legacy certificate-bypass flag is ignored.
+func (lc *LanternCore) AddServersByURL(urls string, _ bool) ([]byte, error) {
+	urls = strings.TrimSpace(urls)
+	if inv, ok := privateserver.ParseInviteURL(urls); ok {
+		if err := privateserver.AddServerManually(inv.IP, inv.Port, inv.Token, inv.Name, true, lc.client, nil); err != nil {
+			return nil, err
+		}
+		return json.Marshal([]string{inv.Name})
+	}
+
+	tags, err := lc.serverImporter.AddServersByURL(lc.ctx, []string{urls}, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(tags)
+}
+
+/////////////////
+//  Helpers    //
+/////////////////
+
+func parsePort(port string) (int, error) {
+	portInt := 0
+	_, err := fmt.Sscanf(port, "%d", &portInt)
+	if err != nil {
+		return 0, fmt.Errorf("invalid port %q: %w", port, err)
+	}
+	if portInt <= 0 || portInt > 65535 {
+		return 0, fmt.Errorf("invalid port %d: must be between 1 and 65535", portInt)
+	}
+	return portInt, nil
+}
+
+func splitCSVClean(s string) []string {
+	raw := strings.Split(s, ",")
+	out := make([]string, 0, len(raw))
+	seen := make(map[string]struct{}, len(raw))
+	for _, it := range raw {
+		it = strings.TrimSpace(it)
+		it = strings.Trim(it, `"`)
+		if it == "" {
+			continue
+		}
+		if common.IsWindows() {
+			it = strings.ToLower(it)
+		}
+		if _, ok := seen[it]; ok {
+			continue
+		}
+		seen[it] = struct{}{}
+		out = append(out, it)
+	}
+	return out
+}
+
+func platformFilter(items []string) vpn.SplitTunnelFilter {
+	if common.IsMacOS() {
+		return vpn.SplitTunnelFilter{ProcessPathRegex: items}
+	} else if common.IsWindows() {
+		return vpn.SplitTunnelFilter{ProcessPath: items}
+	}
+	return vpn.SplitTunnelFilter{PackageName: items}
+}
+
+func filterFromTypeAndItems(filterType string, items []string) vpn.SplitTunnelFilter {
+	switch filterType {
+	case vpn.TypeDomain:
+		return vpn.SplitTunnelFilter{Domain: items}
+	case vpn.TypeDomainSuffix:
+		return vpn.SplitTunnelFilter{DomainSuffix: items}
+	case vpn.TypeDomainKeyword:
+		return vpn.SplitTunnelFilter{DomainKeyword: items}
+	case vpn.TypeDomainRegex:
+		return vpn.SplitTunnelFilter{DomainRegex: items}
+	case vpn.TypeProcessName:
+		return vpn.SplitTunnelFilter{ProcessName: items}
+	case vpn.TypeProcessPath:
+		return vpn.SplitTunnelFilter{ProcessPath: items}
+	case vpn.TypeProcessPathRegex:
+		return vpn.SplitTunnelFilter{ProcessPathRegex: items}
+	case vpn.TypePackageName:
+		return vpn.SplitTunnelFilter{PackageName: items}
+	default:
+		return vpn.SplitTunnelFilter{}
+	}
+}
+
+func itemsForType(filter vpn.SplitTunnelFilter, filterType string) []string {
+	switch filterType {
+	case vpn.TypeDomain:
+		return filter.Domain
+	case vpn.TypeDomainSuffix:
+		return filter.DomainSuffix
+	case vpn.TypeDomainKeyword:
+		return filter.DomainKeyword
+	case vpn.TypeDomainRegex:
+		return filter.DomainRegex
+	case vpn.TypeProcessName:
+		return filter.ProcessName
+	case vpn.TypeProcessPath:
+		return filter.ProcessPath
+	case vpn.TypeProcessPathRegex:
+		return filter.ProcessPathRegex
+	case vpn.TypePackageName:
+		return filter.PackageName
+	default:
+		return nil
+	}
+}
+
+// helperCallTimeout bounds one helper operation. A refresh makes one request
+// per pending invite, up to 20, plus one, each relayed through kindling.
+const helperCallTimeout = 90 * time.Second
+
+func (lc *LanternCore) HelperCall(op, argsJSON string) string {
+	if op == opPersonalProxyStatus {
+		if lc.client == nil {
+			return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
+		}
+		return personalProxyStatusJSON(lc.ctx, lc.client.PersonalProxyStatus)
+	}
+	if op == opSelectedServer {
+		return lc.readSelectedServer()
+	}
+	if lc.helpers == nil {
+		return helper.ErrorJSON(&helper.Error{Code: helper.CodeUnavailable})
+	}
+	ctx, cancel := context.WithTimeout(lc.ctx, helperCallTimeout)
+	defer cancel()
+	out, err := lc.helpers.Call(ctx, op, []byte(argsJSON))
+	if err != nil {
+		// Only the op, code and status: the arguments and the rest of the
+		// error can carry invite secrets or names.
+		code, status := helper.Describe(err)
+		slog.Warn("Helper operation failed", "op", op, "code", code, "status", status)
+		return helper.ErrorJSON(err)
+	}
+	return string(out)
+}
+
+// relayHelper sends one HelperService request through radiance.
+func (lc *LanternCore) relayHelper(ctx context.Context, op string, body []byte) (int, []byte, string, error) {
+	res, err := lc.client.HelperRelay(ctx, op, body)
+	if err != nil {
+		return 0, nil, "", err
+	}
+	return res.Status, res.Body, res.Error, nil
+}
+
+// helperActivity reads today's sharing totals from radiance.
+func (lc *LanternCore) helperActivity(ctx context.Context) (helper.Activity, error) {
+	a, err := lc.client.HelperActivity(ctx)
+	if err != nil {
+		return helper.Activity{}, err
+	}
+	return helper.Activity{Day: a.Day, ActiveSeconds: a.ActiveSeconds, RelayedBytes: a.RelayedBytes}, nil
+}

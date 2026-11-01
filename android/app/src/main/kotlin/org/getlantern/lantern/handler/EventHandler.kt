@@ -1,0 +1,228 @@
+package org.getlantern.lantern.handler
+
+import androidx.lifecycle.Observer
+import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.JSONMethodCodec
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import lantern.io.mobile.LogSubscription
+import lantern.io.mobile.Mobile
+import lantern.io.utils.FlutterEvent
+import lantern.io.utils.LogListener
+import org.getlantern.lantern.apps.AppDataHandler
+import org.getlantern.lantern.constant.VPNStatus
+import org.getlantern.lantern.utils.AppLogger
+import org.getlantern.lantern.utils.Event
+import org.getlantern.lantern.utils.FlutterEventStream
+import org.getlantern.lantern.utils.PrivateServerEventStream
+import org.getlantern.lantern.utils.VpnStatusManager
+
+
+class EventHandler : FlutterPlugin {
+
+    companion object {
+        const val TAG = "A/EventHandler"
+        const val SERVICE_STATUS = "org.getlantern.lantern/status"
+        const val LOGS = "org.getlantern.lantern/logs"
+        const val PRIVATE_SERVER_STATUS = "org.getlantern.lantern/private_server_status"
+        const val APP_EVENTS = "org.getlantern.lantern/app_events"
+        const val APP_STREAM = "org.getlantern.lantern/app_stream"
+    }
+
+    private var statusChannel: EventChannel? = null
+    private var privateServerStatusChannel: EventChannel? = null
+    private var appEventStatusChannel: EventChannel? = null
+    private var appDataChannel: EventChannel? = null
+    private var logsChannel: EventChannel? = null
+    private var appDataHandler: AppDataHandler? = null
+
+    private var statusObserver: Observer<Event<VPNStatus>>? = null
+    private var flutterEventObserver: ((FlutterEvent) -> Unit)? = null
+    var job: Job? = null
+    private var logsSubscription: LogSubscription? = null
+    private var logsListener: LogListener? = null
+    private val eventScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+
+    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        AppLogger.d(TAG, "Event handler Attaching to engine")
+        statusChannel = EventChannel(
+            flutterPluginBinding.binaryMessenger,
+            SERVICE_STATUS,
+            JSONMethodCodec.INSTANCE
+        )
+        privateServerStatusChannel = EventChannel(
+            flutterPluginBinding.binaryMessenger,
+            PRIVATE_SERVER_STATUS,
+            JSONMethodCodec.INSTANCE
+        )
+        appEventStatusChannel = EventChannel(
+            flutterPluginBinding.binaryMessenger,
+            APP_EVENTS,
+            JSONMethodCodec.INSTANCE
+        )
+        appDataChannel = EventChannel(
+            flutterPluginBinding.binaryMessenger,
+            APP_STREAM,
+            JSONMethodCodec.INSTANCE
+        )
+        logsChannel = EventChannel(
+            flutterPluginBinding.binaryMessenger,
+            LOGS
+        )
+        appDataHandler = AppDataHandler(flutterPluginBinding.applicationContext)
+        appDataChannel?.setStreamHandler(appDataHandler)
+
+        statusChannelListeners()
+        privateServerStatus()
+        appEventStatus()
+        logsChannelListeners()
+    }
+
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        if (statusChannel != null) {
+            statusChannel!!.setStreamHandler(null)
+        }
+        if (statusObserver != null) {
+            VpnStatusManager.vpnStatus.removeObserver(statusObserver!!)
+            statusObserver = null
+        }
+        if (privateServerStatusChannel != null) {
+            privateServerStatusChannel!!.setStreamHandler(null)
+        }
+        if (appEventStatusChannel != null) {
+            appEventStatusChannel!!.setStreamHandler(null)
+        }
+        flutterEventObserver?.let { FlutterEventStream.removeListener(it) }
+        flutterEventObserver = null
+        logsChannel?.setStreamHandler(null)
+        logsSubscription?.cancel()
+        logsSubscription = null
+        logsListener = null
+        appDataChannel?.setStreamHandler(null)
+        appDataHandler?.dispose()
+        appDataHandler = null
+
+    }
+
+
+    private fun statusChannelListeners() {
+        statusChannel?.setStreamHandler(object : EventChannel.StreamHandler {
+            override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                statusObserver = Observer { event ->
+                    event.contentIfNotHandled?.let { status ->
+                        when (status) {
+                            VPNStatus.Connected,
+                            VPNStatus.Connecting,
+                            VPNStatus.Disconnecting,
+                            VPNStatus.Disconnected,
+                            VPNStatus.MissingPermission -> {
+                                AppLogger.d(TAG, "Sending VPN Status: $status")
+                                val map = mapOf("status" to status.name)
+                                events?.success(map)
+                            }
+
+                            VPNStatus.Error -> {
+                                AppLogger.d(TAG, "Sending VPN Status: $status")
+                                val map = mapOf(
+                                    "status" to status.name,
+                                    "error" to status.errorMessage,
+                                    "errorCode" to status.errorCode
+                                )
+                                events?.success(map)
+                            }
+                        }
+                    }
+                }
+                VpnStatusManager.vpnStatus.observeForever(statusObserver!!)
+            }
+
+            override fun onCancel(arguments: Any?) {
+                if (statusObserver != null) {
+                    VpnStatusManager.vpnStatus.removeObserver(statusObserver!!)
+                }
+
+            }
+        })
+    }
+
+    private fun privateServerStatus() {
+        privateServerStatusChannel?.setStreamHandler(
+            object : EventChannel.StreamHandler {
+                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                    AppLogger.d(TAG, "Private server status channel listening")
+                    job = CoroutineScope(Dispatchers.Main).launch {
+                        PrivateServerEventStream.events.collect {
+                            AppLogger.d(TAG, "Private server event received: $it")
+                            events?.success(it)
+                        }
+                    }
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    AppLogger.d(TAG, "Private server status channel cancelled")
+                    job?.cancel()
+
+                }
+            },
+        )
+    }
+
+    private fun appEventStatus() {
+        appEventStatusChannel?.setStreamHandler(
+            object : EventChannel.StreamHandler {
+                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                    AppLogger.d(TAG, "App event status channel listening")
+                    flutterEventObserver?.let { FlutterEventStream.removeListener(it) }
+                    val listener: (FlutterEvent) -> Unit = { event ->
+                        val map = mutableMapOf<String, Any?>()
+                        map["type"] = event.type
+                        map["message"] = event.message
+                        events?.success(map)
+                    }
+                    flutterEventObserver = listener
+                    FlutterEventStream.addListener(listener)
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    AppLogger.d(TAG, "App event status channel cancelled")
+                    flutterEventObserver?.let { FlutterEventStream.removeListener(it) }
+                    flutterEventObserver = null
+                }
+            })
+
+    }
+
+    private fun logsChannelListeners() {
+        logsChannel?.setStreamHandler(object : EventChannel.StreamHandler {
+            override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                logsSubscription?.cancel()
+                val sink = events
+                val listener = object : LogListener {
+                    override fun onLogEntry(entry: String) {
+                        val trimmed = entry.trimEnd('\r', '\n')
+                        if (trimmed.isEmpty()) return
+                        eventScope.launch { sink?.success(listOf(trimmed)) }
+                    }
+                }
+                logsListener = listener
+                try {
+                    logsSubscription = Mobile.tailLogs(listener)
+                } catch (e: Exception) {
+                    AppLogger.e(TAG, "Error starting log tail: ${e.message}")
+                    logsListener = null
+                }
+            }
+
+            override fun onCancel(arguments: Any?) {
+                logsSubscription?.cancel()
+                logsSubscription = null
+                logsListener = null
+            }
+        })
+    }
+}

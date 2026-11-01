@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Format release messages for various outputs
+# Usage: format.sh <release-notes|job-summary|slack>
+#
+# Environment variables:
+#   RELEASE_TAG:          release tag with 'v' prefix (e.g., v9.0.11, v9.0.11-beta.1, v9.0.11-abc123-20260207T044512Z)
+#   INSTALLER_BASE_NAME:  installer base name WITHOUT build-type suffix (e.g., lantern-installer)
+#   PLATFORM:             platforms built (all, or comma-separated)
+#   BUCKET:               S3 bucket name
+#   BUILD_TYPE:           production, beta, or nightly
+#   GITHUB_REF_NAME:      branch/tag name (e.g., main, v9.0.11)
+#   GITHUB_SHA:           commit SHA (required for release-notes)
+#   WORKFLOW_URL:         workflow run URL (required for slack, used for nightly builds)
+#   LINUX_ARCH:           amd64, arm64, or all (optional, defaults to amd64)
+#   IS_TEST_RUN:          true for branch builds; uses versioned downloads (default: false)
+
+FORMAT="${1:?Format required: release-notes, job-summary, or slack}"
+RELEASE_TAG="${RELEASE_TAG:?RELEASE_TAG required}"
+INSTALLER_BASE_NAME="${INSTALLER_BASE_NAME:?INSTALLER_BASE_NAME required}"
+PLATFORM="${PLATFORM:?PLATFORM required}"
+BUCKET="${BUCKET:?BUCKET required}"
+BUILD_TYPE="${BUILD_TYPE:?BUILD_TYPE required}"
+GITHUB_REF_NAME="${GITHUB_REF_NAME:?GITHUB_REF_NAME required}"
+LINUX_ARCH="${LINUX_ARCH:-amd64}"
+IS_TEST_RUN="${IS_TEST_RUN:-false}"
+
+case "$LINUX_ARCH" in
+amd64 | arm64 | all) ;;
+*)
+  echo "Error: Invalid LINUX_ARCH '$LINUX_ARCH' (expected: amd64, arm64, all)" >&2
+  exit 1
+  ;;
+esac
+
+# Strip 'v' prefix for S3 paths and version display
+VERSION="${RELEASE_TAG#v}"
+
+# Construct full installer name with build type
+FULL_INSTALLER_NAME="${INSTALLER_BASE_NAME}"
+[[ -n "$BUILD_TYPE" && "$BUILD_TYPE" != "production" ]] && FULL_INSTALLER_NAME="${FULL_INSTALLER_NAME}-${BUILD_TYPE}"
+
+VERSION_URL="https://s3.amazonaws.com/${BUCKET}/releases/${BUILD_TYPE}/${VERSION}"
+LATEST_URL="https://s3.amazonaws.com/${BUCKET}/releases/${BUILD_TYPE}/latest"
+# Branch builds never update the shared nightly aliases.
+if [[ "$BUILD_TYPE" == "nightly" && "$IS_TEST_RUN" == "true" ]]; then
+  LATEST_URL="$VERSION_URL"
+fi
+
+# Check if a platform should be included
+should_include() {
+  local platform="$1"
+  [[ "$PLATFORM" == "all" ]] || [[ "$PLATFORM" == *"$platform"* ]]
+}
+
+include_linux_amd64() {
+  [[ "$LINUX_ARCH" == "amd64" || "$LINUX_ARCH" == "all" ]]
+}
+
+include_linux_arm64() {
+  [[ "$LINUX_ARCH" == "arm64" || "$LINUX_ARCH" == "all" ]]
+}
+
+case "$FORMAT" in
+release-notes)
+  GITHUB_SHA="${GITHUB_SHA:?GITHUB_SHA required for release-notes}"
+  COMMIT_SHORT="${GITHUB_SHA:0:7}"
+
+  case "$BUILD_TYPE" in
+  nightly)
+    echo "This is an automated nightly build from commit \`${COMMIT_SHORT}\`."
+    ;;
+  beta)
+    echo "This is a beta release from commit \`${COMMIT_SHORT}\`."
+    ;;
+  production)
+    echo "This is a production release from commit \`${COMMIT_SHORT}\`."
+    ;;
+  esac
+
+  echo ""
+  echo "**Branch:** \`${GITHUB_REF_NAME}\`"
+  echo ""
+
+  if should_include "macos"; then
+    echo "- [macOS (.dmg)](${LATEST_URL}/${FULL_INSTALLER_NAME}.dmg) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.dmg))"
+  fi
+
+  if should_include "windows"; then
+    echo "- [Windows (.exe)](${LATEST_URL}/${FULL_INSTALLER_NAME}.exe) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.exe))"
+  fi
+
+  if should_include "android"; then
+    echo "- [Android (.apk)](${LATEST_URL}/${FULL_INSTALLER_NAME}.apk) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.apk))"
+    echo "- [Android 32-bit ARMv7 (.apk)](${LATEST_URL}/${FULL_INSTALLER_NAME}-armv7.apk) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-armv7.apk))"
+  fi
+
+  if should_include "linux"; then
+    if include_linux_amd64; then
+      echo "- [Linux AMD64 (.deb)](${LATEST_URL}/${FULL_INSTALLER_NAME}.deb) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.deb))"
+      echo "- [Linux AMD64 (.rpm)](${LATEST_URL}/${FULL_INSTALLER_NAME}.rpm) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.rpm))"
+      echo "- [Linux AMD64 (.pkg.tar.zst)](${LATEST_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst))"
+    fi
+    if include_linux_arm64; then
+      echo "- [Linux ARM64 (.deb)](${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.deb) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.deb))"
+      echo "- [Linux ARM64 (.rpm)](${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.rpm) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.rpm))"
+      echo "- [Linux ARM64 (.pkg.tar.zst)](${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst) ([permalink](${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst))"
+    fi
+  fi
+
+  if should_include "ios" && [[ "$BUILD_TYPE" == "beta" || "$BUILD_TYPE" == "production" ]]; then
+    echo "- iOS: Uploaded to TestFlight"
+  fi
+  ;;
+
+job-summary)
+  echo "## Lantern $VERSION"
+  echo ""
+  echo "**Release:** https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG"
+  ;;
+
+slack)
+  WORKFLOW_URL="${WORKFLOW_URL:?WORKFLOW_URL required for slack}"
+  if [[ "$BUILD_TYPE" == "nightly" ]]; then
+    text="Lantern $BUILD_TYPE <${WORKFLOW_URL}|$RELEASE_TAG> is ready."
+  else
+    text="Lantern $BUILD_TYPE <https://github.com/getlantern/lantern/releases/tag/$RELEASE_TAG|$RELEASE_TAG> is ready."
+  fi
+  text="${text}\n*Branch:* <https://github.com/getlantern/lantern/tree/$GITHUB_REF_NAME|$GITHUB_REF_NAME>"
+  text="${text}\n*Downloads:*"
+
+  if should_include "macos"; then
+    text="${text}\n• macOS <${LATEST_URL}/${FULL_INSTALLER_NAME}.dmg|${FULL_INSTALLER_NAME}.dmg> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.dmg|permalink>)"
+  fi
+
+  if should_include "windows"; then
+    text="${text}\n• Windows <${LATEST_URL}/${FULL_INSTALLER_NAME}.exe|${FULL_INSTALLER_NAME}.exe> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.exe|permalink>)"
+  fi
+
+  if should_include "android"; then
+    text="${text}\n• Android <${LATEST_URL}/${FULL_INSTALLER_NAME}.apk|${FULL_INSTALLER_NAME}.apk> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.apk|permalink>)"
+    text="${text}\n• Android 32-bit ARMv7 <${LATEST_URL}/${FULL_INSTALLER_NAME}-armv7.apk|${FULL_INSTALLER_NAME}-armv7.apk> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-armv7.apk|permalink>)"
+  fi
+
+  if should_include "linux"; then
+    if include_linux_amd64; then
+      text="${text}\n• Linux AMD64 <${LATEST_URL}/${FULL_INSTALLER_NAME}.deb|${FULL_INSTALLER_NAME}.deb> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.deb|permalink>)"
+      text="${text}\n• Linux AMD64 <${LATEST_URL}/${FULL_INSTALLER_NAME}.rpm|${FULL_INSTALLER_NAME}.rpm> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.rpm|permalink>)"
+      text="${text}\n• Linux AMD64 <${LATEST_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst|${FULL_INSTALLER_NAME}.pkg.tar.zst> (<${VERSION_URL}/${FULL_INSTALLER_NAME}.pkg.tar.zst|permalink>)"
+    fi
+    if include_linux_arm64; then
+      text="${text}\n• Linux ARM64 <${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.deb|${FULL_INSTALLER_NAME}-arm64.deb> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.deb|permalink>)"
+      text="${text}\n• Linux ARM64 <${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.rpm|${FULL_INSTALLER_NAME}-arm64.rpm> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.rpm|permalink>)"
+      text="${text}\n• Linux ARM64 <${LATEST_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst|${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst> (<${VERSION_URL}/${FULL_INSTALLER_NAME}-arm64.pkg.tar.zst|permalink>)"
+    fi
+  fi
+
+  if should_include "ios" && [[ "$BUILD_TYPE" == "beta" || "$BUILD_TYPE" == "production" ]]; then
+    text="${text}\n• iOS: Build uploaded to TestFlight"
+  fi
+
+  printf '%b\n' "$text"
+  ;;
+
+*)
+  echo "Error: Invalid format '$FORMAT'" >&2
+  echo "Usage: format.sh <release-notes|job-summary|slack>" >&2
+  exit 1
+  ;;
+esac

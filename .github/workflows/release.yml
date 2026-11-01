@@ -1,0 +1,326 @@
+# Builds MYX-VPN for Android, Windows and iOS and publishes a GitHub Release.
+#
+# Release:   git tag v1.2.0 && git push origin v1.2.0
+# The release carries `latest.json`, which installed apps poll to show the
+# in-app "new version" prompt (lib/core/updater/).
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   ANDROID_KEYSTORE_BASE64    base64 of your release .jks (see docs/RELEASING.md)
+#   ANDROID_KEYSTORE_PASSWORD
+#   ANDROID_KEY_ALIAS
+#   ANDROID_KEY_PASSWORD
+# The same keystore must sign every release, or Android refuses the update.
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build (e.g. 1.2.0). Publishes a draft release."
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      build: ${{ steps.v.outputs.build }}
+      tag: ${{ steps.v.outputs.tag }}
+    steps:
+      - id: v
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            version="${{ inputs.version }}"
+          else
+            version="${GITHUB_REF_NAME#v}"
+          fi
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Version '$version' must look like 1.2.3"; exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "build=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+  android:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      BUILD_TYPE: production
+      INSTALLER_NAME: MYX-VPN
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stamp version
+        run: sed -i "s/^version: .*/version: ${VERSION}+${{ needs.prepare.outputs.build }}/" pubspec.yaml
+
+      - name: Set up Go
+        uses: ./.github/actions/setup-go
+        with:
+          cache-scope: android
+          gomobile-cache: "true"
+
+      - name: Set up Android
+        uses: ./.github/actions/setup-android
+
+      - name: Install Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: App environment
+        run: cp app.env.example app.env
+
+      - name: Release signing
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PWD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PWD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$KEYSTORE_B64" ] || [ -z "$KEYSTORE_PWD" ]; then
+            echo "::error::Android signing secrets are missing. See docs/RELEASING.md."
+            exit 1
+          fi
+          ks="$GITHUB_WORKSPACE/android/app/myx-release.jks"
+          echo "$KEYSTORE_B64" | base64 -d > "$ks"
+          # Use the configured alias if the keystore has it, else its first entry
+          # (PKCS12 files made outside keytool may name the entry differently).
+          aliases=$(keytool -list -v -keystore "$ks" -storepass "$KEYSTORE_PWD" | sed -n 's/^Alias name: //p')
+          if [ -z "$KEY_ALIAS" ] || ! grep -qxF "$KEY_ALIAS" <<<"$aliases"; then
+            KEY_ALIAS=$(head -n1 <<<"$aliases")
+          fi
+          [ -n "$KEY_ALIAS" ] || { echo "::error::Keystore has no entries"; exit 1; }
+          # SHA-256 of the signing cert: the in-app updater only installs APKs
+          # signed with this exact certificate.
+          cert_sha=$(keytool -list -v -keystore "$ks" -alias "$KEY_ALIAS" -storepass "$KEYSTORE_PWD" \
+            | sed -n 's/^\s*SHA256: //p' | tr -d ':' | tr 'A-F' 'a-f' | head -n1)
+          [ -n "$cert_sha" ] || { echo "::error::Could not read certificate from keystore"; exit 1; }
+          mkdir -p ~/.gradle
+          {
+            echo "KEYSTORE_FILE=$ks"
+            echo "KEYSTORE_PWD=$KEYSTORE_PWD"
+            echo "KEY_ALIAS=$KEY_ALIAS"
+            echo "KEY_PWD=${KEY_PWD:-$KEYSTORE_PWD}"
+            echo "SIDELOAD_SIGNING_CERTIFICATE_SHA256=$cert_sha"
+          } >> ~/.gradle/gradle.properties
+          echo "GRADLE_USER_HOME=$HOME/.gradle" >> "$GITHUB_ENV"
+
+      - name: Install gomobile
+        run: make install-android-deps
+
+      - name: Build APKs (arm64 + armv7)
+        run: make android pubget gen android-apk-release
+
+      - name: Rename
+        run: |
+          mv MYX-VPN.apk MYX-VPN-android-arm64.apk
+          mv MYX-VPN-armv7.apk MYX-VPN-android-armv7.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: MYX-VPN-android-*.apk
+          if-no-files-found: error
+
+  windows:
+    needs: prepare
+    runs-on: windows-latest
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      BUILD_TYPE: production
+      CL: /MP4
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stamp version
+        shell: pwsh
+        run: |
+          (Get-Content pubspec.yaml) -replace '^version: .*', "version: $env:VERSION+${{ needs.prepare.outputs.build }}" | Set-Content pubspec.yaml -Encoding utf8
+
+      - name: Set up Go
+        uses: ./.github/actions/setup-go
+        with:
+          cache-scope: windows
+
+      - name: Set up MinGW
+        shell: bash
+        run: bash ./scripts/ci/setup-windows-toolchain.sh
+
+      - name: Install Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: App environment
+        shell: bash
+        run: cp app.env.example app.env
+
+      - name: Inno Setup + translations
+        shell: pwsh
+        run: |
+          bash ./scripts/ci/choco-retry.sh -y innosetup --version=6.7.1 --allow-downgrade
+          $langDir = "C:\Program Files (x86)\Inno Setup 6\Languages"
+          foreach ($isl in 'ChineseSimplified.isl', 'Farsi.isl') {
+            Copy-Item "windows\packaging\exe\isl\$isl" "$langDir\$isl" -Force
+          }
+
+      - name: Build Windows app
+        shell: pwsh
+        run: |
+          make windows-release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Package installer
+        shell: pwsh
+        run: |
+          python -m pip install -r scripts/requirements.txt
+          $script = "$env:RUNNER_TEMP/myx.iss"
+          python scripts/ci/render_windows_installer.py `
+            --template windows/packaging/exe/inno_setup.iss `
+            --config windows/packaging/exe/make_config.yaml `
+            --source build/windows/x64/runner/Release `
+            --version "$env:VERSION+${{ needs.prepare.outputs.build }}" `
+            --output-name MYX-VPN-windows-x64-setup `
+            --output $script
+          if ($LASTEXITCODE -ne 0) { throw 'installer render failed' }
+          & 'C:/Program Files (x86)/Inno Setup 6/ISCC.exe' "/O$env:GITHUB_WORKSPACE" $script
+          if ($LASTEXITCODE -ne 0) { throw 'installer compile failed' }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: MYX-VPN-windows-x64-setup.exe
+          if-no-files-found: error
+
+  ios:
+    # Unsigned build: sign it yourself (needs a paid Apple Developer account
+    # with the Network Extension capability). See docs/RELEASING.md.
+    needs: prepare
+    runs-on: macos-26
+    continue-on-error: true
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stamp version
+        run: sed -i '' "s/^version: .*/version: ${VERSION}+${{ needs.prepare.outputs.build }}/" pubspec.yaml
+
+      - name: Set up Go
+        uses: ./.github/actions/setup-go
+        with:
+          cache-scope: ios
+
+      - name: Install Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: App environment
+        run: cp app.env.example app.env
+
+      - name: Build Go framework
+        run: |
+          make install-gomobile
+          make pubget ios
+
+      - name: Build unsigned app
+        run: flutter build ios --release --no-codesign
+
+      - name: Package IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -qry MYX-VPN-ios-unsigned.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios
+          path: MYX-VPN-ios-unsigned.ipa
+          if-no-files-found: error
+
+  publish:
+    needs: [prepare, android, windows, ios]
+    if: ${{ !cancelled() && needs.android.result == 'success' && needs.windows.result == 'success' }}
+    runs-on: ubuntu-24.04
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+      REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Annotated tag message if present, else the commits since the last tag.
+          git fetch --tags --force --quiet
+          notes=$(git tag -l --format='%(contents)' "$TAG" 2>/dev/null | sed '/^-----BEGIN PGP/,$d' || true)
+          if [ -z "$(echo "$notes" | tr -d '[:space:]')" ]; then
+            prev=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || true)
+            range=${prev:+$prev..}$TAG
+            notes=$(git log --pretty='- %s' "$range" 2>/dev/null | head -n 30 || true)
+          fi
+          printf '%s\n' "$notes" > notes.md
+
+      - name: Checksums + update manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib
+          version = os.environ["VERSION"]; tag = os.environ["TAG"]; repo = os.environ["REPO"]
+          base = f"https://github.com/{repo}/releases/download/{tag}"
+          files = {
+              "android-arm64": "MYX-VPN-android-arm64.apk",
+              "android-armv7": "MYX-VPN-android-armv7.apk",
+              "windows-x64": "MYX-VPN-windows-x64-setup.exe",
+              "ios": "MYX-VPN-ios-unsigned.ipa",
+          }
+          assets = {}
+          for key, name in files.items():
+              p = pathlib.Path(name)
+              if p.exists():
+                  assets[key] = {
+                      "url": f"{base}/{name}",
+                      "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
+                      "size": p.stat().st_size,
+                  }
+          notes = pathlib.Path("../notes.md").read_text(encoding="utf-8").strip()
+          manifest = {
+              "version": version,
+              "notes": notes,
+              "page": f"https://github.com/{repo}/releases/tag/{tag}",
+              "assets": assets,
+          }
+          pathlib.Path("latest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+          print(json.dumps(manifest, indent=2, ensure_ascii=False))
+          PY
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: MYX-VPN ${{ env.VERSION }}
+          body_path: notes.md
+          draft: ${{ github.event_name == 'workflow_dispatch' }}
+          make_latest: true
+          files: dist/*

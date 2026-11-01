@@ -1,0 +1,2182 @@
+# Translators:
+# Chi-Hsun Tsai, 2025
+# YFdyh000 <yfdyh000@gmail.com>, 2025
+# Aki, 2025
+# Lantern, 2026
+# TW C2 <tx_e2f_tw_c2@ate2f.com>, 2026
+# fffw <fffw@getlantern.org>, 2026
+# e2f <projects@e2f.com>, 2026
+# Po-Chun Huang <aphroteus@gmail.com>, 2026
+# e2f_tw c1 <tx_e2f_tw_c1@ate2f.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
+# 
+msgid ""
+msgstr ""
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
+"Language-Team: Chinese Traditional (https://app.transifex.com/lantern-1/teams/94371/zh-Hant/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh-Hant\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "app_name"
+msgstr "MYX-VPN"
+
+msgid "upgrade_to_pro"
+msgstr "升級至專業版"
+
+msgid "settings"
+msgstr "設定"
+
+msgid "report_an_issue"
+msgstr "回報問題"
+
+msgid "report_issue_add_screenshots"
+msgstr "新增螢幕截圖"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG、JPG 或 GIF — 總計最多 15 MB"
+
+msgid "report_issue_add_images"
+msgstr "新增圖片"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "僅支援 PNG、JPG 和 GIF 圖片。"
+
+msgid "report_issue_attachments_too_many"
+msgstr "最多可附加 3 張圖片。"
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "附件總大小必須小於 15 MB。"
+
+msgid "report_issue_attachments_duplicate"
+msgstr "該圖片已附加。"
+
+msgid "report_issue_attachments_unreadable"
+msgstr "無法讀取其中一個檔案。"
+
+msgid "send_without_email_title"
+msgstr "不填電子郵件直接傳送？"
+
+msgid "send_without_email_body"
+msgstr "你沒有填寫電子郵件地址，因此我們將無法回覆或跟進此回報。"
+
+msgid "send_without_email"
+msgstr "不填電子郵件傳送"
+
+msgid "invite_friends"
+msgstr "邀請朋友"
+
+msgid "your_referral_code"
+msgstr "你的推薦碼"
+
+msgid "share_referral_code"
+msgstr "分享推薦碼"
+
+msgid "invite_friends_description"
+msgstr "當朋友使用你的推薦碼升級至 Lantern Pro 時，你們雙方都可獲得 1 個月免費時長。"
+
+msgid "month_earned"
+msgstr "已獲得 %s 個月"
+
+msgid "months_earned"
+msgstr "已獲得 %s 個月"
+
+msgid "includes_free_month_from_referrals"
+msgstr "包含推薦獲得的 %s 個免費月"
+
+msgid "includes_free_months_from_referrals"
+msgstr "包含推薦獲得的 %s 個免費月"
+
+msgid "referral_converted_title"
+msgstr "一位朋友已升級至專業版"
+
+msgid "referral_converted_message"
+msgstr "你們雙方均免費獲得了 %s 的 Lantern Pro。你目前已累計獲得 %s。繼續分享你的推薦碼以獲得更多。"
+
+msgid "month_count"
+msgstr "%s 個月"
+
+msgid "months_count"
+msgstr "%s 個月"
+
+msgid "done"
+msgstr "完成"
+
+msgid "view_account"
+msgstr "檢視帳戶"
+
+msgid "show_download_links"
+msgstr "顯示下載連結"
+
+msgid "get_lantern"
+msgstr "取得 MYX-VPN"
+
+msgid "send_friend_download_link"
+msgstr "將此下載連結傳送給你的朋友："
+
+msgid "scan_to_install"
+msgstr "使用相機應用程式掃描即可安裝 MYX-VPN"
+
+msgid "remind_use_code"
+msgstr "提醒他們升級時使用推薦碼 %s！"
+
+msgid "unbounded"
+msgstr "Action Mode"
+
+# Tab label shown alongside the Unbounded tab on the Home screen when
+# the dual-tab strip is active.
+msgid "vpn"
+msgstr "VPN"
+
+msgid "vpn_settings"
+msgstr "VPN 設定"
+
+msgid "split_tunneling"
+msgstr "分流"
+
+msgid "server_locations"
+msgstr "伺服器位置"
+
+msgid "lantern_pro_email"
+msgstr "MYX-VPN 專業版電子郵件:"
+
+msgid "pro_account_expiration"
+msgstr "專業版帳號到期日"
+
+msgid "manage_subscription"
+msgstr "管理訂閱"
+
+msgid "lantern_pro_devices"
+msgstr "MYX-VPN 專業版裝置"
+
+msgid "remove"
+msgstr "移除"
+
+msgid "danger_zone"
+msgstr "危險區域"
+
+msgid "delete_account"
+msgstr "刪除帳號"
+
+msgid "delete"
+msgstr "刪除"
+
+msgid "account"
+msgstr "帳號"
+
+msgid "delete_account_?"
+msgstr "刪除你的帳號?"
+
+msgid "delete_account_message"
+msgstr "帳號刪除後將無法復原。你將失去所有裝置的存取權限,且任何剩餘的專業版訂閱時間都將被沒收且不予退款。"
+
+msgid "delete_account_message_two"
+msgstr "請在下方輸入你的密碼以確認刪除"
+
+msgid "confirm_deletion"
+msgstr "確認刪除"
+
+msgid "cancel"
+msgstr "取消"
+
+msgid "daily_data_usage"
+msgstr "每日數據用量"
+
+msgid "mb"
+msgstr "MB"
+
+msgid "vpn_status"
+msgstr "VPN 狀態"
+
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "追蹤我們"
+
+msgid "server_selection"
+msgstr "伺服器選擇"
+
+msgid "smart_location"
+msgstr "智慧位置"
+
+msgid "pro_locations"
+msgstr "專業版位置:"
+
+msgid "language"
+msgstr "語言"
+
+msgid "sign_in"
+msgstr "登入"
+
+msgid "check_for_updates"
+msgstr "檢查更新"
+
+msgid "update_available"
+msgstr "有可用更新"
+
+msgid "android_sideload_update_available_message"
+msgstr "MYX-VPN %s 已推出。MYX-VPN 會在開啟 Android 安裝程式前下載並驗證 APK。"
+
+msgid "allow_unknown_app_installs"
+msgstr "允許安裝應用程式"
+
+msgid "android_sideload_install_permission_message"
+msgstr "Android 需要權限才能安裝來自 MYX-VPN 的更新。請開啟「允許來自此來源」，然後再次檢查更新。"
+
+msgid "error_install_update"
+msgstr "無法安裝更新"
+
+msgid "android_sideload_install_failed_message"
+msgstr "MYX-VPN 無法驗證或安裝此更新。請稍後再試。"
+
+msgid "support"
+msgstr "支援"
+
+msgid "download_links"
+msgstr "下載連結"
+
+msgid "get_30_days_of_pro_free"
+msgstr "免費獲得 30 天專業版"
+
+msgid "share_message_referral_code"
+msgstr "免費獲得一個月的 MYX-VPN 專業版,請使用此推薦碼:%s;你可以從這裡下載:https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "提交問題回報"
+
+msgid "select_an_issue"
+msgstr "選擇問題"
+
+msgid "cannot_access_blocked_sites"
+msgstr "無法存取被封鎖的網站"
+
+msgid "cannot_complete_purchase"
+msgstr "無法完成購買"
+
+msgid "cannot_sign_in"
+msgstr "無法登入"
+
+msgid "spinner_loads_endlessly"
+msgstr "載入動畫無限轉圈"
+
+msgid "slow"
+msgstr "速度慢"
+
+msgid "cannot_link_devices"
+msgstr "無法連結裝置"
+
+msgid "split_tunnel"
+msgstr "分割通道功能無法使用"
+
+msgid "smart_routing_not_working"
+msgstr "智慧路由無法使用"
+
+msgid "server_selection_not_working"
+msgstr "伺服器選擇無法使用"
+
+msgid "upgrade_fail"
+msgstr "升級 Lantern Pro 失敗"
+
+msgid "application_crashes"
+msgstr "應用程式崩潰"
+
+msgid "other"
+msgstr "其他"
+
+msgid "issue_description"
+msgstr "描述你的問題"
+
+msgid "enter_password_to_confirm"
+msgstr "輸入密碼確認"
+
+msgid "apps_split_tunneling"
+msgstr "應用程式分流"
+
+msgid "website_split_tunneling"
+msgstr "網站分流"
+
+msgid "add"
+msgstr "新增"
+
+msgid "enabled"
+msgstr "已啟用"
+
+msgid "disabled"
+msgstr "已停用"
+
+msgid "automatic"
+msgstr "自動"
+
+msgid "automatic_mode"
+msgstr "自動模式"
+
+msgid "manual"
+msgstr "手動"
+
+msgid "enter_url_or_ip"
+msgstr "輸入網址或 IP 位址"
+
+msgid "installed_apps"
+msgstr "已安裝的應用程式"
+
+msgid "search_apps"
+msgstr "搜尋應用程式"
+
+msgid "search_websites"
+msgstr "搜尋網站"
+
+msgid "mode"
+msgstr "模式"
+
+msgid "use_commas"
+msgstr "使用逗號分隔多個網址"
+
+msgid "deep_link_expired"
+msgstr "此連結已過期，請重新取得。"
+
+msgid "invalid_deep_link"
+msgstr "此連結無效，請重新取得。"
+
+msgid "apps_bypassing_vpn"
+msgstr "繞過 VPN 的應用程式 (%d)"
+
+msgid "websites_bypassing_vpn"
+msgstr "繞過 VPN 的網站 (%d)"
+
+msgid "logs_share_message"
+msgstr "這是我從 MYX-VPN 取得的診斷記錄。"
+
+msgid "payment_options"
+msgstr "付款選項"
+
+msgid "add_your_email"
+msgstr "新增你的電子郵件"
+
+msgid "continue"
+msgstr "繼續"
+
+msgid "continue_with_google"
+msgstr "使用 Google 繼續"
+
+msgid "continue_with_apple"
+msgstr "使用 Apple 繼續"
+
+msgid "continue_without_email"
+msgstr "不使用電子郵件繼續"
+
+msgid "confirm_email"
+msgstr "確認電子郵件"
+
+msgid "add_your_email_message"
+msgstr "新增你的電子郵件以在任何裝置上存取你的訂閱。"
+
+msgid "confirm_email_code"
+msgstr "確認碼"
+
+msgid "confirm_email_code_message_part_one"
+msgstr "我們已將驗證碼傳送至 "
+
+msgid "confirm_email_code_message_part_two"
+msgstr " 請在下方輸入。如果收件匣中沒有，請檢查垃圾郵件資料夾。"
+
+msgid "resend_email"
+msgstr "重新傳送電子郵件"
+
+msgid "create_password"
+msgstr "建立密碼"
+
+msgid "sign_in_to_lantern_pro"
+msgstr "登入 MYX-VPN"
+
+msgid "sign_in_with_email"
+msgstr "使用電子郵件登入"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "輸入您的 MYX-VPN 帳戶詳情。"
+
+msgid "email"
+msgstr "電子郵件"
+
+msgid "enter_password"
+msgstr "輸入密碼"
+
+msgid "forgot_password"
+msgstr "忘記密碼?"
+
+msgid "reset_your_password"
+msgstr "重設你的密碼"
+
+msgid "enter_your_lantern_pro_account_email"
+msgstr "輸入您的 MYX-VPN 帳戶電子郵件。"
+
+msgid "reset_password"
+msgstr "重設密碼"
+
+msgid "confirm_new_password"
+msgstr "確認新密碼"
+
+msgid "create_new_password"
+msgstr "建立新密碼"
+
+msgid "confirm_password"
+msgstr "確認密碼"
+
+msgid "confirm_password_required"
+msgstr "需要確認密碼"
+
+msgid "passwords_do_not_match"
+msgstr "密碼不符"
+
+msgid "activate_lantern_pro"
+msgstr "啟用 MYX-VPN 專業版"
+
+msgid "invalid_email"
+msgstr "無效的電子郵件地址"
+
+msgid "purchase_already_owned"
+msgstr "你已經擁有此購買項目,請嘗試恢復購買"
+
+msgid "stripe_payment"
+msgstr "Stripe 付款"
+
+msgid "split_tunneling_description"
+msgstr "MYX-VPN 會根據你的位置智慧地路由網路流量,確保安全存取,同時僅在必要時使用 VPN 以保持連線速度。"
+
+msgid "region_specific_rules"
+msgstr "區域專用規則"
+
+msgid "location_based_rules"
+msgstr "MYX-VPN 根據你的位置使用不同的路由規則:"
+
+msgid "censored_regions"
+msgstr "在有審查的地區:"
+
+msgid "blocked_sites_proxied"
+msgstr "被封鎖的網站和應用程式(新聞、通訊、受限服務)會經過代理。"
+
+msgid "unblocked_sites_bypass"
+msgstr "大多數未被封鎖的網站會繞過 VPN 以加快瀏覽速度。"
+
+msgid "uncensored_regions"
+msgstr "在無審查的地區:"
+
+msgid "trusted_sites_bypass"
+msgstr "預設僅有可信任的網站和服務繞過 VPN。"
+
+msgid "examples_of_bypassed_sites"
+msgstr "這些包括使用 HTTPS 加密且內容為公開或非敏感資訊的網站,例如購物、天氣和軟體更新。"
+
+msgid "routing_rules_vary"
+msgstr "這些規則因國家而異,並會定期更新。"
+
+msgid "view_the_full_list"
+msgstr "查看完整的路由規則清單。"
+
+msgid "welcome_to_lantern_pro"
+msgstr "歡迎使用 MYX-VPN 專業版"
+
+msgid "welcome_to_lantern"
+msgstr "歡迎使用 MYX-VPN！"
+
+msgid "lantern_pro_description"
+msgstr "你的專業版功能已解鎖—盡情享受無限數據、更快速度和高級伺服器。"
+
+msgid "purchase_restored_title"
+msgstr "購買已恢復"
+
+msgid "purchase_restored_description"
+msgstr "你的 Lantern Pro 訂閱現已在此裝置上生效。"
+
+msgid "no_purchase_found_title"
+msgstr "找不到購買紀錄"
+
+msgid "no_purchase_found_body_ios"
+msgstr "此 Apple ID 未連結任何有效訂閱。"
+
+msgid "no_purchase_found_body_android"
+msgstr "此 Google 帳戶未連結任何有效訂閱。"
+
+msgid "authorize_device_for_pro"
+msgstr "授權裝置使用 Pro"
+
+msgid "device_linking_replaced_title"
+msgstr "裝置連結碼已被取代"
+
+msgid "device_linking_replaced_body"
+msgstr "MYX-VPN 10 及更新版本不再使用裝置連結碼。現在您可以使用電子郵件和密碼登入您的 Lantern Pro 帳戶。"
+
+msgid "device_linking_replaced_body_two"
+msgstr "如果您擁有 Lantern Pro 帳戶但尚未設定密碼，請立即新增密碼以在此裝置上登入。"
+
+msgid "add_an_account_password"
+msgstr "新增帳戶密碼"
+
+msgid "have_a_password_sign_in"
+msgstr "已有密碼？登入"
+
+msgid "plans_fetch_error"
+msgstr "取得方案時發生錯誤。請稍後再試。"
+
+msgid "best_value"
+msgstr "最超值"
+
+msgid "choose_payment_method"
+msgstr "選擇付款方式"
+
+msgid "purchase_not_completed"
+msgstr "購買未完成。你可以隨時重試,或如需協助請聯絡支援"
+
+msgid "are_you_sure"
+msgstr "你確定嗎?"
+
+msgid "continue_without_email_message"
+msgstr "需要有效的電子郵件地址才能在其他裝置上使用你的訂閱。"
+
+msgid "add_email"
+msgstr "新增電子郵件"
+
+msgid "block_ads"
+msgstr "封鎖廣告"
+
+msgid "only_active"
+msgstr "僅在 VPN 連線時啟用"
+
+# Info-bubble tooltip on the Unbounded tab header
+msgid "about_unbounded"
+msgstr "關於 Action Mode"
+
+# Status card — phase labels
+msgid "smc_status_label"
+msgstr "狀態"
+
+msgid "smc_status_off"
+msgstr "已停用"
+
+msgid "smc_status_configuring"
+msgstr "正在設定網路"
+
+msgid "smc_status_error_with_message"
+msgstr "無法分享：%s"
+
+msgid "smc_status_error_generic"
+msgstr "無法分享 — 請嘗試重新開關"
+
+# Arrival toast surfaced when a censored user starts routing through
+# this peer. The "Helping a new person" framing is intentional —
+# emphasizes the user-impact framing the SmC tab leans into.
+msgid "smc_arrival_toast"
+msgstr "正在幫助 %s 的一位新使用者"
+
+# Pill shown beneath the globe when Unbounded is active but no peer is
+# currently routing through this device.
+msgid "unbounded_waiting_for_connections"
+msgstr "正在等待連線..."
+
+# Welcome dialog shown the first time the Unbounded tab opens.
+msgid "unbounded_welcome_title"
+msgstr "歡迎使用 Action Mode"
+
+msgid "unbounded_welcome_body_1"
+msgstr ""
+"啟用 Action Mode "
+"後，你的裝置將成為通往開放網際網路的「數位橋樑」網路的一部分。受審查的使用者連線到這些橋樑，得以繞過政府施加的限制，取得所需的資訊。"
+
+msgid "unbounded_welcome_body_2"
+msgstr "這種集體努力使審查更難執行，擴大了開放網際網路的可及範圍。"
+
+msgid "unbounded_welcome_body_3"
+msgstr "你可以隨時在設定中將 Action Mode 從介面中移除。"
+
+# Advanced section / manual port forward
+msgid "smc_advanced"
+msgstr "進階"
+
+msgid "smc_advanced_subtitle"
+msgstr "適用於路由器不支援 UPnP 的使用者"
+
+msgid "smc_manual_port"
+msgstr "手動連接埠轉發"
+
+msgid "smc_manual_port_description"
+msgstr ""
+"如果你的路由器不支援 UPnP，請在路由器上設定連接埠轉發並在此輸入連接埠號碼。MYX-VPN 會將其用作外部連接埠，而不再探測 UPnP。留空則使用 "
+"UPnP（預設）。"
+
+msgid "smc_manual_port_label"
+msgstr "連接埠"
+
+msgid "smc_manual_port_hint"
+msgstr "例如 5698"
+
+msgid "smc_manual_port_save"
+msgstr "儲存"
+
+msgid "smc_manual_port_currently_set"
+msgstr "目前設定為連接埠 %d。關閉並重新開啟 Action Mode 以使變更生效。"
+
+msgid "smc_manual_port_out_of_range"
+msgstr "連接埠必須介於 1 和 65535 之間"
+
+msgid "smc_manual_port_cleared"
+msgstr "已清除手動連接埠 — 正在使用 UPnP"
+
+msgid "smc_manual_port_saved"
+msgstr "手動連接埠已設定為 %d"
+
+# Unbounded Settings menu entry (Settings → Unbounded Settings)
+msgid "unbounded_settings_title"
+msgstr "Action Mode 設定"
+
+# Auto-enable Unbounded toggle
+msgid "auto_enable_unbounded"
+msgstr "自動啟用 Action Mode"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "MYX-VPN 開啟時自動啟動"
+
+# Hide Unbounded toggle (collapses the Unbounded tab on the Home shell)
+msgid "hide_unbounded"
+msgstr "隱藏 Action Mode"
+
+msgid "hide_unbounded_subtitle"
+msgstr "從介面中移除 Action Mode"
+
+msgid "vpn_connected"
+msgstr "MYX-VPN 現已連線。"
+
+msgid "vpn_disconnected"
+msgstr "MYX-VPN 現已斷線。"
+
+msgid "open_notification"
+msgstr "開啟通知"
+
+msgid "logout"
+msgstr "登出"
+
+msgid "logout_message"
+msgstr "登出後 MYX-VPN 將切換至免費版本。若要再次存取你的帳號,你需要重新登入。"
+
+msgid "logout_message_expired"
+msgstr "您確定要登出您的帳戶嗎？"
+
+msgid "not_now"
+msgstr "暫時不要"
+
+msgid "billed_once"
+msgstr "單次計費"
+
+msgid "subscription"
+msgstr "訂閱"
+
+msgid "subscribe"
+msgstr "訂閱"
+
+msgid "checkout"
+msgstr "結帳"
+
+msgid "vpn_may_be_needed"
+msgstr "可能需要 VPN"
+
+msgid "google_and_apple_sign_in_blocked"
+msgstr "在此地區 Google 和 Apple 登入可能被封鎖。為完成帳號設定,請先開啟 VPN。"
+
+msgid "continue_without_vpn"
+msgstr "不使用 VPN 繼續"
+
+msgid "turn_on_vpn"
+msgstr "開啟 VPN"
+
+msgid "server_setup_do"
+msgstr "使用 DigitalOcean 設定"
+
+msgid "server_setup_do_price"
+msgstr "透過 DigitalOcean 每月只需 %s"
+
+msgid "server_setup_gcp"
+msgstr "使用 Google Cloud Platform 設定"
+
+msgid "continue_with_do"
+msgstr "使用 DigitalOcean 繼續"
+
+msgid "server_setup_gcp_price"
+msgstr "透過 GCP 每月只需 %s"
+
+msgid "continue_with_gcp"
+msgstr "使用 Google 繼續"
+
+msgid "server_setup_manual"
+msgstr "手動設定"
+
+msgid "seamless_integration"
+msgstr "與 MYX-VPN 無縫整合"
+
+msgid "one_month_included"
+msgstr "包含每月 %d TB 數據"
+
+msgid "easiest_setup_process"
+msgstr "最簡單的設定流程"
+
+msgid "setup_a_private_server"
+msgstr "設定私人伺服器"
+
+msgid "setup_private_server"
+msgstr "設定私人伺服器"
+
+msgid "previous"
+msgstr "上一步"
+
+msgid "next"
+msgstr "下一步"
+
+msgid "error"
+msgstr "錯誤"
+
+msgid "signup_error_user_exists"
+msgstr "註冊時似乎發生問題，請再試一次，或者如果您已有帳戶請直接登入"
+
+msgid "user_not_found"
+msgstr "無法識別使用者。請檢查你的憑證後重試。如果問題持續發生,請聯絡我們的支援團隊尋求協助。"
+
+msgid "invalid_code"
+msgstr "驗證碼錯誤或可能已過期。請嘗試重新傳送"
+
+msgid "email_resend_message"
+msgstr "你的新確認碼已傳送"
+
+msgid "password_has_been_updated"
+msgstr "密碼已更新"
+
+msgid "password_has_been_updated_message"
+msgstr "你的密碼已成功重設"
+
+msgid "update_pro_account"
+msgstr "更新專業版帳號"
+
+msgid "update_pro_account_message"
+msgstr "若要管理你的帳號或登入其他裝置,請先為你的帳號新增電子郵件和密碼。"
+
+msgid "subscription_cancelled"
+msgstr "你的訂閱已取消。"
+
+msgid "subscription_updated"
+msgstr "你的訂閱已更新。"
+
+msgid "subscription_renewed"
+msgstr "你的訂閱已續訂。"
+
+msgid "got_it"
+msgstr "知道了"
+
+msgid "server_location"
+msgstr "伺服器位置"
+
+msgid "choose"
+msgstr "選擇"
+
+msgid "choose_your_account"
+msgstr "選擇你的帳號"
+
+msgid "choose_your_project"
+msgstr "選擇你的專案"
+
+msgid "billing_account"
+msgstr "帳單帳號"
+
+msgid "server_name"
+msgstr "伺服器名稱"
+
+msgid "change"
+msgstr "變更"
+
+msgid "choose_location"
+msgstr "選擇位置"
+
+msgid "choose_your_location"
+msgstr "選擇你的位置"
+
+msgid "start_deployment"
+msgstr "開始部署"
+
+msgid "private_server_setup_in_progress"
+msgstr "稍等片刻!你的私人伺服器正在設定中。這可能需要幾分鐘,請保持此畫面開啟。"
+
+msgid "cancel_server_deployment"
+msgstr "取消伺服器部署"
+
+msgid "close"
+msgstr "關閉"
+
+msgid "connect_now"
+msgstr "立即連線"
+
+msgid "server_setup_failed"
+msgstr "伺服器設定失敗"
+
+msgid "server_setup_failed_message"
+msgstr "設定私人伺服器時發生問題。你可以重試或稍後再試。"
+
+msgid "exit"
+msgstr "離開"
+
+msgid "retry"
+msgstr "重試"
+
+msgid "private_server_ready"
+msgstr "私人伺服器已就緒"
+
+msgid "private_server_ready_message"
+msgstr "(%s) 伺服器已設定完成並新增至你的伺服器清單。你已準備好連線!"
+
+msgid "set_up_your_server"
+msgstr "設定你的伺服器"
+
+msgid "view_instructions_github"
+msgstr "在 GitHub 上查看說明"
+
+msgid "server_access_key"
+msgstr "伺服器存取金鑰"
+
+msgid "access_key"
+msgstr "存取金鑰"
+
+msgid "name_your_server"
+msgstr "為你的伺服器命名"
+
+msgid "how_server_appears"
+msgstr "伺服器在伺服器選擇清單中顯示的名稱"
+
+msgid "server_nickname"
+msgstr "伺服器暱稱"
+
+msgid "verify_server"
+msgstr "驗證伺服器"
+
+msgid "vpn_client_not_setup"
+msgstr "請開啟 VPN 用戶端。"
+
+msgid "join_a_private_server"
+msgstr "加入私人伺服器"
+
+msgid "join_private_server"
+msgstr "加入私人伺服器"
+
+msgid "join_server"
+msgstr "加入伺服器"
+
+msgid "private_server_usage_message"
+msgstr "私人伺服器的使用量不計入你的 MYX-VPN 每日數據限額。"
+
+msgid "my_servers"
+msgstr "我的伺服器"
+
+msgid "joined_servers"
+msgstr "已加入的伺服器"
+
+msgid "access_key_expiration"
+msgstr "每個存取金鑰都是唯一的,並在 1 天後過期。你可以隨時產生新的金鑰。"
+
+msgid "share_access_key"
+msgstr "分享存取金鑰"
+
+msgid "rename_server"
+msgstr "重新命名伺服器"
+
+msgid "rename"
+msgstr "重新命名"
+
+msgid "selected_location"
+msgstr "已選擇的位置"
+
+msgid "remove_server_?"
+msgstr "移除伺服器?"
+
+msgid "remove_server_message"
+msgstr "移除 %s?這只會將其從你的應用程式中移除,不會從雲端供應商刪除伺服器。"
+
+msgid "generate_access_key"
+msgstr "產生存取金鑰"
+
+msgid "trust_server_operator"
+msgstr "信任伺服器營運者"
+
+msgid "trust_server_operator_message_one"
+msgstr "私人伺服器由 MYX-VPN 以外的個人或組織託管和營運。當你連線至私人伺服器時,你信任營運者能安全地管理並負責任地使用它。"
+
+msgid "trust_server_operator_message_two"
+msgstr "MYX-VPN 不管理或監控私人伺服器。在加入之前,請確保你認識並信任伺服器營運者。"
+
+msgid "trust_server_operator_message_three"
+msgstr "如果您不確定誰在運營伺服器或伺服器如何設定，我們建議您使用伺服器清單中的預設 MYX-VPN 伺服器。"
+
+msgid "lantern_servers"
+msgstr "MYX-VPN 伺服器"
+
+msgid "private_servers"
+msgstr "私人伺服器"
+
+msgid "fastest_server"
+msgstr "最快伺服器"
+
+msgid "latency_testing"
+msgstr "測試中…"
+
+msgid "latency_unreachable"
+msgstr "無法連線"
+
+msgid "join_my_private_server"
+msgstr "加入我的 MYX-VPN 私人伺服器"
+
+msgid "your_server"
+msgstr "你的伺服器:"
+
+msgid "no_private_server_setup_yet"
+msgstr "你尚未設定私人伺服器。點擊下方按鈕開始設定。"
+
+msgid "connect"
+msgstr "連線"
+
+msgid "disconnect"
+msgstr "中斷連線"
+
+msgid "show"
+msgstr "顯示"
+
+msgid "status_on"
+msgstr "已連線"
+
+msgid "status_off"
+msgstr "已中斷連線"
+
+msgid "select_location"
+msgstr "選擇位置"
+
+msgid "select_your_server_location"
+msgstr "選擇你的伺服器位置"
+
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "更快速度與無限頻寬"
+
+msgid "premium_servers_less_congestion"
+msgstr "高級伺服器,較少壅塞"
+
+msgid "advanced_anti_censorship"
+msgstr "進階反審查技術"
+
+msgid "connect_up_to_five_devices"
+msgstr "最多連接 5 台裝置"
+
+msgid "built_in_ad_blocking"
+msgstr "內建廣告封鎖"
+
+msgid "get_lantern_pro"
+msgstr "取得 MYX-VPN 專業版"
+
+msgid "connected_to_private_server"
+msgstr "已連線至私人伺服器"
+
+msgid "server_already_selected"
+msgstr "你已經連線至此伺服器。"
+
+msgid "device_limit_reached"
+msgstr "已達裝置數量上限"
+
+msgid "device_limit_reached_message"
+msgstr "你已達到 5 台裝置的上限。請移除一台裝置以繼續。"
+
+msgid "remove_device_and_sign_in"
+msgstr "移除裝置並登入"
+
+msgid "cancel_sign_in"
+msgstr "取消登入"
+
+msgid "change_email"
+msgstr "變更電子郵件"
+
+msgid "change_email_message"
+msgstr "這將成為你的新登入電子郵件。你需要先驗證才能生效。"
+
+msgid "email_must_be_different"
+msgstr "請輸入其他電子郵件地址。"
+
+msgid "enter_new_email"
+msgstr "輸入你的新電子郵件"
+
+msgid "confirm_password_to_continue"
+msgstr "若要繼續,請確認你的密碼。"
+
+msgid "email_updated"
+msgstr "你的電子郵件已更新。"
+
+msgid "enable_network_extension"
+msgstr "啟用網路擴充功能"
+
+msgid "enable_network_extension_message"
+msgstr "為使用 MYX-VPN,我們需要為你的 Mac 安裝網路擴充功能。"
+
+msgid "install_now"
+msgstr "立即安裝"
+
+msgid "learn_more"
+msgstr "進一步了解"
+
+msgid "network_extension_required"
+msgstr "需要網路擴充功能"
+
+msgid "click"
+msgstr "點擊"
+
+msgid "open_system_settings"
+msgstr "開啟系統設定"
+
+msgid "when_prompted"
+msgstr "出現提示時。"
+
+msgid "activate_extension"
+msgstr "立即安裝"
+
+msgid "email_optional"
+msgstr "電子郵件(選填)"
+
+msgid "please_enter_valid_email"
+msgstr "請輸入有效的電子郵件"
+
+msgid "please_select_an_issue"
+msgstr "請選擇一個問題"
+
+msgid "thanks_for_feedback"
+msgstr "感謝你的回饋!"
+
+msgid "no_apps_selected"
+msgstr "未選擇應用程式"
+
+msgid "deselect_all"
+msgstr "取消全選"
+
+msgid "select_all"
+msgstr "全選"
+
+msgid "no_websites_selected"
+msgstr "未選擇網站"
+
+msgid "restore_purchase"
+msgstr "恢復購買"
+
+msgid "already_purchased"
+msgstr "已經購買過？"
+
+msgid "do_private_server_setup"
+msgstr "DO 私人伺服器設定"
+
+msgid "private_server_note"
+msgstr "選擇私人伺服器的區域。較近的位置可能會提升速度並降低延遲。"
+
+msgid "gcp_private_server_setup"
+msgstr "GCP 私人伺服器設定"
+
+msgid "gcp_private_server_location"
+msgstr "GCP 私人伺服器位置"
+
+msgid "do_private_server_location"
+msgstr "DO 私人伺服器位置"
+
+msgid "confirm"
+msgstr "確認"
+
+msgid "private_server_warning"
+msgstr "僅新增你信任的人營運的伺服器 "
+
+msgid "go_to_server_locations"
+msgstr "前往伺服器位置"
+
+msgid "lantern_io"
+msgstr "MYX-VPN.io"
+
+msgid "alternative_download_links"
+msgstr "替代下載連結"
+
+msgid "github_download_page"
+msgstr "GitHub 下載頁面"
+
+msgid "telegram_bot"
+msgstr "Telegram Bot"
+
+msgid "if_you_cannot_access_website"
+msgstr "如果你在存取我們的網站時遇到任何問題,可以從上方連結下載 MYX-VPN。"
+
+msgid "available_on"
+msgstr "適用於:"
+
+msgid "subscription_renewal_date"
+msgstr "訂閱續訂日期"
+
+msgid "pro_access_until"
+msgstr "專業版有效期至 %s"
+
+msgid "diagnostic_logs"
+msgstr "診斷記錄"
+
+msgid "lantern_user_forum"
+msgstr "MYX-VPN 使用者論壇"
+
+msgid "frequently_asked_questions"
+msgstr "常見問題"
+
+msgid "privacy_policy"
+msgstr "隱私權政策"
+
+msgid "terms_of_service"
+msgstr "服務條款"
+
+msgid "get_unlimited_data"
+msgstr "取得無限數據和更快速度"
+
+msgid "private_server_options"
+msgstr "私人伺服器選項"
+
+msgid "lantern_version"
+msgstr "MYX-VPN 版本"
+
+msgid "quit"
+msgstr "結束"
+
+msgid "device_removed"
+msgstr "裝置已移除"
+
+msgid "set_server_alias"
+msgstr "設定伺服器別名"
+
+msgid "this_name_pre_filled"
+msgstr "此名稱將為受邀使用者預先填入,以幫助他們識別伺服器。他們可以稍後變更。"
+
+msgid "server_alias"
+msgstr "伺服器別名"
+
+msgid "add_referral_code"
+msgstr "新增推薦碼"
+
+msgid "referral_code"
+msgstr "推薦碼"
+
+msgid "scan_qr_code"
+msgstr "掃描 QR 碼"
+
+msgid "choose_your_server_location"
+msgstr "選擇你的伺服器位置"
+
+msgid "we_handle_configuration"
+msgstr "我們處理配置,只需註冊即可。"
+
+msgid "90_day_free_trial"
+msgstr "90 天免費試用"
+
+msgid "server_alias_cannot_be_empty"
+msgstr "伺服器別名不能為空"
+
+msgid "referral_code_applied"
+msgstr "您的推薦代碼已成功套用！"
+
+msgid "discount_applied"
+msgstr "已套用 %s 折扣"
+
+msgid "referral_message_1y"
+msgstr "+ 1 個月免費"
+
+msgid "referral_code_invalid"
+msgstr "你輸入的推薦碼/優惠碼無效。請檢查後再試一次。"
+
+msgid "referral_code_own_invalid"
+msgstr "你不能使用自己的推薦碼。請輸入其他代碼。"
+
+msgid "free"
+msgstr "免费"
+
+msgid "lantern_pro_license"
+msgstr "燈籠專業版許可證"
+
+msgid "lantern_pro_license_required"
+msgstr "需要Lantern Pro 许可证"
+
+msgid "lantern_pro_license_invalid"
+msgstr "Lantern Pro 许可证无效"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "Lantern Pro 许可证必须为 25 个字符"
+
+msgid "create_an_account"
+msgstr "建立帳戶"
+
+msgid "no_projects_found"
+msgstr "找不到專案"
+
+msgid "no_projects_found_desc"
+msgstr "找不到專案。請先在您的雲端供應商帳戶中建立一個專案。"
+
+msgid "add_billing_details"
+msgstr "添加账单详情"
+
+msgid "do_billing_details_message"
+msgstr "DigitalOcean 需要付款信息才能创建服务器。"
+
+msgid "1"
+msgstr "1"
+
+msgid "2"
+msgstr "2"
+
+msgid "3"
+msgstr "3"
+
+msgid "add_payment_method"
+msgstr "添加付款方式(信用卡或 PayPal)"
+
+msgid "return_to_lantern"
+msgstr "返回MYX-VPN并点击\"继续\"以继续设置"
+
+msgid "how_to_add_billing_details"
+msgstr "如何添加账单详情:"
+
+msgid "ok"
+msgstr "好的"
+
+msgid "could_not_open_url"
+msgstr "无法打开 URL"
+
+msgid "new_to_lantern_pro"
+msgstr "初次使用 MYX-VPN？"
+
+msgid "an_error_occurred"
+msgstr "发生错误。请稍后重试。"
+
+msgid "developer_mode"
+msgstr "开发者模式"
+
+msgid "developer_mode_note"
+msgstr "开发者模式专供MYX-VPN开发人员在开发过程中测试功能使用。"
+
+msgid "error_while_vpn_connection"
+msgstr "建立 VPN 连接时发生错误。请重试。"
+
+msgid "help_improve_lantern"
+msgstr "帮助改进MYX-VPN"
+
+msgid "share_anonymous_usage_data"
+msgstr "分享匿名使用数据以帮助改善速度和可靠性。"
+
+msgid "data_we_collect"
+msgstr "我们从不收集浏览历史、流量目的地、DNS 查询或连接日志。"
+
+msgid "you_can_change_anytime"
+msgstr "您可以随时在 VPN 设置中更改此项。"
+
+msgid "dont_allow"
+msgstr "不允许"
+
+msgid "allow"
+msgstr "允许"
+
+msgid "anonymous_usage_data"
+msgstr "匿名使用数据"
+
+msgid "helps_improve_lantern_performance"
+msgstr "帮助提升MYX-VPN性能"
+
+msgid "email_deliverability_notice"
+msgstr "邮件送达提醒"
+
+msgid "email_deliverability_notice_message"
+msgstr "发送到 163.com、126.com、qq.com 和 sina.com 地址的邮件有时会被拦截且可能无法送达"
+
+msgid "email_deliverability_notice_message_two"
+msgstr "如果您没有收到确认码,请考虑使用其他邮箱服务商。"
+
+msgid "continue_anyway"
+msgstr "仍然继续"
+
+msgid "routing_mode"
+msgstr "路由模式"
+
+msgid "smart_routing"
+msgstr "智慧路由"
+
+msgid "full_tunnel"
+msgstr "全域代理"
+
+msgid "region_optimized_routing"
+msgstr "根據您所在地區最佳化的規則路由"
+
+msgid "all_traffic_through_vpn"
+msgstr "所有流量透過 VPN"
+
+msgid "smart_routing_description"
+msgstr "智慧路由使用特定地區的規則，自動將需要 VPN 的流量透過 MYX-VPN 傳送。所有其他流量直連以提高速度和可靠性。"
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "新增應用程式和網站以繞過 VPN"
+
+msgid "lantern_pro_license_applied"
+msgstr "您的 Lantern Pro 授權將套用於您的現有帳戶"
+
+msgid "daily_data_cap_reached"
+msgstr "已達到每日資料上限"
+
+msgid "daily_data_cap_reached_message"
+msgstr "速度已降至 128 kb/s - 將在 %s 重設。"
+
+msgid "subscription_renewal_info"
+msgstr "購買時費用將透過你的 Apple ID 收取。除非在目前訂閱期結束前至少 24 小時取消，否則訂閱將自動續訂。"
+
+msgid "failed_to_update_routing_mode"
+msgstr "更新路由模式失敗。請重試。"
+
+msgid "apps"
+msgstr "應用程式"
+
+msgid "websites"
+msgstr "網站"
+
+msgid "main_channel"
+msgstr "主要頻道"
+
+msgid "data_cap_channel"
+msgstr "流量使用提醒"
+
+msgid "mb_free_data_remaining"
+msgstr "剩餘 %d MB 免費流量"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr "您的流量將於 %s 重置。升級至 Pro 可享有無限高速流量。"
+
+msgid "if_you_have_not_set_password"
+msgstr "如果您之前沒有設定 Lantern Pro 密碼，請選擇下方的「忘記密碼？」選項。"
+
+msgid "pro_subscription_expired"
+msgstr "您的 Pro 訂閱已過期"
+
+msgid "renew_pro_subscription"
+msgstr "續訂 Pro 訂閱"
+
+msgid "subscription_expired"
+msgstr "訂閱已過期"
+
+msgid "pro"
+msgstr "專業版"
+
+msgid "set_account_password"
+msgstr "設定帳戶密碼"
+
+msgid "set_password"
+msgstr "設定密碼"
+
+msgid "set_account_password_message"
+msgstr ""
+"要管理您的帳戶或在其他裝置上登入，您現在需要為 Lantern Pro 帳戶設定密碼。\n"
+"\n"
+"我們將透過電子郵件向您傳送驗證碼以建立密碼。"
+
+msgid "expired"
+msgstr "已過期"
+
+msgid "lantern_pro_tagline"
+msgstr "快速、可靠且私密的網路存取"
+
+msgid "what_makes_lantern_different"
+msgstr "MYX-VPN 有何不同"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "為隱私、速度和自由而打造"
+
+msgid "smart_routing_mode"
+msgstr "智慧路由模式"
+
+msgid "region_specific_routing_description"
+msgstr "依各地區的規則僅對需要 VPN 的流量進行路由，維持快速連線。"
+
+msgid "advanced_protocols"
+msgstr "進階協定"
+
+msgid "advanced_protocols_description"
+msgstr "比其他 VPN 支援更多協定，確保最高可靠性。AnyTLS、Hysteria2、VLESS、Kindling、WATER 等。"
+
+msgid "private_servers_description"
+msgstr "連接您自己的伺服器，完全掌控您的連線。"
+
+msgid "nonprofit_mission"
+msgstr "非營利使命"
+
+msgid "built_by_nonprofit"
+msgstr "由一個擁有超過 12 年推動網路自由經驗的非營利組織打造"
+
+msgid "choose_your_routing_mode"
+msgstr "選擇您的路由模式"
+
+msgid "fastest"
+msgstr "最快"
+
+msgid "traditional_vpn_mode"
+msgstr "傳統 VPN 模式"
+
+msgid "traditional_vpn_mode_description"
+msgstr "將所有流量透過 MYX-VPN 路由，無論是否需要。"
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "可隨時在路由模式設定中變更"
+
+msgid "get_started"
+msgstr "開始使用"
+
+msgid "skip_connect_now"
+msgstr "略過 - 立即連線"
+
+msgid "renew_pro"
+msgstr "續訂 Pro"
+
+msgid "payment"
+msgstr "付款"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr "似乎發生了問題。如果您已付款但未看到訂閱啟用，請等待數小時後再查看。"
+
+msgid "manage_subscription_google_play"
+msgstr "您的 Pro 方案是透過 Google Play 購買的。請在 Google Play 帳戶設定中管理您的訂閱。"
+
+msgid "manage_subscription_apple_app_store"
+msgstr "您的 Pro 方案是透過 Apple App Store 購買的。請在 Apple ID 帳戶設定中管理您的訂閱。"
+
+msgid "create_account_error"
+msgstr "建立帳戶時發生錯誤"
+
+msgid "appearance"
+msgstr "外觀"
+
+msgid "light"
+msgstr "淺色"
+
+msgid "dark"
+msgstr "深色"
+
+msgid "system"
+msgstr "跟隨系統"
+
+msgid "lantern_email"
+msgstr "MYX-VPN 電子郵件"
+
+msgid "confirm_with_account"
+msgstr "若要確認刪除，請在下方使用您的 %s 帳戶進行驗證："
+
+msgid "oauth_different_account"
+msgstr "您嘗試登入的帳戶與此電子郵件關聯的帳戶不符。請使用正確的帳戶登入或選擇其他電子郵件。"
+
+msgid "account_deleted"
+msgstr "帳戶已刪除"
+
+msgid "account_deleted_message"
+msgstr "您的帳戶已永久刪除。"
+
+msgid "verify_with"
+msgstr "透過 %s 驗證"
+
+msgid "renew"
+msgstr "續訂"
+
+msgid "vpn_conflict_title"
+msgstr "另一個 VPN 已開啟"
+
+msgid "vpn_conflict_body"
+msgstr "MYX-VPN無法連線，因為裝置上有另一個 VPN 或網路應用程式正在執行。Android 同一時間只允許一個 VPN。請中斷該 VPN，或選擇「仍要連線」讓MYX-VPN接管。"
+"你的裝置上正在執行另一個 VPN。MYX-VPN 作為唯一啟用的 VPN 時效果最佳。為獲得最佳效果，請在使用 MYX-VPN 前中斷該 VPN "
+"的連線。"
+
+msgid "vpn_conflict_dismiss"
+msgstr "暫不"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "仍要連線"
+
+msgid "err_check_connection"
+msgstr "無法連線。請檢查你的網路連線。"
+
+msgid "err_service_unavailable"
+msgstr "服務暫時無法使用。正在重試..."
+
+msgid "err_connection_failed"
+msgstr "連線失敗。請再試一次。"
+
+msgid "err_ruleset_failed"
+msgstr "無法載入路由設定。正在重試..."
+
+msgid "update_now"
+msgstr "立即更新"
+
+msgid "later"
+msgstr "稍後"
+
+msgid "update_ready_to_install"
+msgstr "MYX-VPN %s 已準備好安裝"
+
+msgid "up_to_date"
+msgstr "已是最新"
+
+msgid "running_latest_version"
+msgstr "你正在使用最新版本的 MYX-VPN %s"
+
+msgid "couldnt_check_for_updates"
+msgstr "無法檢查更新"
+
+msgid "check_connection_and_retry"
+msgstr "請檢查連線後再試一次"
+
+msgid "refresh_configuration"
+msgstr "重新整理設定"
+
+msgid "configuration_cleared"
+msgstr "設定已清除"
+
+msgid "turn_off_vpn"
+msgstr "關閉 VPN"
+
+msgid "turn_off_vpn_message"
+msgstr "重新整理設定前需要先關閉 VPN。請關閉後再試一次。"
+
+msgid "configuration_message"
+msgstr "你的舊設定已清除。開啟 VPN 即可自動下載最新設定。"
+
+msgid "promo_referral_code"
+msgstr "優惠碼 / 推薦碼"
+
+msgid "promo_code"
+msgstr "優惠碼"
+
+msgid "promo_code_with"
+msgstr "優惠碼（%s）"
+
+msgid "order_total"
+msgstr "訂單總額"
+
+msgid "smart_routing_mode_description"
+msgstr "智慧位置會選擇最快的伺服器，並在發現更佳路線時自動切換。"
+
+# Share consent dialog (shown once before any sharing starts, covers both
+# modes)
+msgid "share_consent_title"
+msgstr "分享你的連線？"
+
+msgid "share_consent_body_what"
+msgstr "分享開啟期間，受審查國家/地區的人們會透過你的連線路由其流量，以連上開放網際網路。"
+
+msgid "share_consent_body_ip"
+msgstr ""
+"如果你的路由器支援連接埠轉發，你的家用連線將被用作出口，分享期間你的 IP 位址會出現在目的地的記錄中。否則，該流量將改經 MYX-VPN "
+"的伺服器中繼，你的 IP 不會以這種方式暴露。"
+
+msgid "share_consent_body_safety"
+msgstr ""
+"無論哪種情況，MYX-VPN 都會封鎖已知濫用目的地、私人網路範圍和易被濫用的連接埠，定期輪換憑證，並依據 DMCA § 512(a) "
+"以「單純管道」（mere conduit）身分營運。"
+
+msgid "share_consent_decline"
+msgstr "暫時不要"
+
+msgid "share_consent_accept"
+msgstr "開啟分享"
+
+msgid "bypass_browser_warning_title"
+msgstr "將 %s 加入繞行清單？"
+
+msgid "bypass_browser_warning_body"
+msgstr "%s 將直接連線，不受 MYX-VPN 保護。在封鎖某些網站的國家/地區，部分網站將無法載入。"
+
+msgid "add_anyway"
+msgstr "仍要加入"
+
+msgid "bypass_all_warning_title"
+msgstr "將所有應用程式加入繞行清單？"
+
+msgid "bypass_all_warning_body"
+msgstr "其中包括 %s 等瀏覽器。繞行清單中的應用程式將直接連線，不受 MYX-VPN 保護。在封鎖某些網站的國家/地區，部分網站將無法載入。"
+
+msgid "add_all_except_browsers"
+msgstr "加入除瀏覽器外的全部"
+
+msgid "add_all_anyway"
+msgstr "仍要全部加入"
+
+msgid "bypass_app_first_time_title"
+msgstr "為此應用程式繞過 VPN？"
+
+msgid "bypass_app_first_time_body"
+msgstr "%s 將直接連線，不受 MYX-VPN 保護。如果它在你所在的國家/地區被封鎖，可能會無法使用。"
+
+msgid "bypass_website_first_time_title"
+msgstr "為此網站繞過 VPN？"
+
+msgid "bypass_website_first_time_body"
+msgstr "%s 將直接連線，不受 MYX-VPN 保護。如果它在你所在的國家/地區被封鎖，可能會無法使用。"
+
+msgid "upsell_upgrade_suffix"
+msgstr "更快速度，無限數據！"
+
+msgid "upsell_expired_suffix"
+msgstr "你的 Pro 時間已到期"
+
+msgid "pro_expires_days_left"
+msgstr "Pro 將於 %s 到期，剩餘 %s 天"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro 將於 %s 到期，剩餘 1 天"
+
+msgid "renewing_adds_time"
+msgstr "續訂會在你目前的到期日上累加時間"
+
+msgid "pro_ends_today"
+msgstr "Pro 時間今天到期，%s"
+
+msgid "renew_now_keep_data"
+msgstr "立即續訂以保留無限數據和 Pro 功能"
+
+msgid "pro_expired_on"
+msgstr "你的 Pro 時間已於 %s 到期"
+
+msgid "renew_now_get_back_data"
+msgstr "立即續訂以取回無限數據"
+
+msgid "days_left"
+msgstr "剩餘 %s 天"
+
+msgid "one_day_left"
+msgstr "剩餘 1 天"
+
+msgid "expires_today"
+msgstr "今天到期"
+
+msgid "pro_time_expired_message"
+msgstr "Lantern Pro 時間已到期。續訂即可恢復無限數據和 Pro 功能。"
+
+msgid "pro_expires_today_title"
+msgstr "Pro 今天到期"
+
+msgid "pro_expires_today_popup_message"
+msgstr "你的 Pro 帳戶今天到期。立即續訂以繼續使用 Lantern Pro。"
+
+msgid "renew_now"
+msgstr "立即續訂"
+
+msgid "dismiss"
+msgstr "關閉"
+
+msgid "unbounded_status_waiting"
+msgstr "等待啟動"
+
+msgid "affiliate_offer_unavailable"
+msgstr "無法從商店載入優惠方案。請再試一次。"
+
+msgid "action_mode_helping_now"
+msgstr "目前正在協助"
+
+msgid "action_mode_total_helped"
+msgstr "累計協助人數"
+
+msgid "show_license"
+msgstr "顯示授權碼"
+
+msgid "hide_license"
+msgstr "隱藏授權碼"
+
+msgid "share_logs_warning_title"
+msgstr "分享診斷記錄？"
+
+msgid "share_logs_warning_body"
+msgstr "這些記錄可能包含你的電子郵件、IP 位址、裝置識別碼，以及你連線過的 MYX-VPN 伺服器。記錄離開應用程式後就不受保護，任何收到的人都能讀取。只能傳送給 MYX-VPN 支援團隊 support@lantern.io。"
+
+msgid "share_logs_anyway"
+msgstr "分享記錄"
+
+msgid "widget"
+msgstr "小工具"
+
+msgid "add_lantern_widget"
+msgstr "新增 MYX-VPN 小工具"
+
+msgid "add_lantern_widget_description"
+msgstr "不必開啟應用程式，就能從手機主畫面連線。"
+
+msgid "widget_step_1"
+msgstr "長按手機主畫面上的空白處。"
+
+msgid "widget_step_2"
+msgstr "點一下「編輯」，然後點一下「加入小工具」。"
+
+msgid "widget_step_3"
+msgstr "搜尋 MYX-VPN，選擇大小，然後點一下「加入小工具」。"
+
+msgid "people_helped_title"
+msgstr "你幫助過的人"
+
+msgid "people_helped_subtitle"
+msgstr "累計幫助 %s · 目前 %s"
+
+msgid "advanced_stats_by_country"
+msgstr "依國家，累計"
+
+msgid "advanced_stats_relayed"
+msgstr "已轉送 %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "已轉送資料"
+
+msgid "advanced_stats_this_session"
+msgstr "本次連線"
+
+msgid "advanced_stats_all_time_short"
+msgstr "累計"
+
+msgid "advanced_stats_current_speed"
+msgstr "目前速度"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "已傳送 %s · 已接收 %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "還沒有幫助到任何人。有人透過你連線後，國家會顯示在這裡。"
+
+msgid "advanced_stats_unknown_country"
+msgstr "未知"
+
+msgid "advanced_stats_one_person"
+msgstr "1 人"
+
+msgid "advanced_stats_people"
+msgstr "%s 人"
+
+msgid "share_mode_smc"
+msgstr "直接連線"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "分享模式"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "直接連線無法使用：%s"
+
+msgid "view_advanced_stats"
+msgstr "檢視進階統計資料"
+
+msgid "error_occurred"
+msgstr "發生錯誤。請再試一次。"
+
+msgid "unknown_error_occurred"
+msgstr "發生不明錯誤。"
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "我們遇到技術問題。請稍後再試。"
+
+msgid "proxy_error"
+msgstr "無法透過代理伺服器連線。請檢查你的網路連線後再試一次。"
+
+msgid "err_while_sending_code"
+msgstr "無法傳送驗證碼。請再試一次。"
+
+msgid "recovery_not_found"
+msgstr "找不到符合這些資訊的可復原帳號。"
+
+msgid "wrong_link_code"
+msgstr "裝置連結碼不正確。請檢查後再試一次。"
+
+msgid "wrong_seller_code"
+msgstr "經銷商代碼不正確。請檢查後再試一次。"
+
+msgid "purchase_not_found"
+msgstr "找不到此帳戶的購買紀錄。"
+
+msgid "purchase_restored_error"
+msgstr "無法還原你的購買項目。請再試一次。"
+
+msgid "empty_url"
+msgstr "無法開啟付款頁面。請再試一次。"
+
+msgid "please_enter_referral_code"
+msgstr "請輸入推薦碼。"
+
+msgid "access_token_missing"
+msgstr "缺少存取權杖。請重新登入你的雲端服務供應商。"
+
+msgid "private_server_setup_error"
+msgstr "無法設定你的私人伺服器。請再試一次。"
+
+msgid "logs"
+msgstr "記錄檔"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "點按下方的 %s 前往 DigitalOcean"
+
+msgid "network_extension_disabled_message"
+msgstr "MYX-VPN 的網路延伸功能已在系統設定中關閉。在「登入項目與延伸功能」>「網路延伸功能」中開啟，然後返回 MYX-VPN。"
+
+msgid "oauth_error_sign_in_failed"
+msgstr "登入失敗。請再試一次。"
+
+msgid "oauth_error_session_expired"
+msgstr "你的登入工作階段已過期。請再試一次。"
+
+msgid "oauth_error_provider_failed"
+msgstr "無法使用該帳號讓你登入。請再試一次。"
+
+msgid "oauth_error_no_email"
+msgstr "該帳號未分享電子郵件地址。請允許存取電子郵件後再試一次。"
+
+msgid "oauth_error_add_device"
+msgstr "無法將這部裝置連結至你的帳戶。請聯絡客服。"
+
+msgid "helper_error_disabled"
+msgstr "這部裝置目前尚不支援幫助朋友。"
+
+msgid "helper_error_not_found"
+msgstr "這個邀請或協助者已不存在。"
+
+msgid "helper_error_unavailable"
+msgstr "無法連線至 MYX-VPN。檢查你的網路連線後再試一次。"
+
+msgid "helper_error_too_many_invites"
+msgstr "你目前傳送的邀請已達上限。明天再試一次。"
+
+msgid "helper_error_too_many_pairings"
+msgstr "你已達到 20 人的上限。"
+
+msgid "helper_error_no_pending_claim"
+msgstr "此邀請已處理。"
+
+msgid "helper_error_bad_name"
+msgstr "輸入你的朋友認得的名稱，最多 60 個字元。"
+
+msgid "helper_error_keystore"
+msgstr "此裝置無法安全儲存名稱，因此已關閉協助朋友功能。在 Linux 上，啟動 GNOME Keyring 等金鑰圈。"
+
+msgid "helper_error_keystore_reset"
+msgstr "此裝置的安全儲存空間已重設，因此無法讀取你的協助者和邀請的名稱。你的協助者仍然有效；再次邀請他們即可看到名稱。"
+
+msgid "helper_error_copy"
+msgstr "無法複製連結。可改用「分享連結」。"
+
+msgid "helpers_your_name_label"
+msgstr "你的名字（朋友對你的稱呼）"
+
+msgid "helpers_your_name_hint"
+msgstr "例如：小雅"
+
+msgid "helper_online"
+msgstr "線上"
+
+msgid "helper_offline"
+msgstr "離線"
+
+msgid "helper_unnamed"
+msgstr "你的協助者"
+
+msgid "helper_remove_confirm_title"
+msgstr "移除 %s？"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s 將不再協助你。你之後可以再次邀請。"
+
+msgid "helpers_remove_all"
+msgstr "移除所有協助者"
+
+msgid "helpers_remove_all_body"
+msgstr "所有協助者將停止協助你，其名稱將從這部裝置上清除。"
+
+msgid "manage_private_locations"
+msgstr "管理私人位置"
+
+msgid "invite_personal_proxy"
+msgstr "邀請個人代理"
+
+msgid "personal_proxies_tab"
+msgstr "個人代理"
+
+msgid "invite_another"
+msgstr "再邀請一位"
+
+msgid "helpers_nudge_second"
+msgstr "如果你的個人代理離線，透過它的連線也會中斷。邀請第二位朋友，保持連線。"
+
+msgid "personal_proxy_banner_title"
+msgstr "取得個人代理"
+
+msgid "personal_proxy_banner_body"
+msgstr "海外的朋友可以幫你保持連線。"
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "你的朋友正在等待"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "核對驗證碼並核准對方。"
+
+msgid "personal_proxy_nickname_label"
+msgstr "在此裝置上的名稱"
+
+msgid "invite_share_message"
+msgstr "%s 需要你的協助來保持連線。%s"
+
+msgid "invite_share_button"
+msgstr "分享連結"
+
+msgid "invite_copy_link"
+msgstr "複製連結"
+
+msgid "invite_link_copied"
+msgstr "已複製連結"
+
+msgid "invite_qr_hint"
+msgstr "你的朋友可以用 MYX-VPN 掃描這個 QR 碼。"
+
+msgid "invite_waiting"
+msgstr "正在等待朋友開啟連結"
+
+msgid "invite_trust_warning"
+msgstr "你邀請的人會知道你在使用 MYX-VPN，並能看到你何時透過對方連線。你的流量會經過對方的網路連線，因此對方可能得知你造訪了哪些網站，但無法得知你在安全（https）網站上的操作。只邀請你信任的人。"
+
+msgid "invite_expires"
+msgstr "%s 小時後到期"
+
+msgid "invite_gone"
+msgstr "此邀請已被使用或已過期。"
+
+msgid "invite_claimed_title"
+msgstr "有人開啟了你的邀請"
+
+msgid "invite_compare_codes"
+msgstr "比對代碼"
+
+msgid "personal_proxy"
+msgstr "個人代理"
+
+msgid "private_locations"
+msgstr "私人位置"
+
+msgid "personal_proxies"
+msgstr "個人代理"
+
+msgid "your_personal_proxies"
+msgstr "你的個人代理伺服器"
+
+msgid "help_friend_link_label"
+msgstr "邀請連結"
+
+msgid "help_friend_paste"
+msgstr "貼上朋友傳來的連結"
+
+msgid "help_friend_scan"
+msgstr "掃描朋友的 QR 碼"
+
+msgid "help_friend_approved"
+msgstr "你現在正在幫助 %s。"
+
+msgid "help_friend_no_longer_pending"
+msgstr "此請求已不再等待處理。向你的朋友索取新的邀請。"
+
+msgid "help_friend_done"
+msgstr "完成"
+
+msgid "help_friend_already_claimed_title"
+msgstr "此邀請已被使用"
+
+msgid "help_friend_already_claimed_body"
+msgstr "其他人已先開啟此連結，或連結已過期。向你的朋友索取新的邀請，並告訴對方這個邀請可能已被他人看到。"
+
+msgid "help_friend_already_helping"
+msgstr "你已在幫助這位朋友。"
+
+msgid "help_friend_already_helping_named"
+msgstr "你已在幫助 %s。"
+
+msgid "help_friend_bad_link"
+msgstr "這不是協助者邀請連結。"
+
+msgid "help_friend_own_invite"
+msgstr "這是你自己的邀請。將它傳送給你想請求協助的朋友。"
+
+msgid "helping_since"
+msgstr "自 %s 起"
+
+msgid "helping_unnamed"
+msgstr "你幫助的某個人"
+
+msgid "helping_sharing_off_warning"
+msgstr "分享已關閉，你幫助的人無法透過你連線。"
+
+msgid "helping_remove"
+msgstr "停止幫助"
+
+msgid "helping_remove_confirm"
+msgstr "停止幫助 %s？對方需要新的邀請才能再次透過你連線。"
+
+msgid "help_others_too"
+msgstr "也幫助他人"
+
+msgid "help_others_too_body"
+msgstr "將閒置容量借給其他面臨審查的人；MYX-VPN 只允許他們連上許可的網站，藉此保護你的連線不被濫用。"
+
+msgid "help_others_too_note"
+msgstr "變更此設定會讓你幫助的人短暫重新連線。"
+
+msgid "helping_duration_hm"
+msgstr "%s 小時 %s 分鐘"
+
+msgid "helping_duration_m"
+msgstr "%s 分鐘"
+
+msgid "invite_share_title"
+msgstr "將此連結分享給你信任的國外人士"
+
+msgid "invite_share_steps"
+msgstr "對方開啟連結，必要時安裝 MYX-VPN，然後輸入名字。你核對 4 位數代碼後核准對方，即可透過對方連線。"
+
+msgid "invite_link_label"
+msgstr "你的邀請連結"
+
+msgid "invite_link_expiry"
+msgstr "僅能使用一次，48 小時後失效。"
+
+msgid "approve_title"
+msgstr "%s 想成為你的個人代理"
+
+msgid "approve_body"
+msgstr "透過電話或傳送連結以外的其他應用程式，向 %s 詢問 MYX-VPN 顯示給對方的 4 位數驗證碼。只有一致時才核准。"
+
+msgid "approve_codes_match"
+msgstr "驗證碼一致，核准"
+
+msgid "approve_reject"
+msgstr "拒絕"
+
+msgid "personal_proxy_fallback_group"
+msgstr "目前無法連線至 %s。已切換至你的個人代理。"
+
+msgid "personal_proxy_fallback_auto"
+msgstr "目前無法連線至 %s。已切換至智慧位置。"
+
+msgid "become_means_title"
+msgstr "擔任個人代理的意義"
+
+msgid "become_means_traffic"
+msgstr "一位朋友向你求助。Action Mode 執行期間，對方可以透過你的連線存取開放的網際網路。視你的路由器而定，對方的流量會從你的網路送出，或經由 MYX-VPN 的伺服器轉送。MYX-VPN 不會向你顯示對方的網路活動。"
+
+msgid "become_means_seen"
+msgstr "對方可以看到你何時連線。只接受認識的人傳來的邀請。"
+
+msgid "become_means_remove"
+msgstr "你可以隨時移除此連線。"
+
+msgid "help_friend_form_title"
+msgstr "貼上你所協助的人傳來的連結"
+
+msgid "help_friend_link_hint"
+msgstr "如果你在這部裝置上開啟了連結，這裡會自動填入"
+
+msgid "help_friend_name_label"
+msgstr "朋友所認識的你的名字"
+
+msgid "help_friend_name_hint"
+msgstr "你在朋友的 MYX-VPN 中會顯示為這個名稱"
+
+msgid "help_friend_become"
+msgstr "成為朋友的專屬代理"
+
+msgid "help_friend_tell_code"
+msgstr "把這組代碼告訴朋友"
+
+msgid "help_friend_code_check"
+msgstr "對方會確認它與其手機上的代碼是否相符，然後核准你。"
+
+msgid "help_friend_waiting_approval"
+msgstr "等待核准"
+
+msgid "help_friend_code_note"
+msgstr "透過通話或在收到邀請連結的應用程式以外的其他應用程式中告知代碼。看過連結的人不應同時看到代碼。"
+
+msgid "become_personal_proxy"
+msgstr "成為個人代理"
+
+msgid "become_personal_proxy_body"
+msgstr "幫助你認識的人上網"
+
+msgid "helping_connections_title"
+msgstr "你的 Personal Proxy 連線"
+
+msgid "helping_friends_one"
+msgstr "1 位好友"
+
+msgid "helping_friends_count"
+msgstr "%s 位好友"
+
+msgid "helping_connected_named"
+msgstr "%s 目前已連線"
+
+msgid "helping_connected_count"
+msgstr "目前 %s 人已連線"
+
+msgid "helping_sheet_title"
+msgstr "你正在幫助的朋友"
+
+msgid "helping_your_friends"
+msgstr "你的朋友"
+
+msgid "helping_connected"
+msgstr "已連線"
+
+msgid "helping_not_connected"
+msgstr "未連線"
+
+msgid "helping_paste_another"
+msgstr "貼上另一個邀請連結"
+
+msgid "helping_data_relayed"
+msgstr "今日中繼資料"
+
+msgid "helping_active_today"
+msgstr "已活躍 %s"
+
+msgid "myx_tap_to_connect"
+msgstr "Tap to connect"
+
+msgid "myx_protected"
+msgstr "Protected"
+
+msgid "myx_not_protected"
+msgstr "Not protected"
+
+msgid "myx_connecting"
+msgstr "Securing connection"
+
+msgid "myx_disconnecting"
+msgstr "Disconnecting"
+
+msgid "myx_session"
+msgstr "Session"
+
+msgid "myx_update_title"
+msgstr "New version available"
+
+msgid "myx_update_body"
+msgstr "MYX-VPN %s is ready. You are using %s."
+
+msgid "myx_update_now"
+msgstr "Update now"
+
+msgid "myx_update_later"
+msgstr "Later"
+
+msgid "myx_whats_new"
+msgstr "What's new"

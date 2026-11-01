@@ -1,0 +1,54 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'vpn_status_notifier.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(VPNStatusNotifier)
+final vPNStatusProvider = VPNStatusNotifierProvider._();
+
+final class VPNStatusNotifierProvider
+    extends $StreamNotifierProvider<VPNStatusNotifier, LanternStatus> {
+  VPNStatusNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'vPNStatusProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$vPNStatusNotifierHash();
+
+  @$internal
+  @override
+  VPNStatusNotifier create() => VPNStatusNotifier();
+}
+
+String _$vPNStatusNotifierHash() => r'0c5d6753d33c548dcb221b946fd79b05758730c8';
+
+abstract class _$VPNStatusNotifier extends $StreamNotifier<LanternStatus> {
+  Stream<LanternStatus> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<LanternStatus>, LanternStatus>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<LanternStatus>, LanternStatus>,
+              AsyncValue<LanternStatus>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

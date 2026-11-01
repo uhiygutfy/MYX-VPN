@@ -1,0 +1,114 @@
+import 'package:auto_route/annotations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/common.dart';
+import 'package:lantern/features/auth/provider/auth_notifier.dart';
+
+import 'package:lantern/core/models/user.dart';
+
+@RoutePage(name: 'DeviceLimitReached')
+class DeviceLimitReached extends HookConsumerWidget {
+  final List<DeviceModel> devices;
+
+  const DeviceLimitReached({super.key, required this.devices});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final textTheme = Theme.of(context).textTheme;
+    final selectedDevice = useState<DeviceModel?>(null);
+    return BaseScreen(
+      title: 'device_limit_reached'.i18n,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          SizedBox(height: defaultSize),
+          Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text(
+              'device_limit_reached_message'.i18n,
+              style: textTheme.bodyMedium,
+            ),
+          ),
+          SizedBox(height: 24.0),
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Text(
+              "lantern_pro_devices".i18n,
+              style: textTheme.labelLarge!.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+          ),
+          AppCard(
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(0),
+              children: devices.map((device) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AppTile(
+                      contentPadding: EdgeInsets.zero,
+                      label: device.name.isEmpty
+                          ? device.deviceId
+                          : device.name,
+                      trailing: AppRadioButton<DeviceModel>(
+                        value: device,
+                        groupValue: selectedDevice.value,
+                        onChanged: (value) {
+                          selectedDevice.value = value;
+                        },
+                      ),
+                    ),
+                    DividerSpace(padding: EdgeInsetsGeometry.zero),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+          SizedBox(height: 32.0),
+          PrimaryButton(
+            label: 'remove_device_and_sign_in'.i18n,
+            isTaller: true,
+            enabled: selectedDevice.value != null,
+            onPressed: () => removeDeviceAndLogin(
+              ref,
+              selectedDevice.value!.deviceId,
+              context,
+            ),
+          ),
+          SizedBox(height: 30.0),
+          Center(
+            child: AppTextButton(
+              label: 'cancel_sign_in'.i18n,
+              textColor: context.textPrimary,
+              onPressed: () {
+                appRouter.popUntilRoot();
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> removeDeviceAndLogin(
+    WidgetRef ref,
+    String deviceId,
+    BuildContext context,
+  ) async {
+    context.showLoadingDialog();
+    final result = await ref.read(authProvider.notifier).deviceRemove(deviceId);
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        context.showSnackBar(failure.localizedErrorMessage);
+      },
+      (message) {
+        context.hideLoadingDialog();
+        appRouter.pop(true);
+      },
+    );
+  }
+}

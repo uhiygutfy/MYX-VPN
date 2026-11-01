@@ -1,0 +1,178 @@
+//
+//  WidgetTunnelController.swift
+//  LanternWidget
+//
+//  Drives the tunnel straight from the widget process. Requires the
+//  packet-tunnel-provider entitlement on the widget target; without it
+//  loadAllFromPreferences returns nothing and every action throws.
+//
+//  Only the start/stop request lives here. Status is published by the tunnel
+//  process (PacketTunnelProvider) so the widget stays correct regardless of
+//  whether the app is running.
+//
+
+import Foundation
+import NetworkExtension
+
+enum WidgetTunnelError: LocalizedError {
+  case profileNotFound
+
+  var errorDescription: String? {
+    switch self {
+    case .profileNotFound:
+      return "Open Lantern once to set up the VPN before using the widget."
+    }
+  }
+}
+
+enum WidgetTunnelController {
+  /// The snapshot to render, corrected against the tunnel's real status.
+  ///
+  /// The store can go stale: the tunnel may be killed before it writes its
+  /// final state, or the app can overwrite a newer "disconnected" with an
+  /// older "disconnecting" it received late. NETunnelProviderManager is the
+  /// source of truth, so reconcile at render time and repair the store
+  /// without triggering another reload.
+  static func reconciledState() async -> VPNWidgetState {
+    let stored = VPNWidgetStore.load()
+    // A transient preferences error keeps the snapshot; only an empty list
+    // means the app has never created the profile.
+    guard let managers = try? await NETunnelProviderManager.loadAllFromPreferences() else {
+      return stored
+    }
+    guard let manager = pick(managers) else {
+      return VPNWidgetStore.update(reload: false) {
+        $0.needsSetup = true
+        $0.status = .disconnected
+      }
+    }
+    let live = manager.connection.status.widgetStatus
+    guard stored.needsSetup || (live != nil && live != stored.status) else { return stored }
+    appLogger.info(
+      "Widget reconciling stale status \(stored.status.rawValue) -> \(live?.rawValue ?? "keep")")
+    return VPNWidgetStore.update(reload: false) {
+      $0.needsSetup = false
+      if let live { $0.status = live }
+    }
+  }
+
+  static func perform(_ action: VPNWidgetAction) async throws {
+    let manager: NETunnelProviderManager
+    do {
+      manager = try await loadManager()
+    } catch WidgetTunnelError.profileNotFound {
+      // Nothing visible comes from a thrown intent error, so flip the widget
+      // into its "open the app" state instead.
+      VPNWidgetStore.setNeedsSetup(true)
+      throw WidgetTunnelError.profileNotFound
+    }
+    let status = manager.connection.status
+    appLogger.info("Widget action \(action.rawValue) with tunnel status \(status.rawValue)")
+
+    switch action {
+    case .toggle:
+      switch status {
+      case .connected, .connecting, .reasserting:
+        await stop(manager, from: status)
+      case .disconnected, .invalid:
+        try await start(manager, from: status)
+      case .disconnecting:
+        break
+      @unknown default:
+        break
+      }
+    case .connect:
+      guard status == .disconnected || status == .invalid else { return }
+      try await start(manager, from: status)
+    case .disconnect:
+      guard status != .disconnected && status != .invalid else { return }
+      await stop(manager, from: status)
+    }
+  }
+
+  /// Waits for the tunnel to settle, then records the outcome; the intent must
+  /// publish the final state since WidgetKit defers reloads from the tunnel or
+  /// a backgrounded app. Re-loads each poll because a cached connection is stale.
+  private static func settle(
+    _ action: String, from initial: NEVPNStatus, timeout: Duration,
+    terminal: Set<NEVPNStatus>
+  ) async {
+    let start = ContinuousClock.now
+    var observed: NEVPNStatus?
+    var sawTransition = false
+    while ContinuousClock.now - start < timeout {
+      if let status = (try? await loadManager())?.connection.status {
+        if status != observed {
+          appLogger.info("Widget observed tunnel status \(status.rawValue)")
+          observed = status
+        }
+        if status != initial { sawTransition = true }
+        // Only a terminal status reached after leaving the pre-action one counts.
+        if sawTransition, terminal.contains(status) { break }
+      }
+      do {
+        try await Task.sleep(for: .milliseconds(250))
+      } catch {
+        break  // Intent cancelled.
+      }
+    }
+    guard let observed else {
+      appLogger.error("Widget \(action) could not read the tunnel status")
+      return
+    }
+    appLogger.info("Widget \(action) settled with tunnel status \(observed.rawValue)")
+    if let status = observed.widgetStatus {
+      VPNWidgetStore.setStatus(status)
+    }
+  }
+
+  /// The profile the app created; the widget never creates one itself so the
+  /// user always goes through the app's VPN permission prompt first.
+  private static func loadManager() async throws -> NETunnelProviderManager {
+    let managers = try await NETunnelProviderManager.loadAllFromPreferences()
+    guard let manager = pick(managers) else {
+      appLogger.error("Widget: no Lantern VPN profile found")
+      throw WidgetTunnelError.profileNotFound
+    }
+    return manager
+  }
+
+  /// Only the app's profile; a stale pre-migration one must not be driven from here.
+  private static func pick(_ managers: [NETunnelProviderManager]) -> NETunnelProviderManager? {
+    managers.first(where: { $0.localizedDescription == FilePath.vpnProfileName })
+  }
+
+  private static func start(_ manager: NETunnelProviderManager, from initial: NEVPNStatus)
+    async throws
+  {
+    if !manager.isEnabled {
+      manager.isEnabled = true
+      try await manager.saveToPreferences()
+      try await manager.loadFromPreferences()
+    }
+
+    // Reconnect to whatever the user last chose in the app (see VPNManager),
+    // using the same option keys ExtensionProvider.startTunnel expects.
+    let state = VPNWidgetStore.load()
+    var options: [String: NSObject] = [
+      "netEx.Type": (state.isAutoServer ? "Lantern" : "PrivateServer") as NSString,
+      "netEx.StartReason": "Widget" as NSString,
+    ]
+    if !state.isAutoServer {
+      options["netEx.ServerName"] = state.serverName as NSString
+    }
+
+    try manager.connection.startVPNTunnel(options: options)
+    VPNWidgetStore.setStatus(.connecting)
+    // `.reasserting` is still dialing; wait through it so a failed dial is recorded.
+    await settle(
+      "start", from: initial, timeout: .seconds(20),
+      terminal: [.connected, .disconnected, .invalid])
+  }
+
+  private static func stop(_ manager: NETunnelProviderManager, from initial: NEVPNStatus) async {
+    manager.connection.stopVPNTunnel()
+    VPNWidgetStore.setStatus(.disconnecting)
+    await settle("stop", from: initial, timeout: .seconds(10), terminal: [.disconnected, .invalid])
+  }
+}

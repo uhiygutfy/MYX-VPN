@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+warn() {
+	echo "lantern postinst: $*" >&2
+}
+
+case "$1" in
+configure)
+	if ! /usr/lib/lantern/lanternd install --log-level=info; then
+		warn "failed to install lanternd service"
+		exit 1
+	fi
+	;;
+esac
+
+exit 0

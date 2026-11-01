@@ -1,0 +1,123 @@
+import 'package:fpdart/fpdart.dart';
+import 'package:lantern/core/utils/failure.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
+import 'package:lantern/core/models/user.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'auth_notifier.g.dart';
+
+@Riverpod(keepAlive: true)
+class AuthNotifier extends _$AuthNotifier {
+  @override
+  Future<void> build() async {
+    // Initialize any necessary state or perform setup here
+  }
+
+  Future<Either<Failure, String>> oAuthLogin(String provider) async {
+    return ref.read(lanternServiceProvider).getOAuthLoginUrl(provider);
+  }
+
+  Future<Either<Failure, UserResponseModel>> oAuthLoginCallback(
+    String authToken,
+  ) async {
+    return ref.read(lanternServiceProvider).oAuthLoginCallback(authToken);
+  }
+
+  Future<Either<Failure, Unit>> oAuthDeviceLimitCallback(
+    String authToken,
+  ) async {
+    return ref.read(lanternServiceProvider).oAuthDeviceLimitCallback(authToken);
+  }
+
+  Future<Either<Failure, UserResponseModel>> signInWithEmail(
+    String email,
+    String password,
+  ) async {
+    return ref
+        .read(lanternServiceProvider)
+        .login(email: email, password: password);
+  }
+
+  Future<Either<Failure, Unit>> signUpWithEmail(
+    String email,
+    String password,
+  ) async {
+    return ref
+        .read(lanternServiceProvider)
+        .signUp(email: email, password: password);
+  }
+
+  //Forgot password
+  Future<Either<Failure, Unit>> startRecoveryByEmail(String email) async {
+    return ref.read(lanternServiceProvider).startRecoveryByEmail(email);
+  }
+
+  Future<Either<Failure, Unit>> validateRecoveryCode(
+    String email,
+    String code,
+  ) async {
+    return ref
+        .read(lanternServiceProvider)
+        .validateRecoveryCode(email: email, code: code);
+  }
+
+  Future<Either<Failure, Unit>> completeRecoveryByEmail(
+    String email,
+    String newPassword,
+    String code,
+  ) async {
+    return ref
+        .read(lanternServiceProvider)
+        .completeRecoveryByEmail(
+          email: email,
+          newPassword: newPassword,
+          code: code,
+        );
+  }
+
+  /// Verifies the account password without mutating anything. Used to gate
+  /// the change-email flow before the user enters a new email.
+  Future<Either<Failure, String>> verifyPassword(
+    String email,
+    String password,
+  ) async {
+    return ref.read(lanternServiceProvider).verifyPassword(email, password);
+  }
+
+  Future<Either<Failure, String>> startChangeEmail(
+    String newEmail,
+    String password,
+  ) async {
+    return ref
+        .read(lanternServiceProvider)
+        .startChangeEmail(newEmail, password);
+  }
+
+  Future<Either<Failure, String>> completeChangeEmail(
+    String newEmail,
+    String password,
+    String code,
+  ) async {
+    return ref
+        .read(lanternServiceProvider)
+        .completeChangeEmail(
+          newEmail: newEmail,
+          password: password,
+          code: code,
+        );
+  }
+
+  Future<Either<Failure, UserResponseModel>> deleteAccount(
+    String email,
+    String password,
+    bool isSSO,
+  ) async {
+    return ref
+        .read(lanternServiceProvider)
+        .deleteAccount(password: password, email: email, isSSO: isSSO);
+  }
+
+  Future<Either<Failure, String>> deviceRemove(String deviceID) async {
+    return ref.read(lanternServiceProvider).deviceRemove(deviceId: deviceID);
+  }
+}

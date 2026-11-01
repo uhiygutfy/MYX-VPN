@@ -1,0 +1,4 @@
+self-hosted-runner:
+  labels:
+    - lantern-macos-smoke
+    - lantern-migration-e2e

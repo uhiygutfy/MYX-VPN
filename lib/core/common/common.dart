@@ -1,0 +1,299 @@
+// Common file to export all common files
+import 'dart:math';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lantern/core/common/app_build_info.dart';
+import 'package:lantern/core/common/app_eum.dart';
+import 'package:lantern/core/common/app_urls.dart';
+import 'package:lantern/core/extensions/user_data.dart';
+import 'package:lantern/core/localization/i18n.dart';
+import 'package:lantern/core/models/private_server.dart';
+import 'package:lantern/core/models/user.dart';
+import 'package:lantern/core/models/server_location.dart';
+import 'package:lantern/core/router/router.dart';
+import 'package:lantern/core/services/logger_service.dart';
+import 'package:lantern/core/utils/platform_utils.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../../features/home/provider/home_notifier.dart';
+import '../../lantern/lantern_service_notifier.dart';
+import '../services/injection_container.dart';
+import '../services/local_storage_service.dart';
+import '../utils/store_utils.dart';
+
+export 'package:lantern/core/common/app_asset.dart';
+export 'package:lantern/core/common/app_build_info.dart';
+export 'package:lantern/core/common/app_buttons.dart';
+export 'package:lantern/core/common/app_colors.dart';
+export 'package:lantern/core/common/app_dialog.dart';
+export 'package:lantern/core/common/app_dimens.dart';
+export 'package:lantern/core/common/app_eum.dart';
+export 'package:lantern/core/common/app_image_paths.dart';
+export 'package:lantern/core/common/app_semantic_colors.dart';
+export 'package:lantern/core/common/app_text_field.dart';
+export 'package:lantern/core/common/app_theme.dart';
+// Utils
+export 'package:lantern/core/common/app_urls.dart';
+export 'package:lantern/core/common/date_formatters.dart';
+//Desktop export
+export 'package:lantern/core/desktop/app_intent.dart';
+export 'package:lantern/core/desktop/app_shortcuts.dart';
+export 'package:lantern/core/extensions/context.dart';
+export 'package:lantern/core/extensions/error.dart';
+export 'package:lantern/core/extensions/int.dart';
+export 'package:lantern/core/extensions/pointer.dart';
+export 'package:lantern/core/extensions/ref.dart';
+// Extensions
+export 'package:lantern/core/extensions/string.dart';
+export 'package:lantern/core/extensions/user_data.dart';
+export 'package:lantern/core/localization/i18n.dart';
+// Routes
+export 'package:lantern/core/router/router.gr.dart';
+//Logger
+export 'package:lantern/core/services/logger_service.dart';
+export 'package:lantern/core/utils/failure.dart';
+export 'package:lantern/core/utils/platform_utils.dart';
+export 'package:lantern/core/utils/url_utils.dart';
+export 'package:lantern/core/widgets/app_card.dart';
+export 'package:lantern/core/widgets/app_tile.dart';
+export 'package:lantern/core/widgets/base_screen.dart';
+export 'package:lantern/core/widgets/bottomsheet.dart';
+export 'package:lantern/core/widgets/custom_app_bar.dart';
+export 'package:lantern/core/widgets/flag.dart';
+// UI
+export 'package:lantern/core/widgets/lantern_logo.dart';
+export 'package:lantern/core/widgets/platform_card.dart';
+export 'package:lantern/core/widgets/pro_banner.dart';
+export 'package:lantern/core/widgets/pro_button.dart';
+export 'package:lantern/features/home/data_usage.dart';
+
+export '../../core/widgets/divider_space.dart';
+
+AppRouter get appRouter => sl<AppRouter>();
+
+String generatePassword() {
+  const allChars =
+      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789!@#\$%^&*()-=+{};:,<.>/?';
+  final random = Random.secure();
+  return List.generate(
+    8,
+    (i) => allChars[random.nextInt(allChars.length)],
+  ).join();
+}
+
+String generatePaymentRedirectIdempotencyKey() {
+  final random = Random.secure();
+  return List.generate(
+    16,
+    (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+  ).join();
+}
+
+bool isStoreVersion() {
+  if (!PlatformUtils.isMobile) {
+    return false;
+  }
+  if (PlatformUtils.isIOS) {
+    return true;
+  }
+  if (AppBuildInfo.playStoreBuild) {
+    return true;
+  }
+  try {
+    if (kDebugMode || AppBuildInfo.buildType == 'nightly') {
+      final devMode = sl<LocalStorageService>().getDeveloperMode();
+      return resolveAndroidStoreVersion(
+        isPlayStoreBuild: AppBuildInfo.playStoreBuild,
+        isSideLoaded: sl<StoreUtils>().isSideLoaded(),
+        developerOverride: devMode?.testPlayPurchaseEnabled,
+      );
+    }
+  } catch (e) {
+    appLogger.error("Error checking store version: $e");
+    return !sl<StoreUtils>().isSideLoaded();
+  }
+
+  return resolveAndroidStoreVersion(
+    isPlayStoreBuild: AppBuildInfo.playStoreBuild,
+    isSideLoaded: sl<StoreUtils>().isSideLoaded(),
+  );
+}
+
+bool canUsePlayBilling() {
+  return resolvePlayBillingAvailability(
+    isAndroid: PlatformUtils.isAndroid,
+    isStoreVersion: isStoreVersion(),
+  );
+}
+
+/// Whether this build can currently use its platform's in-app purchase API.
+bool canUseStoreBilling() {
+  return PlatformUtils.isIOS || canUsePlayBilling();
+}
+
+//copy to clipboard
+void copyToClipboard(String text) {
+  Clipboard.setData(ClipboardData(text: text));
+}
+
+Future<String> pasteFromClipboard() async {
+  final data = await Clipboard.getData(Clipboard.kTextPlain);
+  if (data != null && data.text != null) {
+    return data.text!;
+  } else {
+    return '';
+  }
+}
+
+/// Renewals must extend Pro access. Stripe can also start a subscription after
+/// an existing one-time plan ends, without extending its expiration yet.
+/// Pass [subscriptionBefore] only for Stripe subscription checkouts.
+bool userDataReflectsPurchase(
+  UserDataModel userData,
+  int? expirationBefore, {
+  String? subscriptionBefore,
+}) {
+  if (!userData.isPro) return false;
+  if (expirationBefore == null || userData.expiration > expirationBefore) {
+    return true;
+  }
+
+  final subscription = userData.subscriptionData;
+  return subscriptionBefore != null &&
+      subscription.subscriptionID.isNotEmpty &&
+      subscription.subscriptionID != subscriptionBefore &&
+      subscription.provider == 'stripe' &&
+      subscription.status == 'active' &&
+      subscription.autoRenew;
+}
+
+/// Default poll schedule for [checkUserAccountStatus]: 3 attempts, ~6s.
+const kDefaultAccountStatusDelays = [
+  Duration(seconds: 1),
+  Duration(seconds: 2),
+  Duration(seconds: 3),
+];
+
+/// Post-checkout poll schedule: 5 attempts, ~19s. Redirect payments are
+/// credited asynchronously server-side, so the entitlement can lag.
+const kPurchaseConfirmationDelays = [
+  Duration(seconds: 1),
+  Duration(seconds: 2),
+  Duration(seconds: 3),
+  Duration(seconds: 5),
+  Duration(seconds: 8),
+];
+
+/// Refreshes Pro status, or confirms a checkout against its pre-purchase state.
+/// Stops when the screen closes. [delays] sets the retry schedule.
+Future<bool> checkUserAccountStatus(
+  WidgetRef ref,
+  BuildContext context, {
+  int? expirationBefore,
+  String? subscriptionBefore,
+  List<Duration> delays = kDefaultAccountStatusDelays,
+}) async {
+  for (final delay in delays) {
+    if (!context.mounted) return false;
+    appLogger.info("Checking user account status with delay: $delay");
+    if (delay != Duration.zero) await Future.delayed(delay);
+    if (!context.mounted) return false;
+
+    final result = await ref.read(lanternServiceProvider).fetchUserData();
+    if (!context.mounted) return false;
+    final purchased = result.fold(
+      (failure) {
+        appLogger.error("Failed to fetch user data: $failure");
+        return false;
+      },
+      (newUser) {
+        final userData = newUser.legacyUserData;
+        final purchased = userDataReflectsPurchase(
+          userData,
+          expirationBefore,
+          subscriptionBefore: subscriptionBefore,
+        );
+        if (purchased) {
+          appLogger.info("User account has Pro entitlement");
+          ref.read(homeProvider.notifier).updateUserData(newUser);
+        } else if (userData.isPro) {
+          appLogger.info(
+            "User is Pro but expiration has not advanced past "
+            "$expirationBefore yet (current: ${userData.expiration})",
+          );
+        }
+        return purchased;
+      },
+    );
+
+    if (purchased) return true;
+  }
+  return false;
+}
+
+void hideKeyboard() {
+  FocusManager.instance.primaryFocus?.unfocus();
+}
+
+void sharePrivateAccessKey(
+  PrivateServer server,
+  Map<String, dynamic> tokenPayload,
+) {
+  final expirationDate = tokenPayload['exp'].toString();
+  final aliasName = tokenPayload['sub'];
+  final uri = Uri(
+    scheme: 'https',
+    host: Uri.parse(
+      AppUrls.lanternOfficial,
+    ).host, // ensures host is parsed correctly
+    path: '/private-server',
+    queryParameters: {
+      'ip': server.externalIp,
+      'port': server.port.toString(),
+      'token': server.accessToken,
+      'name': server.serverName,
+      'exp': expirationDate,
+      'alias': aliasName,
+    },
+  );
+  final urlString = '${'join_my_private_server'.i18n} $uri';
+  SharePlus.instance.share(ShareParams(text: urlString));
+}
+
+String getReferralMessage() {
+  // Referral rewards are now a fixed 30 days for every plan. The existing
+  // annual-plan key already has the correct one-month copy in every locale.
+  return 'referral_message_1y'.i18n;
+}
+
+/// Initial server location set to auto (fastest server)
+ServerLocation initialServerLocation() {
+  return ServerLocation(
+    serverName: '',
+    serverType: ServerLocationType.auto.name,
+    country: '',
+    city: '',
+    displayName: 'Smart Location',
+    protocol: '',
+    countryCode: '',
+    autoLocation: AutoLocation(
+      country: '',
+      countryCode: '',
+      displayName: ('fastest_server'.i18n),
+    ),
+  );
+}
+
+ThemeMode resolveThemeMode(String raw) {
+  switch (raw) {
+    case 'light':
+      return ThemeMode.light;
+    case 'dark':
+      return ThemeMode.dark;
+    default:
+      return ThemeMode.system;
+  }
+}

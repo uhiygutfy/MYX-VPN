@@ -1,0 +1,12 @@
+MYX-VPN
+Copyright (C) 2026 MYX-VPN
+
+This program is a modified version of the Lantern client
+(https://github.com/getlantern/lantern), Copyright (C) Brave New Software
+Project, Inc., licensed under the GNU General Public License v3.0.
+Modified in November 2026: rebranding, user interface redesign, update
+mechanism and build/release pipeline.
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, version 3. See the LICENSE file for the full text.

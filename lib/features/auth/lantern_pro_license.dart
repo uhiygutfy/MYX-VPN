@@ -1,0 +1,194 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/utils/formatter.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
+import 'package:lantern/lantern/lantern_service_notifier.dart';
+
+@RoutePage(name: 'LanternProLicense')
+class LanternProLicense extends HookConsumerWidget {
+  final String email;
+  final String code;
+
+  /// Pre-fills the field, e.g. from the web-licensing deep link.
+  final String licenseKey;
+
+  const LanternProLicense({
+    super.key,
+    required this.email,
+    required this.code,
+    this.licenseKey = '',
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final initialText = formatLicenseKey(licenseKey);
+    final codeController = useTextEditingController(text: initialText);
+    final obscureText = useState(true);
+    final validCode = useState(false);
+    final normalizedLen = useState<int>(0);
+
+    void toggleVisibility() => obscureText.value = !obscureText.value;
+
+    void syncFromText(String text) {
+      final cleanedLen = licenseKeyCode(text).length;
+      normalizedLen.value = cleanedLen;
+      validCode.value =
+          RegExp(r'^[A-Z0-9-]*$').hasMatch(text) && isCompleteLicenseKey(text);
+    }
+
+    useEffect(() {
+      if (initialText.isNotEmpty) syncFromText(initialText);
+      return null;
+    }, const []);
+
+    return EnterKeyShortcut(
+      onEnter: () {
+        if (validCode.value) {
+          onActivatePro(codeController.text, ref, context);
+        }
+      },
+      child: BaseScreen(
+        title: 'lantern_pro_license'.i18n,
+        body: Column(
+          children: <Widget>[
+            SizedBox(height: defaultSize),
+            AppTextField(
+              maxLength: 33,
+              hintText: 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
+              controller: codeController,
+              prefixIcon: AppImagePaths.keypad,
+              label: 'lantern_pro_license'.i18n,
+              obscureText: obscureText.value,
+              keyboardType: TextInputType.visiblePassword,
+              autocorrect: false,
+              enableSuggestions: false,
+              enableIMEPersonalizedLearning: false,
+              // Enter on the reveal button should not submit the license.
+              suffixIcon: EnterKeyShortcut(
+                onEnter: toggleVisibility,
+                child: AppIconButton(
+                  tooltip: (obscureText.value ? 'show_license' : 'hide_license')
+                      .i18n,
+                  onPressed: toggleVisibility,
+                  path: obscureText.value
+                      ? AppImagePaths.eyeHide
+                      : AppImagePaths.eye,
+                ),
+              ),
+              inputFormatters: [
+                ResellerCodeFormatter(),
+                UpperCaseTextFormatter(),
+              ],
+              validator: (value) {
+                final v = (value ?? '').trim();
+                if (v.isEmpty) {
+                  return 'lantern_pro_license_required'.i18n;
+                }
+
+                if (!RegExp(r'^[A-Z0-9-]*$').hasMatch(v)) {
+                  return 'lantern_pro_license_invalid'.i18n;
+                }
+
+                if (!isCompleteLicenseKey(v)) {
+                  return 'lantern_pro_license_invalid_length'.i18n;
+                }
+
+                return null;
+              },
+              onChanged: (value) => syncFromText(value),
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) {
+                if (validCode.value) {
+                  onActivatePro(codeController.text, ref, context);
+                }
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 4),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '${normalizedLen.value}/25',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: context.textDisabled),
+                ),
+              ),
+            ),
+            SizedBox(height: 32),
+            PrimaryButton(
+              label: 'activate_lantern_pro'.i18n,
+              enabled: validCode.value,
+              isTaller: true,
+              onPressed: () => onActivatePro(codeController.text, ref, context),
+            ),
+            SizedBox(height: defaultSize),
+            DividerSpace(),
+            SizedBox(height: defaultSize),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> onActivatePro(
+    String resellerCode,
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
+    final maskedCode = resellerCode.length > 4
+        ? '***${resellerCode.substring(resellerCode.length - 4)}'
+        : '***';
+    appLogger.info('Lantern Pro license entered (masked): $maskedCode');
+    final user = ref.read(homeProvider).value;
+    // A deep link can open this screen before the user data has loaded.
+    final activationEmail = email.isNotEmpty
+        ? email
+        : ref.read(userEmailProvider);
+    context.showLoadingDialog();
+    final result = await ref
+        .read(lanternServiceProvider)
+        .activationCode(email: activationEmail, resellerCode: resellerCode);
+
+    result.fold(
+      (failure) {
+        context.hideLoadingDialog();
+        appLogger.error(
+          'Lantern Pro license activation failed: ${failure.toString()}',
+        );
+        context.showSnackBarError(failure.localizedErrorMessage);
+      },
+      (_) async {
+        appLogger.info('Lantern Pro license activation successful');
+        await checkUserAccountStatus(ref, context);
+        context.hideLoadingDialog();
+
+        /// User is already signed in or using OAuth
+        if (code.isEmpty) {
+          appLogger.info(
+            'No code provided, user is using OAuth (skip password)',
+          );
+          AppDialog.showLanternProDialog(
+            context: context,
+            onPressed: () => appRouter.popUntilRoot(),
+          );
+          return;
+        }
+        if (user!.legacyUserData.unpassRegistered) {
+          appRouter.popUntilRoot();
+        } else {
+          appRouter.push(
+            CreatePassword(
+              email: activationEmail,
+              authFlow: AuthFlow.lanternProLicense,
+              code: code,
+            ),
+          );
+        }
+      },
+    );
+  }
+}

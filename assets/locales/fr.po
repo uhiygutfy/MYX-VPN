@@ -1,0 +1,2310 @@
+# Translators:
+# e2f_fr r9 <tx_e2f_fr_r9@ate2f.com>, 2025
+# e2f_fr r15 <tx_e2f_fr_r15@ate2f.com>, 2026
+# Lantern, 2026
+# AO <aol10n@duck.com>, 2026
+# Derek F <derek@getlantern.org>, 2026
+# 
+msgid ""
+msgstr ""
+"Last-Translator: Derek F <derek@getlantern.org>, 2026\n"
+"Language-Team: French (https://app.transifex.com/lantern-1/teams/94371/fr/)\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
+
+msgid "app_name"
+msgstr "MYX-VPN"
+
+msgid "upgrade_to_pro"
+msgstr "Passer à Pro"
+
+msgid "settings"
+msgstr "Paramètres"
+
+msgid "report_an_issue"
+msgstr "Signaler un problème"
+
+msgid "report_issue_add_screenshots"
+msgstr "Ajouter des captures d'écran"
+
+msgid "report_issue_screenshot_helper"
+msgstr "PNG, JPG ou GIF — 15 Mo max au total"
+
+msgid "report_issue_add_images"
+msgstr "Ajouter des images"
+
+msgid "report_issue_attachments_unsupported_type"
+msgstr "Seules les images PNG, JPG et GIF sont prises en charge."
+
+msgid "report_issue_attachments_too_many"
+msgstr "Vous pouvez joindre jusqu'à 3 images."
+
+msgid "report_issue_attachments_total_size_exceeded"
+msgstr "Les pièces jointes ne doivent pas dépasser 15 Mo au total."
+
+msgid "report_issue_attachments_duplicate"
+msgstr "Cette image est déjà jointe."
+
+msgid "report_issue_attachments_unreadable"
+msgstr "Impossible de lire l'un de ces fichiers."
+
+msgid "send_without_email_title"
+msgstr "Envoyer sans e-mail ?"
+
+msgid "send_without_email_body"
+msgstr ""
+"Vous n'avez pas indiqué d'adresse e-mail, nous ne pourrons donc pas répondre"
+" ni assurer le suivi de ce signalement."
+
+msgid "send_without_email"
+msgstr "Envoyer sans e-mail"
+
+msgid "invite_friends"
+msgstr "Inviter des amis"
+
+msgid "your_referral_code"
+msgstr "Votre code de parrainage"
+
+msgid "share_referral_code"
+msgstr "Partager le code"
+
+msgid "invite_friends_description"
+msgstr ""
+"Lorsqu'un ami passe à Lantern Pro avec votre code de parrainage, vous "
+"bénéficiez tous les deux d'1 mois gratuit."
+
+msgid "month_earned"
+msgstr "%s mois gagné"
+
+msgid "months_earned"
+msgstr "%s mois gagnés"
+
+msgid "includes_free_month_from_referrals"
+msgstr "Inclut %s mois gratuit grâce aux parrainages"
+
+msgid "includes_free_months_from_referrals"
+msgstr "Inclut %s mois gratuits grâce aux parrainages"
+
+msgid "referral_converted_title"
+msgstr "Un ami est passé à Pro"
+
+msgid "referral_converted_message"
+msgstr ""
+"Vous avez tous les deux gagné %s de Lantern Pro, gratuitement. Vous avez "
+"gagné %s jusqu'à présent. Continuez à partager votre code pour en gagner "
+"plus."
+
+msgid "month_count"
+msgstr "%s mois"
+
+msgid "months_count"
+msgstr "%s mois"
+
+msgid "done"
+msgstr "Terminé"
+
+msgid "view_account"
+msgstr "Voir le compte"
+
+msgid "show_download_links"
+msgstr "Afficher les liens de téléchargement"
+
+msgid "get_lantern"
+msgstr "Obtenir MYX-VPN"
+
+msgid "send_friend_download_link"
+msgstr "Envoyez ce lien de téléchargement à votre ami :"
+
+msgid "scan_to_install"
+msgstr "Scannez avec votre appareil photo pour installer MYX-VPN"
+
+msgid "remind_use_code"
+msgstr "Rappelez-leur d'utiliser le code %s lors de leur passage à Pro !"
+
+msgid "unbounded"
+msgstr "Action Mode"
+
+msgid "vpn_settings"
+msgstr "Paramètres VPN"
+
+msgid "split_tunneling"
+msgstr "Tunneling fractionné"
+
+msgid "server_locations"
+msgstr "Emplacements des serveurs"
+
+msgid "lantern_pro_email"
+msgstr "Email Lantern Pro :"
+
+msgid "pro_account_expiration"
+msgstr "Expiration du compte Pro"
+
+msgid "manage_subscription"
+msgstr "Gérer l'abonnement"
+
+msgid "lantern_pro_devices"
+msgstr "Appareils Lantern Pro"
+
+msgid "remove"
+msgstr "Retirer"
+
+msgid "danger_zone"
+msgstr "Zone dangereuse :"
+
+msgid "delete_account"
+msgstr "Supprimer le compte"
+
+msgid "delete"
+msgstr "Supprimer"
+
+msgid "account"
+msgstr "Compte"
+
+msgid "delete_account_?"
+msgstr "Supprimer votre compte ?"
+
+msgid "delete_account_message"
+msgstr ""
+"La suppression du compte est permanente. Vous perdrez l'accès sur tous les "
+"appareils et tout temps d'abonnement Pro restant sera perdu sans "
+"remboursement."
+
+msgid "delete_account_message_two"
+msgstr ""
+"Pour confirmer la suppression, veuillez entrer votre mot de passe ci-dessous"
+
+msgid "confirm_deletion"
+msgstr "Confirmer la suppression"
+
+msgid "cancel"
+msgstr "Annuler"
+
+msgid "daily_data_usage"
+msgstr "Données quotidiennes utilisées"
+
+msgid "mb"
+msgstr "Mo"
+
+msgid "vpn_status"
+msgstr "Statut du VPN"
+
+msgid "telegram"
+msgstr "Telegram"
+
+msgid "instagram"
+msgstr "Instagram"
+
+msgid "x"
+msgstr "X"
+
+msgid "follow_us"
+msgstr "Suivez-nous"
+
+msgid "server_selection"
+msgstr "Sélection du serveur"
+
+msgid "smart_location"
+msgstr "Emplacement intelligent"
+
+msgid "pro_locations"
+msgstr "Emplacements Pro :"
+
+msgid "language"
+msgstr "Langue"
+
+msgid "sign_in"
+msgstr "Se connecter"
+
+msgid "check_for_updates"
+msgstr "Vérifier les mises à jour"
+
+msgid "update_available"
+msgstr "Mise à jour disponible"
+
+msgid "android_sideload_update_available_message"
+msgstr ""
+"MYX-VPN %s est disponible. MYX-VPN téléchargera et vérifiera l'APK avant "
+"d'ouvrir l'installateur d'Android."
+
+msgid "allow_unknown_app_installs"
+msgstr "Autoriser l'installation d'applications"
+
+msgid "android_sideload_install_permission_message"
+msgstr ""
+"Android a besoin d'une autorisation pour installer les mises à jour depuis "
+"MYX-VPN. Activez Autoriser depuis cette source, puis relancez la recherche "
+"de mises à jour."
+
+msgid "error_install_update"
+msgstr "Impossible d'installer la mise à jour"
+
+msgid "android_sideload_install_failed_message"
+msgstr ""
+"MYX-VPN n'a pas pu vérifier ou installer cette mise à jour. Veuillez "
+"réessayer plus tard."
+
+msgid "support"
+msgstr "Assistance"
+
+msgid "download_links"
+msgstr "Liens de téléchargement"
+
+msgid "get_30_days_of_pro_free"
+msgstr "Obtenez 30 jours de Pro gratuits"
+
+msgid "share_message_referral_code"
+msgstr ""
+"Pour un mois gratuit de Lantern Pro, utilisez ce code de parrainage : %s ; "
+"Vous pouvez le télécharger ici : https://lantern.io/download"
+
+msgid "submit_issue_report"
+msgstr "Soumettre un rapport"
+
+msgid "select_an_issue"
+msgstr "Sélectionnez un problème"
+
+msgid "cannot_access_blocked_sites"
+msgstr "Impossible d'accéder aux sites bloqués"
+
+msgid "cannot_complete_purchase"
+msgstr "Impossible de finaliser l'achat"
+
+msgid "cannot_sign_in"
+msgstr "Impossible de se connecter"
+
+msgid "spinner_loads_endlessly"
+msgstr "Le chargement est infini"
+
+msgid "slow"
+msgstr "Lent"
+
+msgid "cannot_link_devices"
+msgstr "Impossible de lier les appareils"
+
+msgid "application_crashes"
+msgstr "L'application plante"
+
+msgid "other"
+msgstr "Autre"
+
+msgid "issue_description"
+msgstr "Décrivez votre problème"
+
+msgid "enter_password_to_confirm"
+msgstr "Entrez le mot de passe pour confirmer"
+
+msgid "apps_split_tunneling"
+msgstr "Tunneling fractionné des applications"
+
+msgid "website_split_tunneling"
+msgstr "Tunneling fractionné des sites web"
+
+msgid "add"
+msgstr "Ajouter"
+
+msgid "enabled"
+msgstr "Activé"
+
+msgid "disabled"
+msgstr "Désactivé"
+
+msgid "automatic"
+msgstr "Automatique"
+
+msgid "automatic_mode"
+msgstr "Mode automatique"
+
+msgid "manual"
+msgstr "Manuel"
+
+msgid "enter_url_or_ip"
+msgstr "Entrez l'URL ou l'adresse IP"
+
+msgid "installed_apps"
+msgstr "Applications installées"
+
+msgid "search_apps"
+msgstr "Rechercher des applications"
+
+msgid "search_websites"
+msgstr "Rechercher des sites web"
+
+msgid "mode"
+msgstr "Mode"
+
+msgid "use_commas"
+msgstr "Utilisez des virgules pour séparer plusieurs URL"
+
+msgid "deep_link_expired"
+msgstr "Ce lien a expiré. Veuillez en demander un nouveau."
+
+msgid "invalid_deep_link"
+msgstr "Ce lien est invalide. Veuillez en demander un nouveau."
+
+msgid "apps_bypassing_vpn"
+msgstr "Applications contournant le VPN (%d)"
+
+msgid "websites_bypassing_vpn"
+msgstr "Sites web contournant le VPN (%d)"
+
+msgid "logs_share_message"
+msgstr "Voici mes journaux de diagnostic de MYX-VPN."
+
+msgid "payment_options"
+msgstr "Options de paiement"
+
+msgid "add_your_email"
+msgstr "Ajoutez votre email"
+
+msgid "continue"
+msgstr "Continuer"
+
+msgid "continue_with_google"
+msgstr "Continuer avec Google"
+
+msgid "continue_with_apple"
+msgstr "Continuer avec Apple"
+
+msgid "continue_without_email"
+msgstr "Continuer sans email"
+
+msgid "confirm_email"
+msgstr "Confirmer l'email"
+
+msgid "add_your_email_message"
+msgstr ""
+"Ajoutez votre email pour accéder à votre abonnement sur n'importe quel "
+"appareil."
+
+msgid "confirm_email_code"
+msgstr "Code de confirmation"
+
+msgid "confirm_email_code_message_part_one"
+msgstr "Nous avons envoyé un code à "
+
+msgid "confirm_email_code_message_part_two"
+msgstr ""
+" Saisissez-le ci-dessous. S'il n'est pas dans votre boîte de réception, "
+"vérifiez votre dossier spam."
+
+msgid "resend_email"
+msgstr "Renvoyer l'email"
+
+msgid "create_password"
+msgstr "Créer un mot de passe"
+
+msgid "sign_in_to_lantern_pro"
+msgstr "Se connecter à MYX-VPN"
+
+msgid "sign_in_with_email"
+msgstr "Se connecter avec l'email"
+
+msgid "enter_your_lantern_pro_account_details"
+msgstr "Saisissez les détails de votre compte MYX-VPN."
+
+msgid "email"
+msgstr "Email"
+
+msgid "enter_password"
+msgstr "Entrez le mot de passe"
+
+msgid "forgot_password"
+msgstr "Mot de passe oublié ?"
+
+msgid "reset_your_password"
+msgstr "Réinitialisez votre mot de passe"
+
+msgid "enter_your_lantern_pro_account_email"
+msgstr "Saisissez l'adresse e-mail de votre compte MYX-VPN."
+
+msgid "reset_password"
+msgstr "Réinitialiser le mot de passe"
+
+msgid "confirm_new_password"
+msgstr "Confirmez le nouveau mot de passe"
+
+msgid "create_new_password"
+msgstr "Créez un nouveau mot de passe"
+
+msgid "confirm_password"
+msgstr "Confirmez le mot de passe"
+
+msgid "confirm_password_required"
+msgstr "La confirmation du mot de passe est requise"
+
+msgid "passwords_do_not_match"
+msgstr "Les mots de passe ne correspondent pas"
+
+msgid "activate_lantern_pro"
+msgstr "Activer Lantern Pro"
+
+msgid "invalid_email"
+msgstr "Adresse email invalide"
+
+msgid "purchase_already_owned"
+msgstr "Vous possédez déjà cet achat. Essayez de restaurer l'achat"
+
+msgid "stripe_payment"
+msgstr "Paiement Stripe"
+
+msgid "split_tunneling_description"
+msgstr ""
+"MYX-VPN achemine intelligemment le trafic Internet en fonction de votre "
+"emplacement, assurant un accès sécurisé tout en maintenant votre connexion "
+"rapide en utilisant un VPN uniquement lorsque nécessaire."
+
+msgid "region_specific_rules"
+msgstr "Règles spécifiques par région"
+
+msgid "location_based_rules"
+msgstr ""
+"MYX-VPN utilise différentes règles de routage selon votre emplacement :"
+
+msgid "censored_regions"
+msgstr "Dans les régions censurées :"
+
+msgid "blocked_sites_proxied"
+msgstr ""
+"Les sites web et applications bloqués (actualités, messagerie, services "
+"restreints) sont proxysés."
+
+msgid "unblocked_sites_bypass"
+msgstr ""
+"La plupart des sites web non bloqués contournent le VPN pour une navigation "
+"plus rapide."
+
+msgid "uncensored_regions"
+msgstr "Dans les régions non censurées :"
+
+msgid "trusted_sites_bypass"
+msgstr ""
+"Seuls les sites web et services de confiance contournent le VPN par défaut."
+
+msgid "examples_of_bypassed_sites"
+msgstr ""
+"Cela inclut les sites chiffrés HTTPS avec du contenu public ou non sensible "
+"comme les achats, la météo et les mises à jour logicielles."
+
+msgid "routing_rules_vary"
+msgstr "Ces règles varient selon le pays et sont mises à jour régulièrement."
+
+msgid "view_the_full_list"
+msgstr "Voir la liste complète des règles de routage."
+
+msgid "welcome_to_lantern_pro"
+msgstr "Bienvenue sur Lantern Pro !"
+
+msgid "welcome_to_lantern"
+msgstr "Bienvenue à MYX-VPN !"
+
+msgid "lantern_pro_description"
+msgstr ""
+"Vos fonctionnalités Pro sont débloquées—profitez de données illimitées, de "
+"vitesses plus rapides et de serveurs premium."
+
+msgid "purchase_restored_title"
+msgstr "L’achat a été rétabli"
+
+msgid "purchase_restored_description"
+msgstr "Votre abonnement Lantern Pro est désormais actif sur cet appareil."
+
+msgid "no_purchase_found_title"
+msgstr "Aucun achat trouvé"
+
+msgid "no_purchase_found_body_ios"
+msgstr "Aucun abonnement actif n'est associé à cet identifiant Apple."
+
+msgid "no_purchase_found_body_android"
+msgstr "Aucun abonnement actif n'est associé à ce compte Google."
+
+msgid "authorize_device_for_pro"
+msgstr "Autoriser l'appareil pour Pro"
+
+msgid "device_linking_replaced_title"
+msgstr "Les codes de liaison d'appareil ont été remplacés"
+
+msgid "device_linking_replaced_body"
+msgstr "Les versions 10 et ultérieures de MYX-VPN n'utilisent plus de codes de liaison d'appareil. Vous vous connectez désormais à votre compte Lantern Pro avec votre e-mail et un mot de passe."
+
+msgid "device_linking_replaced_body_two"
+msgstr "Si vous avez un compte Lantern Pro et que vous n'avez pas encore de mot de passe, ajoutez-en un maintenant pour vous connecter sur cet appareil."
+
+msgid "add_an_account_password"
+msgstr "Ajouter un mot de passe au compte"
+
+msgid "have_a_password_sign_in"
+msgstr "Vous avez un mot de passe ? Se connecter"
+
+msgid "plans_fetch_error"
+msgstr ""
+"Erreur lors de la récupération des forfaits. Veuillez réessayer plus tard."
+
+msgid "best_value"
+msgstr "Meilleur rapport qualité-prix !"
+
+msgid "choose_payment_method"
+msgstr "Choisissez un mode de paiement"
+
+msgid "purchase_not_completed"
+msgstr ""
+"L'achat n'a pas été finalisé. Vous pouvez réessayer à tout moment ou "
+"contacter l'assistance si vous avez besoin d'aide"
+
+msgid "are_you_sure"
+msgstr "Êtes-vous sûr ?"
+
+msgid "continue_without_email_message"
+msgstr ""
+"Une adresse email valide est requise pour utiliser votre abonnement sur "
+"d'autres appareils."
+
+msgid "add_email"
+msgstr "Ajouter un email"
+
+msgid "block_ads"
+msgstr "Bloquer les publicités"
+
+msgid "only_active"
+msgstr "Actif uniquement lorsque le VPN est connecté"
+
+msgid "vpn_connected"
+msgstr "MYX-VPN est maintenant connecté."
+
+msgid "vpn_disconnected"
+msgstr "MYX-VPN est maintenant déconnecté."
+
+msgid "open_notification"
+msgstr "Ouvrir la notification"
+
+msgid "logout"
+msgstr "Se déconnecter"
+
+msgid "logout_message"
+msgstr ""
+"La déconnexion basculera MYX-VPN vers la version gratuite. Pour accéder à "
+"nouveau à votre compte, vous devrez vous reconnecter."
+
+msgid "logout_message_expired"
+msgstr "Êtes-vous sûr de vouloir vous déconnecter de votre compte ?"
+
+msgid "not_now"
+msgstr "Pas maintenant"
+
+msgid "billed_once"
+msgstr "Facturé une fois"
+
+msgid "subscription"
+msgstr "Abonnement"
+
+msgid "subscribe"
+msgstr "S'abonner"
+
+msgid "checkout"
+msgstr "Paiement"
+
+msgid "vpn_may_be_needed"
+msgstr "VPN peut être nécessaire"
+
+msgid "google_and_apple_sign_in_blocked"
+msgstr ""
+"La connexion Google et Apple peut être bloquée dans cette région. Pour "
+"terminer la configuration de votre compte, veuillez d'abord activer le VPN."
+
+msgid "continue_without_vpn"
+msgstr "Continuer sans VPN"
+
+msgid "turn_on_vpn"
+msgstr "Activer le VPN"
+
+msgid "server_setup_do"
+msgstr "Configuration avec DigitalOcean"
+
+msgid "server_setup_do_price"
+msgstr "Seulement %s/mois via Digital Ocean"
+
+msgid "server_setup_gcp"
+msgstr "Configuration avec Google Cloud Platform"
+
+msgid "continue_with_do"
+msgstr "Continuer avec Digital Ocean"
+
+msgid "server_setup_gcp_price"
+msgstr "Seulement %s/mois via GCP"
+
+msgid "continue_with_gcp"
+msgstr "Continuer avec Google"
+
+msgid "server_setup_manual"
+msgstr "Configuration manuelle"
+
+msgid "seamless_integration"
+msgstr "Intégration transparente avec MYX-VPN"
+
+msgid "one_month_included"
+msgstr "%d To/mois de données incluses"
+
+msgid "easiest_setup_process"
+msgstr "Processus de configuration le plus simple"
+
+msgid "setup_a_private_server"
+msgstr "Configurer un serveur privé"
+
+msgid "setup_private_server"
+msgstr "Configurer un serveur privé"
+
+msgid "previous"
+msgstr "Précédent"
+
+msgid "next"
+msgstr "Suivant"
+
+msgid "error"
+msgstr "Erreur"
+
+msgid "signup_error_user_exists"
+msgstr ""
+"Il semble qu'une erreur s'est produite lors de l'inscription. Veuillez "
+"réessayer ou vous connecter si vous avez déjà un compte"
+
+msgid "user_not_found"
+msgstr ""
+"Utilisateur non reconnu. Veuillez vérifier vos identifiants et réessayer. Si"
+" vous continuez à rencontrer des problèmes, contactez notre équipe "
+"d'assistance."
+
+msgid "invalid_code"
+msgstr "Code incorrect ou expiré. Veuillez essayer de le renvoyer"
+
+msgid "email_resend_message"
+msgstr "Votre nouveau code de confirmation a été envoyé"
+
+msgid "password_has_been_updated"
+msgstr "Le mot de passe a été mis à jour"
+
+msgid "password_has_been_updated_message"
+msgstr "Votre mot de passe a été réinitialisé avec succès"
+
+msgid "update_pro_account"
+msgstr "Mettre à jour le compte Pro"
+
+msgid "update_pro_account_message"
+msgstr ""
+"Pour gérer votre compte ou vous connecter sur un autre appareil, veuillez "
+"d'abord ajouter un email et un mot de passe à votre compte."
+
+msgid "subscription_cancelled"
+msgstr "Votre abonnement a été annulé."
+
+msgid "subscription_updated"
+msgstr "Votre abonnement a été mis à jour."
+
+msgid "subscription_renewed"
+msgstr "Votre abonnement a été renouvelé."
+
+msgid "got_it"
+msgstr "Compris"
+
+msgid "server_location"
+msgstr "Emplacement du serveur"
+
+msgid "choose"
+msgstr "Choisir"
+
+msgid "choose_your_account"
+msgstr "Choisissez votre compte"
+
+msgid "choose_your_project"
+msgstr "Choisissez votre projet"
+
+msgid "billing_account"
+msgstr "Compte de facturation"
+
+msgid "server_name"
+msgstr "Nom du serveur"
+
+msgid "change"
+msgstr "Modifier"
+
+msgid "choose_location"
+msgstr "Choisir l'emplacement"
+
+msgid "choose_your_location"
+msgstr "Choisissez votre emplacement"
+
+msgid "start_deployment"
+msgstr "Démarrer le déploiement"
+
+msgid "private_server_setup_in_progress"
+msgstr ""
+"Patientez ! Votre serveur privé est en cours de configuration. Cela peut "
+"prendre quelques minutes, veuillez garder cet écran ouvert."
+
+msgid "cancel_server_deployment"
+msgstr "Annuler le déploiement du serveur"
+
+msgid "close"
+msgstr "Fermer"
+
+msgid "connect_now"
+msgstr "Se connecter maintenant"
+
+msgid "server_setup_failed"
+msgstr "Échec de la configuration du serveur"
+
+msgid "server_setup_failed_message"
+msgstr ""
+"Une erreur s'est produite lors de la configuration de votre serveur privé. "
+"Vous pouvez réessayer ou réessayer plus tard."
+
+msgid "exit"
+msgstr "Quitter"
+
+msgid "retry"
+msgstr "Réessayer"
+
+msgid "private_server_ready"
+msgstr "Le serveur privé est prêt !"
+
+msgid "private_server_ready_message"
+msgstr ""
+"Le serveur (%s) a été configuré et ajouté à votre liste de serveurs. Vous "
+"êtes prêt à vous connecter !"
+
+msgid "set_up_your_server"
+msgstr "Configurez votre serveur"
+
+msgid "view_instructions_github"
+msgstr "Voir les instructions sur GitHub"
+
+msgid "server_access_key"
+msgstr "Clé d'accès au serveur"
+
+msgid "access_key"
+msgstr "Clé d'accès"
+
+msgid "name_your_server"
+msgstr "Nommez votre serveur"
+
+msgid "how_server_appears"
+msgstr "Comment le serveur apparaîtra dans la liste de sélection des serveurs"
+
+msgid "server_nickname"
+msgstr "Surnom du serveur"
+
+msgid "verify_server"
+msgstr "Vérifier le serveur"
+
+msgid "vpn_client_not_setup"
+msgstr "Veuillez activer le client VPN."
+
+msgid "join_a_private_server"
+msgstr "Rejoindre un serveur privé"
+
+msgid "join_private_server"
+msgstr "Rejoindre un serveur privé"
+
+msgid "join_server"
+msgstr "Rejoindre le serveur"
+
+msgid "private_server_usage_message"
+msgstr ""
+"L'utilisation du serveur privé n'est pas comptabilisée dans votre limite de "
+"données quotidiennes MYX-VPN."
+
+msgid "my_servers"
+msgstr "Mes serveurs"
+
+msgid "joined_servers"
+msgstr "Serveurs rejoints"
+
+msgid "access_key_expiration"
+msgstr ""
+"Chaque clé d'accès est unique et expire après 1 jour. Vous pouvez en générer"
+" une nouvelle à tout moment."
+
+msgid "share_access_key"
+msgstr "Partager la clé d'accès"
+
+msgid "rename_server"
+msgstr "Renommer le serveur"
+
+msgid "rename"
+msgstr "Renommer"
+
+msgid "selected_location"
+msgstr "Emplacement sélectionné"
+
+msgid "remove_server_?"
+msgstr "Retirer le serveur ?"
+
+msgid "remove_server_message"
+msgstr ""
+"Retirer %s ? Cela le supprimera uniquement de votre application, mais ne "
+"supprimera pas le serveur de votre fournisseur cloud."
+
+msgid "generate_access_key"
+msgstr "Générer une clé d'accès"
+
+msgid "trust_server_operator"
+msgstr "Faites confiance à l'opérateur du serveur"
+
+msgid "trust_server_operator_message_one"
+msgstr ""
+"Les serveurs privés sont hébergés et exploités par des particuliers ou des "
+"organisations extérieurs à MYX-VPN. Lorsque vous vous connectez à un "
+"serveur, vous faites confiance à la personne qui le gère pour le gérer en "
+"toute sécurité et l'utiliser de manière responsable."
+
+msgid "trust_server_operator_message_two"
+msgstr ""
+"MYX-VPN ne gère ni ne surveille les serveurs privés. Assurez-vous de "
+"connaître et de faire confiance à l'opérateur du serveur avant de le "
+"rejoindre."
+
+msgid "trust_server_operator_message_three"
+msgstr ""
+"Si vous ne savez pas qui gère le serveur ou comment il est configuré, nous "
+"vous recommandons d'utiliser l'un des serveurs MYX-VPN par défaut "
+"disponibles dans votre liste de serveurs."
+
+msgid "lantern_servers"
+msgstr "Serveurs MYX-VPN"
+
+msgid "private_servers"
+msgstr "Serveurs privés"
+
+msgid "fastest_server"
+msgstr "Serveur le plus rapide"
+
+msgid "latency_testing"
+msgstr "Test en cours…"
+
+msgid "latency_unreachable"
+msgstr "Injoignable"
+
+msgid "join_my_private_server"
+msgstr "Rejoindre mon serveur privé MYX-VPN"
+
+msgid "your_server"
+msgstr "Vos serveurs :"
+
+msgid "no_private_server_setup_yet"
+msgstr ""
+"Vous n'avez pas encore configuré de serveur privé. Cliquez sur le bouton ci-"
+"dessous pour commencer."
+
+msgid "connect"
+msgstr "Connecter"
+
+msgid "disconnect"
+msgstr "Déconnecter"
+
+msgid "show"
+msgstr "Afficher"
+
+msgid "status_on"
+msgstr "Connecté"
+
+msgid "status_off"
+msgstr "Déconnecté"
+
+msgid "select_location"
+msgstr "Sélectionner l'emplacement"
+
+msgid "select_your_server_location"
+msgstr "Sélectionnez l'emplacement de votre serveur"
+
+msgid "faster_speeds_unlimited_bandwidth"
+msgstr "Vitesses plus rapides et bande passante illimitée"
+
+msgid "premium_servers_less_congestion"
+msgstr "Serveurs premium avec moins de congestion"
+
+msgid "advanced_anti_censorship"
+msgstr "Technologie anti-censure avancée"
+
+msgid "connect_up_to_five_devices"
+msgstr "Connectez jusqu'à 5 appareils"
+
+msgid "built_in_ad_blocking"
+msgstr "Blocage de publicités intégré"
+
+msgid "get_lantern_pro"
+msgstr "Obtenir Lantern Pro"
+
+msgid "connected_to_private_server"
+msgstr "Connecté au serveur privé"
+
+msgid "server_already_selected"
+msgstr "Vous êtes déjà connecté à ce serveur."
+
+msgid "device_limit_reached"
+msgstr "Limite d'appareils atteinte"
+
+msgid "device_limit_reached_message"
+msgstr ""
+"Vous avez atteint votre limite de 5 appareils. Veuillez retirer un appareil "
+"pour continuer."
+
+msgid "remove_device_and_sign_in"
+msgstr "Retirer l'appareil et se connecter"
+
+msgid "cancel_sign_in"
+msgstr "Annuler la connexion"
+
+msgid "change_email"
+msgstr "Changer l'email"
+
+msgid "change_email_message"
+msgstr ""
+"Ceci deviendra votre nouvel email de connexion. Vous devrez le vérifier "
+"avant que le changement ne prenne effet."
+
+msgid "email_must_be_different"
+msgstr "Veuillez saisir une adresse e-mail différente."
+
+msgid "enter_new_email"
+msgstr "Entrez votre nouvel email"
+
+msgid "confirm_password_to_continue"
+msgstr "Pour continuer, veuillez confirmer votre mot de passe."
+
+msgid "email_updated"
+msgstr "Votre email a été mis à jour."
+
+msgid "enable_network_extension"
+msgstr "Activer l'extension réseau"
+
+msgid "enable_network_extension_message"
+msgstr ""
+"Pour utiliser MYX-VPN, nous devons installer une extension réseau pour votre"
+" Mac."
+
+msgid "install_now"
+msgstr "Installer maintenant"
+
+msgid "learn_more"
+msgstr "En savoir plus"
+
+msgid "network_extension_required"
+msgstr "Extension réseau requise"
+
+msgid "click"
+msgstr "Cliquez"
+
+msgid "open_system_settings"
+msgstr "Ouvrir les Réglages Système"
+
+msgid "when_prompted"
+msgstr "lorsque demandé."
+
+msgid "activate_extension"
+msgstr "Installer maintenant"
+
+msgid "email_optional"
+msgstr "Email (optionnel)"
+
+msgid "please_enter_valid_email"
+msgstr "Veuillez entrer un email valide"
+
+msgid "please_select_an_issue"
+msgstr "Veuillez sélectionner un problème"
+
+msgid "thanks_for_feedback"
+msgstr "Merci pour vos commentaires !"
+
+msgid "no_apps_selected"
+msgstr "Aucune application sélectionnée"
+
+msgid "deselect_all"
+msgstr "Tout désélectionner"
+
+msgid "select_all"
+msgstr "Tout sélectionner"
+
+msgid "no_websites_selected"
+msgstr "Aucun site web sélectionné"
+
+msgid "restore_purchase"
+msgstr "Restaurer l'achat"
+
+msgid "already_purchased"
+msgstr "Déjà acheté ?"
+
+msgid "do_private_server_setup"
+msgstr "Configuration serveur privé DO"
+
+msgid "private_server_note"
+msgstr ""
+"Sélectionnez une région pour votre serveur privé. Les emplacements plus "
+"proches peuvent améliorer la vitesse et la latence."
+
+msgid "gcp_private_server_setup"
+msgstr "Configuration serveur privé GCP"
+
+msgid "gcp_private_server_location"
+msgstr "Emplacement serveur privé GCP"
+
+msgid "do_private_server_location"
+msgstr "Emplacement serveur privé DO"
+
+msgid "confirm"
+msgstr "Confirmer"
+
+msgid "private_server_warning"
+msgstr "Ajoutez uniquement des serveurs gérés par des personnes de confiance "
+
+msgid "go_to_server_locations"
+msgstr "Aller aux emplacements des serveurs"
+
+msgid "lantern_io"
+msgstr "MYX-VPN.io"
+
+msgid "alternative_download_links"
+msgstr "Liens de téléchargement alternatifs"
+
+msgid "github_download_page"
+msgstr "Page de téléchargement GitHub"
+
+msgid "telegram_bot"
+msgstr "Bot Telegram"
+
+msgid "if_you_cannot_access_website"
+msgstr ""
+"Si vous rencontrez des problèmes pour accéder à notre site web, vous pouvez "
+"télécharger MYX-VPN depuis les liens ci-dessus."
+
+msgid "available_on"
+msgstr "Disponible sur :"
+
+msgid "subscription_renewal_date"
+msgstr "Date de renouvellement de l'abonnement"
+
+msgid "pro_access_until"
+msgstr "Accès Pro jusqu'au %s"
+
+msgid "diagnostic_logs"
+msgstr "Journaux de diagnostic"
+
+msgid "lantern_user_forum"
+msgstr "Forum utilisateurs MYX-VPN"
+
+msgid "frequently_asked_questions"
+msgstr "Questions fréquemment posées"
+
+msgid "privacy_policy"
+msgstr "Politique de confidentialité"
+
+msgid "terms_of_service"
+msgstr "Conditions d'utilisation"
+
+msgid "get_unlimited_data"
+msgstr "Obtenez des données illimitées et des vitesses plus rapides !"
+
+msgid "private_server_options"
+msgstr "Options de serveur privé"
+
+msgid "lantern_version"
+msgstr "Version de MYX-VPN"
+
+msgid "quit"
+msgstr "Quitter"
+
+msgid "device_removed"
+msgstr "Appareil retiré"
+
+msgid "set_server_alias"
+msgstr "Définir un alias pour le serveur"
+
+msgid "this_name_pre_filled"
+msgstr ""
+"Ce nom sera pré-rempli pour l'utilisateur invité afin de l'aider à "
+"identifier le serveur. Il pourra le modifier plus tard."
+
+msgid "server_alias"
+msgstr "Alias du serveur"
+
+msgid "add_referral_code"
+msgstr "Ajouter un code de parrainage"
+
+msgid "referral_code"
+msgstr "Code de parrainage"
+
+msgid "scan_qr_code"
+msgstr "Scanner le code QR"
+
+msgid "choose_your_server_location"
+msgstr "Choisissez l'emplacement de votre serveur"
+
+msgid "we_handle_configuration"
+msgstr "Nous gérons la configuration, il suffit de vous inscrire."
+
+msgid "90_day_free_trial"
+msgstr "Essai gratuit de 90 jours"
+
+msgid "server_alias_cannot_be_empty"
+msgstr "L'alias du serveur ne peut pas être vide"
+
+msgid "referral_code_applied"
+msgstr "Votre code de parrainage a été appliqué !"
+
+msgid "discount_applied"
+msgstr "Remise de %s appliquée"
+
+msgid "referral_message_1y"
+msgstr "+ 1 mois supplémentaire gratuit"
+
+msgid "referral_code_invalid"
+msgstr ""
+"Le code de parrainage/promo saisi est invalide. Veuillez vérifier le code et"
+" réessayer."
+
+msgid "referral_code_own_invalid"
+msgstr ""
+"Vous ne pouvez pas utiliser votre propre code de parrainage. Veuillez saisir"
+" un code différent."
+
+msgid "free"
+msgstr "Gratuit"
+
+msgid "lantern_pro_license"
+msgstr "Licence Lantern Pro"
+
+msgid "lantern_pro_license_required"
+msgstr "La licence Lantern Pro est requise"
+
+msgid "lantern_pro_license_invalid"
+msgstr "Licence Lantern Pro invalide"
+
+msgid "lantern_pro_license_invalid_length"
+msgstr "La licence Lantern Pro doit contenir 25 caractères"
+
+msgid "create_an_account"
+msgstr "Créer un compte"
+
+msgid "no_projects_found"
+msgstr "Aucun projet trouvé"
+
+msgid "no_projects_found_desc"
+msgstr ""
+"Aucun projet trouvé. Veuillez d'abord créer un projet dans votre compte de "
+"fournisseur de cloud."
+
+msgid "add_billing_details"
+msgstr "Ajouter les détails de facturation"
+
+msgid "do_billing_details_message"
+msgstr ""
+"DigitalOcean nécessite des informations de paiement pour créer des serveurs."
+
+msgid "1"
+msgstr "1"
+
+msgid "2"
+msgstr "2"
+
+msgid "3"
+msgstr "3"
+
+msgid "add_payment_method"
+msgstr "Ajouter un moyen de paiement (carte bancaire ou PayPal)"
+
+msgid "return_to_lantern"
+msgstr ""
+"Retournez sur MYX-VPN et appuyez sur « Continuer » pour poursuivre la "
+"configuration"
+
+msgid "how_to_add_billing_details"
+msgstr "Comment ajouter les détails de facturation :"
+
+msgid "ok"
+msgstr "OK"
+
+msgid "could_not_open_url"
+msgstr "Impossible d'ouvrir l'URL"
+
+msgid "new_to_lantern_pro"
+msgstr "Nouveau sur MYX-VPN ?"
+
+msgid "an_error_occurred"
+msgstr "Une erreur s'est produite. Veuillez réessayer plus tard."
+
+msgid "developer_mode"
+msgstr "Mode développeur"
+
+msgid "developer_mode_note"
+msgstr ""
+"Le mode développeur est strictement réservé aux développeurs MYX-VPN pour "
+"tester les fonctionnalités en cours de développement."
+
+msgid "error_while_vpn_connection"
+msgstr ""
+"Une erreur s'est produite lors de l'établissement de la connexion VPN. "
+"Veuillez réessayer."
+
+msgid "help_improve_lantern"
+msgstr "Aidez à améliorer MYX-VPN"
+
+msgid "share_anonymous_usage_data"
+msgstr ""
+"Partagez des données d'utilisation anonymes pour améliorer la vitesse et la "
+"fiabilité."
+
+msgid "data_we_collect"
+msgstr ""
+"Nous ne collectons jamais l'historique de navigation, les destinations du "
+"trafic, les requêtes DNS ou les journaux de connexion."
+
+msgid "you_can_change_anytime"
+msgstr "Vous pouvez modifier ceci à tout moment dans les paramètres VPN."
+
+msgid "dont_allow"
+msgstr "Ne pas autoriser"
+
+msgid "allow"
+msgstr "Autoriser"
+
+msgid "anonymous_usage_data"
+msgstr "Données d'utilisation anonymes"
+
+msgid "helps_improve_lantern_performance"
+msgstr "Aide à améliorer les performances de MYX-VPN"
+
+msgid "email_deliverability_notice"
+msgstr "Avis de délivrabilité des e-mails"
+
+msgid "email_deliverability_notice_message"
+msgstr ""
+"Les e-mails envoyés aux adresses 163.com, 126.com, qq.com et sina.com sont "
+"parfois bloqués et peuvent ne pas arriver"
+
+msgid "email_deliverability_notice_message_two"
+msgstr ""
+"Si vous ne recevez pas votre code de confirmation, envisagez d'utiliser un "
+"autre fournisseur d'e-mail."
+
+msgid "continue_anyway"
+msgstr "Continuer quand même"
+
+msgid "routing_mode"
+msgstr "Mode de Routage"
+
+msgid "smart_routing"
+msgstr "Routage Intelligent"
+
+msgid "full_tunnel"
+msgstr "Tunnel Complet"
+
+msgid "region_optimized_routing"
+msgstr "Routage basé sur des règles optimisé pour votre région"
+
+msgid "all_traffic_through_vpn"
+msgstr "Tout le trafic via VPN"
+
+msgid "smart_routing_description"
+msgstr ""
+"Le Routage Intelligent utilise des règles spécifiques à la région pour "
+"envoyer automatiquement le trafic nécessitant le VPN via MYX-VPN. Tout autre"
+" trafic passe en direct pour plus de rapidité et de fiabilité."
+
+msgid "add_apps_websites_bypass_vpn"
+msgstr "Ajouter des applications et sites web pour contourner le VPN"
+
+msgid "lantern_pro_license_applied"
+msgstr "Votre licence Lantern Pro sera appliquée à votre compte existant"
+
+msgid "daily_data_cap_reached"
+msgstr "Limite de données quotidienne atteinte"
+
+msgid "daily_data_cap_reached_message"
+msgstr "Vitesse réduite à 128 kb/s - Réinitialisation à %s."
+
+msgid "subscription_renewal_info"
+msgstr ""
+"Le paiement est débité de votre identifiant Apple au moment de l'achat. Les "
+"abonnements se renouvellent automatiquement sauf s'ils sont annulés au moins"
+" 24 heures avant la fin de la période en cours."
+
+msgid "failed_to_update_routing_mode"
+msgstr "Échec de la mise à jour du mode de routage. Veuillez réessayer."
+
+msgid "apps"
+msgstr "Applis"
+
+msgid "websites"
+msgstr "Sites Web"
+
+msgid "main_channel"
+msgstr "Canal principal"
+
+msgid "data_cap_channel"
+msgstr "Alertes d'utilisation des données"
+
+msgid "mb_free_data_remaining"
+msgstr "%d Mo de données gratuites restants"
+
+msgid "daily_data_cap_reached_notification_message"
+msgstr ""
+"Vos données seront réinitialisées à %s. Passez à Pro pour des données haut "
+"débit illimitées."
+
+msgid "if_you_have_not_set_password"
+msgstr ""
+"Si vous n'avez pas défini de mot de passe Lantern Pro auparavant, "
+"sélectionnez l'option « mot de passe oublié ? » ci-dessous."
+
+msgid "pro_subscription_expired"
+msgstr "Votre abonnement Pro a expiré"
+
+msgid "renew_pro_subscription"
+msgstr "Renouveler l'Abonnement Pro"
+
+msgid "subscription_expired"
+msgstr "Abonnement Expiré"
+
+msgid "pro"
+msgstr "Pro"
+
+msgid "set_account_password"
+msgstr "Définir le Mot de Passe du Compte"
+
+msgid "set_password"
+msgstr "Définir le Mot de Passe"
+
+msgid "set_account_password_message"
+msgstr ""
+"Pour gérer votre compte ou vous connecter sur d'autres appareils, vous devez maintenant définir un mot de passe pour votre compte Lantern Pro.\n"
+"\n"
+"Nous vous enverrons un code de vérification par e-mail pour créer votre mot de passe."
+
+msgid "expired"
+msgstr "Expiré"
+
+msgid "lantern_pro_tagline"
+msgstr "Accès internet rapide, fiable et privé"
+
+msgid "what_makes_lantern_different"
+msgstr "Ce qui distingue MYX-VPN"
+
+msgid "built_for_privacy_speed_freedom"
+msgstr "Conçu pour la confidentialité, la vitesse et la liberté"
+
+msgid "smart_routing_mode"
+msgstr "Mode de routage intelligent"
+
+msgid "region_specific_routing_description"
+msgstr ""
+"Des règles spécifiques à chaque région n'acheminent que le trafic "
+"nécessitant le VPN, gardant votre connexion rapide."
+
+msgid "advanced_protocols"
+msgstr "Protocoles avancés"
+
+msgid "advanced_protocols_description"
+msgstr ""
+"Plus de protocoles que les autres VPN pour une fiabilité maximale. AnyTLS, "
+"Hysteria2, VLESS, Kindling, WATER et plus encore."
+
+msgid "private_servers_description"
+msgstr ""
+"Connectez vos propres serveurs pour un contrôle total de votre connexion."
+
+msgid "nonprofit_mission"
+msgstr "Mission à but non lucratif"
+
+msgid "built_by_nonprofit"
+msgstr ""
+"Créé par une organisation à but non lucratif avec plus de 12 ans "
+"d'expérience dans la promotion de la liberté sur internet"
+
+msgid "choose_your_routing_mode"
+msgstr "Choisissez votre mode de routage"
+
+msgid "fastest"
+msgstr "Le plus rapide"
+
+msgid "traditional_vpn_mode"
+msgstr "Mode VPN traditionnel"
+
+msgid "traditional_vpn_mode_description"
+msgstr "Achemine tout le trafic via MYX-VPN, qu'il en ait besoin ou non."
+
+msgid "change_anytime_in_routing_mode_settings"
+msgstr "Modifiable à tout moment dans les paramètres du mode de routage"
+
+msgid "get_started"
+msgstr "Commencer"
+
+msgid "skip_connect_now"
+msgstr "Passer - Se connecter maintenant"
+
+msgid "renew_pro"
+msgstr "Renouveler Pro"
+
+msgid "payment"
+msgstr "Paiement"
+
+msgid "it_looks_like_something_went_wrong"
+msgstr ""
+"Il semble qu'une erreur s'est produite. Si vous avez effectué un paiement "
+"mais ne voyez pas votre abonnement actif, veuillez patienter quelques heures"
+" et vérifier à nouveau."
+
+msgid "manage_subscription_google_play"
+msgstr ""
+"Votre forfait Pro a été acheté via Google Play. Veuillez gérer votre "
+"abonnement depuis les paramètres de votre compte Google Play."
+
+msgid "manage_subscription_apple_app_store"
+msgstr ""
+"Votre forfait Pro a été acheté via l'Apple App Store. Veuillez gérer votre "
+"abonnement depuis les paramètres de votre compte Apple ID."
+
+msgid "create_account_error"
+msgstr "Erreur de création de compte"
+
+msgid "appearance"
+msgstr "Apparence"
+
+msgid "light"
+msgstr "Clair"
+
+msgid "dark"
+msgstr "Sombre"
+
+msgid "system"
+msgstr "Système"
+
+msgid "lantern_email"
+msgstr "Adresse courriel dans MYX-VPN"
+
+msgid "confirm_with_account"
+msgstr ""
+"Pour confirmer la suppression, veuillez vérifier avec votre compte %s ci-"
+"dessous :"
+
+msgid "oauth_different_account"
+msgstr ""
+"Le compte avec lequel vous essayez de vous connecter ne correspond pas au "
+"compte associé à cet e-mail. Veuillez vous connecter avec le bon compte ou "
+"choisir un autre e-mail."
+
+msgid "account_deleted"
+msgstr "Le compte a été supprimé"
+
+msgid "account_deleted_message"
+msgstr "Votre compte a été irrémédiablement supprimé."
+
+msgid "verify_with"
+msgstr "Vérifier avec %s"
+
+msgid "renew"
+msgstr "Renouveller"
+
+msgid "vpn_conflict_title"
+msgstr "Conflit de VPN détecté"
+
+msgid "vpn_conflict_body"
+msgstr ""
+"Un autre VPN est en cours d'exécution sur votre appareil. MYX-VPN fonctionne"
+" mieux en tant que seul VPN actif. Pour de meilleurs résultats, veuillez le "
+"déconnecter avant d'utiliser MYX-VPN."
+
+msgid "vpn_conflict_dismiss"
+msgstr "J’ai compris"
+
+msgid "vpn_conflict_connect_anyway"
+msgstr "Se connecter quand même"
+
+msgid "err_check_connection"
+msgstr "Connexion impossible. Vérifiez votre connexion Internet."
+
+msgid "err_service_unavailable"
+msgstr "Service temporairement indisponible. Nouvelle tentative..."
+
+msgid "err_connection_failed"
+msgstr "Échec de la connexion. Veuillez réessayer."
+
+msgid "err_ruleset_failed"
+msgstr ""
+"Impossible de charger la configuration de routage. Nouvelle tentative..."
+
+msgid "update_now"
+msgstr "Mettre à jour maintenant"
+
+msgid "later"
+msgstr "Plus tard"
+
+msgid "update_ready_to_install"
+msgstr "MYX-VPN %s est prêt à être installé"
+
+msgid "up_to_date"
+msgstr "À jour"
+
+msgid "running_latest_version"
+msgstr "Vous utilisez la dernière version de MYX-VPN %s"
+
+msgid "couldnt_check_for_updates"
+msgstr "Impossible de rechercher des mises à jour"
+
+msgid "check_connection_and_retry"
+msgstr "Vérifiez votre connexion et réessayez"
+
+msgid "refresh_configuration"
+msgstr "Actualiser la configuration"
+
+msgid "configuration_cleared"
+msgstr "Configuration effacée"
+
+msgid "turn_off_vpn"
+msgstr "Désactiver le VPN"
+
+msgid "turn_off_vpn_message"
+msgstr ""
+"Le VPN doit être désactivé avant de pouvoir actualiser votre configuration. "
+"Désactivez-le, puis réessayez."
+
+msgid "configuration_message"
+msgstr ""
+"Votre ancienne configuration a été effacée. Activez le VPN pour télécharger "
+"automatiquement la plus récente."
+
+msgid "promo_referral_code"
+msgstr "Code promo / de parrainage"
+
+msgid "promo_code"
+msgstr "Code promo"
+
+msgid "promo_code_with"
+msgstr "Code promo (%s)"
+
+msgid "order_total"
+msgstr "Total de la commande"
+
+msgid "smart_routing_mode_description"
+msgstr ""
+"La localisation intelligente choisit le serveur le plus rapide et change "
+"automatiquement dès qu'elle trouve de meilleurs itinéraires."
+
+msgid "bypass_browser_warning_title"
+msgstr "Ajouter %s à la liste de contournement ?"
+
+msgid "bypass_browser_warning_body"
+msgstr ""
+"%s se connectera directement, sans la protection de MYX-VPN. Dans les pays "
+"qui bloquent certains sites web, certains sites cesseront de se charger."
+
+msgid "add_anyway"
+msgstr "Ajouter quand même"
+
+msgid "bypass_all_warning_title"
+msgstr "Ajouter toutes les applications à la liste de contournement ?"
+
+msgid "bypass_all_warning_body"
+msgstr ""
+"Cela inclut des navigateurs comme %s. Les applications de la liste de "
+"contournement se connectent directement, sans la protection de MYX-VPN. Dans"
+" les pays qui bloquent certains sites web, certains sites cesseront de se "
+"charger."
+
+msgid "add_all_except_browsers"
+msgstr "Tout ajouter sauf les navigateurs"
+
+msgid "add_all_anyway"
+msgstr "Tout ajouter quand même"
+
+msgid "bypass_app_first_time_title"
+msgstr "Contourner le VPN pour cette application ?"
+
+msgid "bypass_app_first_time_body"
+msgstr ""
+"%s se connectera directement, sans la protection de MYX-VPN. Si elle est "
+"bloquée dans votre pays, elle risque de ne plus fonctionner."
+
+msgid "bypass_website_first_time_title"
+msgstr "Contourner le VPN pour ce site web ?"
+
+msgid "bypass_website_first_time_body"
+msgstr ""
+"%s se connectera directement, sans la protection de MYX-VPN. S'il est bloqué"
+" dans votre pays, il risque de ne plus fonctionner."
+
+msgid "upsell_upgrade_suffix"
+msgstr "Plus rapide, données illimitées !"
+
+msgid "upsell_expired_suffix"
+msgstr "Votre temps Pro a expiré"
+
+msgid "vpn"
+msgstr "VPN"
+
+msgid "split_tunnel"
+msgstr "Le tunneling fractionné ne fonctionne pas"
+
+msgid "smart_routing_not_working"
+msgstr "Le routage intelligent ne fonctionne pas"
+
+msgid "server_selection_not_working"
+msgstr "La sélection du serveur ne fonctionne pas"
+
+msgid "upgrade_fail"
+msgstr "Échec du passage à Lantern Pro"
+
+msgid "affiliate_offer_unavailable"
+msgstr "Impossible de charger les abonnements à prix réduit depuis la boutique. Veuillez réessayer."
+
+msgid "about_unbounded"
+msgstr "À propos d'Action Mode"
+
+msgid "smc_status_label"
+msgstr "Statut"
+
+msgid "smc_status_off"
+msgstr "Désactivé"
+
+msgid "smc_status_configuring"
+msgstr "Configuration du réseau"
+
+msgid "smc_status_error_with_message"
+msgstr "Partage impossible : %s"
+
+msgid "smc_status_error_generic"
+msgstr "Partage impossible — réessayez d'activer"
+
+msgid "action_mode_helping_now"
+msgstr "Aidées en ce moment"
+
+msgid "action_mode_total_helped"
+msgstr "Total des personnes aidées à ce jour"
+
+msgid "smc_arrival_toast"
+msgstr "Aide apportée à une nouvelle personne : %s"
+
+msgid "unbounded_waiting_for_connections"
+msgstr "En attente de connexions..."
+
+msgid "unbounded_welcome_title"
+msgstr "Bienvenue dans Action Mode"
+
+msgid "unbounded_welcome_body_1"
+msgstr "Lorsque vous activez Action Mode, votre appareil rejoint un réseau de « ponts numériques » vers l'internet libre. Les personnes soumises à la censure se connectent à ces ponts, ce qui leur permet de contourner les restrictions imposées par les gouvernements et d'accéder aux informations dont elles ont besoin."
+
+msgid "unbounded_welcome_body_2"
+msgstr "Cet effort collectif rend la censure plus difficile à appliquer et élargit l'accès à l'internet libre."
+
+msgid "unbounded_welcome_body_3"
+msgstr "Vous pouvez retirer Action Mode de l'interface à tout moment dans les paramètres."
+
+msgid "smc_advanced"
+msgstr "Avancé"
+
+msgid "smc_advanced_subtitle"
+msgstr "Si votre routeur ne prend pas en charge l'UPnP"
+
+msgid "smc_manual_port"
+msgstr "Redirection de port manuelle"
+
+msgid "smc_manual_port_description"
+msgstr "Si votre routeur ne prend pas en charge l'UPnP, configurez une redirection de port sur votre routeur et saisissez le numéro de port ici. MYX-VPN l'utilisera comme port externe au lieu d'interroger l'UPnP. Laissez vide pour utiliser l'UPnP (par défaut)."
+
+msgid "smc_manual_port_label"
+msgstr "Port"
+
+msgid "smc_manual_port_hint"
+msgstr "ex. 5698"
+
+msgid "smc_manual_port_save"
+msgstr "Enregistrer"
+
+msgid "smc_manual_port_currently_set"
+msgstr "Port actuellement défini : %d. Désactivez puis réactivez Action Mode pour appliquer la modification."
+
+msgid "smc_manual_port_out_of_range"
+msgstr "Le port doit être compris entre 1 et 65535"
+
+msgid "smc_manual_port_cleared"
+msgstr "Port manuel effacé — utilisation de l'UPnP"
+
+msgid "smc_manual_port_saved"
+msgstr "Port manuel défini : %d"
+
+msgid "unbounded_settings_title"
+msgstr "Paramètres d'Action Mode"
+
+msgid "auto_enable_unbounded"
+msgstr "Activer Action Mode automatiquement"
+
+msgid "auto_enable_unbounded_subtitle"
+msgstr "S'active à l'ouverture de MYX-VPN"
+
+msgid "hide_unbounded"
+msgstr "Masquer Action Mode"
+
+msgid "hide_unbounded_subtitle"
+msgstr "Retire Action Mode de l'interface"
+
+msgid "show_license"
+msgstr "Afficher la licence"
+
+msgid "hide_license"
+msgstr "Masquer la licence"
+
+msgid "share_consent_title"
+msgstr "Partager votre connexion ?"
+
+msgid "share_consent_body_what"
+msgstr "Lorsque le partage est activé, des personnes dans des pays censurés font passer leur trafic par votre connexion pour accéder à l'internet libre."
+
+msgid "share_consent_body_ip"
+msgstr "Si votre routeur prend en charge la redirection de port, votre connexion domestique sert de sortie et votre adresse IP apparaîtra dans les journaux de la destination pendant le partage. Sinon, ce trafic est relayé par les serveurs de MYX-VPN et votre IP n'est pas exposée de cette façon."
+
+msgid "share_consent_body_safety"
+msgstr "Dans les deux cas, MYX-VPN bloque les destinations abusives connues, les plages de réseaux privés et les ports propices aux abus, renouvelle régulièrement les identifiants et agit en tant que « simple intermédiaire » au sens de la DMCA § 512(a)."
+
+msgid "share_consent_decline"
+msgstr "Plus tard"
+
+msgid "share_consent_accept"
+msgstr "Activer le partage"
+
+msgid "share_logs_warning_title"
+msgstr "Partager les journaux de diagnostic ?"
+
+msgid "share_logs_warning_body"
+msgstr "Ces journaux peuvent contenir votre e-mail, votre adresse IP, les identifiants de votre appareil et les serveurs MYX-VPN utilisés pour vos connexions. Ils ne sont plus protégés une fois sortis de l'application : toute personne qui les reçoit peut les lire. Envoyez-les uniquement à l'assistance MYX-VPN à support@lantern.io."
+
+msgid "share_logs_anyway"
+msgstr "Partager les journaux"
+
+msgid "pro_expires_days_left"
+msgstr "Pro expire le %s, jours restants : %s"
+
+msgid "pro_expires_one_day_left"
+msgstr "Pro expire le %s, 1 jour restant"
+
+msgid "renewing_adds_time"
+msgstr "Le renouvellement prolonge votre date de fin actuelle"
+
+msgid "pro_ends_today"
+msgstr "Votre période Pro se termine aujourd'hui, %s"
+
+msgid "renew_now_keep_data"
+msgstr "Renouvelez maintenant pour conserver les données illimitées et les fonctionnalités Pro"
+
+msgid "pro_expired_on"
+msgstr "Votre période Pro a expiré le %s"
+
+msgid "renew_now_get_back_data"
+msgstr "Renouvelez maintenant pour retrouver les données illimitées"
+
+msgid "days_left"
+msgstr "Jours restants : %s"
+
+msgid "one_day_left"
+msgstr "1 jour restant"
+
+msgid "expires_today"
+msgstr "Expire aujourd'hui"
+
+msgid "pro_time_expired_message"
+msgstr "Votre période Lantern Pro a expiré. Renouvelez pour retrouver les données illimitées et les fonctionnalités Pro."
+
+msgid "pro_expires_today_title"
+msgstr "Pro expire aujourd'hui"
+
+msgid "pro_expires_today_popup_message"
+msgstr "Votre compte Pro se termine aujourd'hui. Renouvelez maintenant pour conserver l'accès à Lantern Pro."
+
+msgid "renew_now"
+msgstr "Renouveler maintenant"
+
+msgid "dismiss"
+msgstr "Ignorer"
+
+msgid "unbounded_status_waiting"
+msgstr "En attente de démarrage"
+
+msgid "widget"
+msgstr "Widget"
+
+msgid "add_lantern_widget"
+msgstr "Ajouter le widget MYX-VPN"
+
+msgid "add_lantern_widget_description"
+msgstr "Connectez-vous depuis l'écran d'accueil de votre téléphone sans ouvrir l'application."
+
+msgid "widget_step_1"
+msgstr "Appuyez de manière prolongée sur un espace vide de l'écran d'accueil de votre téléphone."
+
+msgid "widget_step_2"
+msgstr "Touchez Modifier, puis Ajouter un widget."
+
+msgid "widget_step_3"
+msgstr "Recherchez MYX-VPN, choisissez une taille, puis touchez Ajouter le widget."
+
+msgid "people_helped_title"
+msgstr "Personnes que vous avez aidées"
+
+msgid "people_helped_subtitle"
+msgstr "Aidées à ce jour : %s · En ce moment : %s"
+
+msgid "advanced_stats_by_country"
+msgstr "Par pays, depuis le début"
+
+msgid "advanced_stats_relayed"
+msgstr "Relayé : %s"
+
+msgid "advanced_stats_data_relayed"
+msgstr "Données relayées"
+
+msgid "advanced_stats_this_session"
+msgstr "Cette session"
+
+msgid "advanced_stats_all_time_short"
+msgstr "Depuis le début"
+
+msgid "advanced_stats_current_speed"
+msgstr "Vitesse actuelle"
+
+msgid "advanced_stats_speed"
+msgstr "%s ↑ %s ↓"
+
+msgid "advanced_stats_directions"
+msgstr "Envoyé : %s · Reçu : %s"
+
+msgid "advanced_stats_no_countries"
+msgstr "Personne n'a encore été aidé. Les pays apparaîtront ici dès que des personnes se connecteront par votre intermédiaire."
+
+msgid "advanced_stats_unknown_country"
+msgstr "Inconnu"
+
+msgid "advanced_stats_one_person"
+msgstr "1 personne"
+
+msgid "advanced_stats_people"
+msgstr "%s personnes"
+
+msgid "share_mode_smc"
+msgstr "Connexion directe"
+
+msgid "share_mode_unbounded"
+msgstr "WebRTC"
+
+msgid "advanced_stats_mode"
+msgstr "Mode de partage"
+
+msgid "advanced_stats_mode_fallback"
+msgstr "Connexion directe indisponible : %s"
+
+msgid "view_advanced_stats"
+msgstr "Voir les statistiques avancées"
+
+msgid "error_occurred"
+msgstr "Une erreur s’est produite. Veuillez réessayer."
+
+msgid "unknown_error_occurred"
+msgstr "Une erreur inconnue s’est produite."
+
+msgid "we_are_experiencing_technical_difficulties"
+msgstr "Nous rencontrons des difficultés techniques. Veuillez réessayer plus tard."
+
+msgid "proxy_error"
+msgstr "Impossible de se connecter via le proxy. Veuillez vérifier votre connexion et réessayer."
+
+msgid "err_while_sending_code"
+msgstr "Impossible d’envoyer le code de vérification. Veuillez réessayer."
+
+msgid "recovery_not_found"
+msgstr "Aucun compte à récupérer ne correspond à ces informations."
+
+msgid "wrong_link_code"
+msgstr "Ce code d’association d’appareil est incorrect. Veuillez le vérifier et réessayer."
+
+msgid "wrong_seller_code"
+msgstr "Ce code revendeur est incorrect. Veuillez le vérifier et réessayer."
+
+msgid "purchase_not_found"
+msgstr "Aucun achat trouvé pour ce compte."
+
+msgid "purchase_restored_error"
+msgstr "Impossible de restaurer votre achat. Veuillez réessayer."
+
+msgid "empty_url"
+msgstr "Impossible d’ouvrir la page de paiement. Veuillez réessayer."
+
+msgid "please_enter_referral_code"
+msgstr "Veuillez saisir un code de parrainage."
+
+msgid "access_token_missing"
+msgstr "Jeton d’accès manquant. Veuillez vous reconnecter à votre fournisseur cloud."
+
+msgid "private_server_setup_error"
+msgstr "Impossible de configurer votre serveur privé. Veuillez réessayer."
+
+msgid "logs"
+msgstr "Journaux"
+
+msgid "tap_open_settings_to_go_to_do"
+msgstr "Appuyez sur %s ci-dessous pour accéder à DigitalOcean"
+
+msgid "network_extension_disabled_message"
+msgstr "L’extension réseau de MYX-VPN est désactivée dans Réglages Système. Activez-la sous Ouverture et extensions > Extensions réseau, puis revenez dans MYX-VPN."
+
+msgid "oauth_error_sign_in_failed"
+msgstr "Échec de la connexion. Veuillez réessayer."
+
+msgid "oauth_error_session_expired"
+msgstr "Votre session de connexion a expiré. Veuillez réessayer."
+
+msgid "oauth_error_provider_failed"
+msgstr "Impossible de vous connecter avec ce compte. Veuillez réessayer."
+
+msgid "oauth_error_no_email"
+msgstr "Ce compte n’a pas partagé d’adresse e-mail. Veuillez autoriser l’accès à l’e-mail et réessayer."
+
+msgid "oauth_error_add_device"
+msgstr "Impossible d'associer cet appareil à votre compte. Veuillez contacter l'assistance."
+
+msgid "helper_error_disabled"
+msgstr "L'aide aux amis n'est pas encore disponible sur cet appareil."
+
+msgid "helper_error_not_found"
+msgstr "Cette invitation ou cet assistant n'existe plus."
+
+msgid "helper_error_unavailable"
+msgstr "Impossible de joindre MYX-VPN. Vérifiez votre connexion et réessayez."
+
+msgid "helper_error_too_many_invites"
+msgstr "Vous avez envoyé le maximum d'invitations pour le moment. Réessayez demain."
+
+msgid "helper_error_too_many_pairings"
+msgstr "Limite de 20 personnes atteinte."
+
+msgid "helper_error_no_pending_claim"
+msgstr "Cette invitation a déjà été traitée."
+
+msgid "helper_error_bad_name"
+msgstr "Saisissez un nom que votre ami reconnaîtra, 60 caractères maximum."
+
+msgid "helper_error_keystore"
+msgstr "Cet appareil ne peut pas stocker les noms de façon sécurisée : l'aide aux amis est donc désactivée. Sous Linux, lancez un trousseau comme GNOME Keyring."
+
+msgid "helper_error_keystore_reset"
+msgstr "Le stockage sécurisé de cet appareil a été réinitialisé : les noms de vos aidants et invitations n'ont pas pu être lus. Vos aidants fonctionnent toujours ; invitez-les à nouveau pour voir leurs noms."
+
+msgid "helper_error_copy"
+msgstr "Impossible de copier le lien. Utilisez plutôt Partager le lien."
+
+msgid "helpers_your_name_label"
+msgstr "Votre nom, tel que votre ami vous connaît"
+
+msgid "helpers_your_name_hint"
+msgstr "Par exemple, Sara"
+
+msgid "helper_online"
+msgstr "En ligne"
+
+msgid "helper_offline"
+msgstr "Hors ligne"
+
+msgid "helper_unnamed"
+msgstr "Votre assistant"
+
+msgid "helper_remove_confirm_title"
+msgstr "Retirer %s ?"
+
+msgid "helper_remove_confirm_body"
+msgstr "%s ne vous aidera plus. Vous pourrez l'inviter à nouveau plus tard."
+
+msgid "helpers_remove_all"
+msgstr "Retirer tous les assistants"
+
+msgid "helpers_remove_all_body"
+msgstr "Tous les assistants cesseront de vous aider et leurs noms seront effacés de cet appareil."
+
+msgid "manage_private_locations"
+msgstr "Gérer les emplacements privés"
+
+msgid "invite_personal_proxy"
+msgstr "Inviter un proxy personnel"
+
+msgid "personal_proxies_tab"
+msgstr "Proxys personnels"
+
+msgid "invite_another"
+msgstr "Inviter quelqu'un d'autre"
+
+msgid "helpers_nudge_second"
+msgstr "Si votre proxy personnel se déconnecte, votre connexion via ce proxy est coupée aussi. Invitez un deuxième ami pour rester en ligne."
+
+msgid "personal_proxy_banner_title"
+msgstr "Obtenir un proxy personnel"
+
+msgid "personal_proxy_banner_body"
+msgstr "Un ami à l'étranger peut maintenir votre connexion."
+
+msgid "personal_proxy_banner_waiting_title"
+msgstr "Votre ami attend"
+
+msgid "personal_proxy_banner_waiting_body"
+msgstr "Comparez le code et approuvez la demande."
+
+msgid "personal_proxy_nickname_label"
+msgstr "Nom sur cet appareil"
+
+msgid "invite_share_message"
+msgstr "%s a besoin de votre aide pour rester en ligne. %s"
+
+msgid "invite_share_button"
+msgstr "Partager le lien"
+
+msgid "invite_copy_link"
+msgstr "Copier le lien"
+
+msgid "invite_link_copied"
+msgstr "Lien copié"
+
+msgid "invite_qr_hint"
+msgstr "Votre ami peut scanner ce code avec MYX-VPN."
+
+msgid "invite_waiting"
+msgstr "En attente de l'ouverture du lien par votre ami"
+
+msgid "invite_trust_warning"
+msgstr "La personne que vous invitez saura que vous utilisez MYX-VPN et pourra voir quand vous vous connectez par son intermédiaire. Votre trafic passe par sa connexion Internet : elle pourrait donc savoir quels sites vous visitez, mais pas ce que vous faites sur les sites sécurisés (https). N'invitez qu'une personne de confiance."
+
+msgid "invite_expires"
+msgstr "Expire dans %s heures"
+
+msgid "invite_gone"
+msgstr "Cette invitation a déjà été utilisée ou a expiré."
+
+msgid "invite_claimed_title"
+msgstr "Quelqu'un a ouvert votre invitation"
+
+msgid "invite_compare_codes"
+msgstr "Comparer les codes"
+
+msgid "personal_proxy"
+msgstr "Proxy personnel"
+
+msgid "private_locations"
+msgstr "Emplacements privés"
+
+msgid "personal_proxies"
+msgstr "Proxys personnels"
+
+msgid "your_personal_proxies"
+msgstr "Vos proxys personnels"
+
+msgid "help_friend_link_label"
+msgstr "Lien d'invitation"
+
+msgid "help_friend_paste"
+msgstr "Coller le lien envoyé par votre ami"
+
+msgid "help_friend_scan"
+msgstr "Scanner le code QR de votre ami"
+
+msgid "help_friend_approved"
+msgstr "Vous aidez maintenant %s."
+
+msgid "help_friend_no_longer_pending"
+msgstr "Cette demande n'est plus en attente. Demandez une nouvelle invitation à votre ami."
+
+msgid "help_friend_done"
+msgstr "Terminé"
+
+msgid "help_friend_already_claimed_title"
+msgstr "Cette invitation a déjà été utilisée"
+
+msgid "help_friend_already_claimed_body"
+msgstr "Quelqu’un d’autre a ouvert ce lien en premier, ou il a expiré. Demandez une nouvelle invitation à votre ami et prévenez-le que celle-ci a peut-être été vue par quelqu’un d’autre."
+
+msgid "help_friend_already_helping"
+msgstr "Vous aidez déjà cet ami."
+
+msgid "help_friend_already_helping_named"
+msgstr "Vous aidez déjà %s."
+
+msgid "help_friend_bad_link"
+msgstr "Ce lien n’est pas une invitation d’aide."
+
+msgid "help_friend_own_invite"
+msgstr "Il s’agit de votre propre invitation. Envoyez-la à l’ami dont vous souhaitez recevoir de l’aide."
+
+msgid "helping_since"
+msgstr "Depuis le %s"
+
+msgid "helping_unnamed"
+msgstr "Une personne que vous aidez"
+
+msgid "helping_sharing_off_warning"
+msgstr "Le partage est désactivé : les personnes que vous aidez ne peuvent pas se connecter par votre intermédiaire."
+
+msgid "helping_remove"
+msgstr "Arrêter d’aider"
+
+msgid "helping_remove_confirm"
+msgstr "Arrêter d’aider %s ? Une nouvelle invitation sera nécessaire pour se connecter à nouveau via vous."
+
+msgid "help_others_too"
+msgstr "Aidez aussi les autres"
+
+msgid "help_others_too_body"
+msgstr "Partagez votre capacité inutilisée avec d’autres personnes confrontées à la censure ; MYX-VPN ne leur permet d’accéder qu’aux sites autorisés, ce qui protège votre connexion contre les abus."
+
+msgid "help_others_too_note"
+msgstr "Modifier ce paramètre reconnecte brièvement les personnes que vous aidez."
+
+msgid "helping_duration_hm"
+msgstr "%s h %s min"
+
+msgid "helping_duration_m"
+msgstr "%s min"
+
+msgid "invite_share_title"
+msgstr "Partagez ce lien avec une personne de confiance hors de votre pays"
+
+msgid "invite_share_steps"
+msgstr "La personne ouvre le lien, installe MYX-VPN si nécessaire et saisit son nom. Vous l'approuvez en vérifiant un code à 4 chiffres, puis vous pouvez vous connecter par son intermédiaire."
+
+msgid "invite_link_label"
+msgstr "Votre lien d'invitation"
+
+msgid "invite_link_expiry"
+msgstr "Utilisable une seule fois, expire dans 48 heures."
+
+msgid "approve_title"
+msgstr "%s souhaite être votre proxy personnel"
+
+msgid "approve_body"
+msgstr "Demandez à %s le code à 4 chiffres affiché par MYX-VPN, par appel ou dans une autre application que celle utilisée pour envoyer le lien. N'approuvez que s'il correspond."
+
+msgid "approve_codes_match"
+msgstr "Les codes correspondent, approuver"
+
+msgid "approve_reject"
+msgstr "Refuser"
+
+msgid "personal_proxy_fallback_group"
+msgstr "Impossible de joindre %s pour le moment. Passage à Vos proxys personnels."
+
+msgid "personal_proxy_fallback_auto"
+msgstr "Impossible de joindre %s pour le moment. Passage à Emplacement intelligent."
+
+msgid "become_means_title"
+msgstr "Être un proxy personnel : ce que cela implique"
+
+msgid "become_means_traffic"
+msgstr "Un proche vous a demandé de l'aide. Tant que Action Mode est actif, il peut accéder à l'internet libre via votre connexion. Selon votre routeur, son trafic sort de votre réseau ou transite par les serveurs de MYX-VPN. MYX-VPN ne vous montre pas ce qu'il fait en ligne."
+
+msgid "become_means_seen"
+msgstr "Ces personnes voient quand votre connexion est active. N'acceptez que les invitations de personnes que vous connaissez."
+
+msgid "become_means_remove"
+msgstr "Supprimez la connexion à tout moment."
+
+msgid "help_friend_form_title"
+msgstr "Collez le lien de la personne que vous aidez"
+
+msgid "help_friend_link_hint"
+msgstr "Si vous avez ouvert le lien sur cet appareil, ce champ est déjà rempli"
+
+msgid "help_friend_name_label"
+msgstr "Votre nom, tel que la personne vous connaît"
+
+msgid "help_friend_name_hint"
+msgstr "C'est ainsi que vous apparaîtrez dans son MYX-VPN"
+
+msgid "help_friend_become"
+msgstr "Devenir son proxy personnel"
+
+msgid "help_friend_tell_code"
+msgstr "Communiquez-lui ce code"
+
+msgid "help_friend_code_check"
+msgstr "Cette personne vérifiera qu'il correspond au code affiché sur son téléphone, puis vous approuvera."
+
+msgid "help_friend_waiting_approval"
+msgstr "En attente d'approbation"
+
+msgid "help_friend_code_note"
+msgstr "Communiquez le code par appel ou dans une autre application que celle où le lien d'invitation est arrivé. Quiconque a vu le lien ne doit pas voir aussi le code."
+
+msgid "become_personal_proxy"
+msgstr "Devenir proxy personnel"
+
+msgid "become_personal_proxy_body"
+msgstr "Aidez une personne que vous connaissez à se connecter"
+
+msgid "helping_connections_title"
+msgstr "Vos connexions Personal Proxy"
+
+msgid "helping_friends_one"
+msgstr "1 ami"
+
+msgid "helping_friends_count"
+msgstr "%s amis"
+
+msgid "helping_connected_named"
+msgstr "%s est en ligne"
+
+msgid "helping_connected_count"
+msgstr "Connexions en cours : %s"
+
+msgid "helping_sheet_title"
+msgstr "Amis que vous aidez"
+
+msgid "helping_your_friends"
+msgstr "Vos amis"
+
+msgid "helping_connected"
+msgstr "Connecté"
+
+msgid "helping_not_connected"
+msgstr "Non connecté"
+
+msgid "helping_paste_another"
+msgstr "Coller un autre lien d’invitation"
+
+msgid "helping_data_relayed"
+msgstr "Données relayées aujourd'hui"
+
+msgid "helping_active_today"
+msgstr "Actif : %s"
+
+msgid "myx_tap_to_connect"
+msgstr "Tap to connect"
+
+msgid "myx_protected"
+msgstr "Protected"
+
+msgid "myx_not_protected"
+msgstr "Not protected"
+
+msgid "myx_connecting"
+msgstr "Securing connection"
+
+msgid "myx_disconnecting"
+msgstr "Disconnecting"
+
+msgid "myx_session"
+msgstr "Session"
+
+msgid "myx_update_title"
+msgstr "New version available"
+
+msgid "myx_update_body"
+msgstr "MYX-VPN %s is ready. You are using %s."
+
+msgid "myx_update_now"
+msgstr "Update now"
+
+msgid "myx_update_later"
+msgstr "Later"
+
+msgid "myx_whats_new"
+msgstr "What's new"

@@ -1,0 +1,476 @@
+package privateserver
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log/slog"
+	"net/url"
+	"regexp"
+
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
+	C "github.com/getlantern/common"
+	pcommon "github.com/getlantern/lantern-server-provisioner/common"
+	"github.com/getlantern/lantern-server-provisioner/digitalocean"
+	"github.com/getlantern/lantern-server-provisioner/gcp"
+	"github.com/getlantern/lantern/lantern-core/utils"
+	"github.com/getlantern/radiance/ipc"
+)
+
+var (
+	provisionerMutex sync.Mutex
+	sessions         = sync.Map{}
+	// Provisioner labels: "<zone> - <city-id> [<CC>]", e.g. "us-central1-a - iowa [US]" or "sgp1 - SG [SG]".
+	locationRegex = regexp.MustCompile(`^([a-z0-9-]+)\s*-\s*([A-Za-z-]+)\s*\[([A-Z]+)\]`)
+	// Separator must be " - " so hyphenated regions such as Baden-Württemberg stay intact.
+	geoLocationRegex = regexp.MustCompile(`^(.*?) - (.*?) \[([A-Z]+)\]$`)
+)
+
+type provisionSession struct {
+	provisioner         pcommon.Provisioner
+	eventSink           utils.PrivateServerEventListener
+	CurrentCompartments []pcommon.Compartment
+	userCompartment     *pcommon.Compartment
+	userProject         *pcommon.CompartmentEntry
+	authToken           string
+	userProjectString   string
+	serverName          string
+	serverLocation      string
+	client              *ipc.Client
+}
+
+type provisionerResponse struct {
+	ExternalIP  string `json:"external_ip"`
+	Port        int    `json:"port"`
+	AccessToken string `json:"access_token"`
+	Tag         string `json:"tag"`
+	Location    string `json:"location,omitempty"`
+	Protocol    string `json:"protocol,omitempty"`
+}
+
+// storeSession stores the provision session in a global map.
+func storeSession(ps *provisionSession) {
+	provisionerMutex.Lock()
+	defer provisionerMutex.Unlock()
+	slog.Debug("Storing provision session in sessions map")
+	sessions.Store("provisioner", ps)
+}
+
+// getSession retrieves the provision session from the global map.
+func getSession() (*provisionSession, error) {
+	provisionerMutex.Lock()
+	defer provisionerMutex.Unlock()
+	val, ok := sessions.Load("provisioner")
+	slog.Debug("Getting provision session from sessions map")
+	if !ok {
+		slog.Error("No active session found")
+		return nil, errors.New("no active session")
+	}
+	return val.(*provisionSession), nil
+}
+
+// StartDigitalOceanPrivateServerFlow initializes the DigitalOcean provisioner and starts listening for events.
+// It takes a PrivateServerEventListener to handle events and browser opening.
+// It returns an error if the provisioner fails to start or if there are issues during the session.
+func StartDigitalOceanPrivateServerFlow(events utils.PrivateServerEventListener, vpnClient *ipc.Client) error {
+	ctx := context.Background()
+	provisioner := digitalocean.GetProvisioner(ctx, func(url string) error {
+		return events.OpenBrowser(url)
+	})
+	session := provisioner.Session()
+	if session == nil {
+		slog.Error("Failed to start DigitalOcean provisioner")
+		return fmt.Errorf("failed to start DigitalOcean provisioner")
+	}
+	ps := &provisionSession{
+		provisioner: provisioner,
+		eventSink:   events,
+		client:      vpnClient,
+	}
+	storeSession(ps)
+	go listenToServerEvents(*ps)
+	return nil
+}
+
+// StartGoogleCloudPrivateServerFlow initializes the GCP provisioner and starts listening for events
+func StartGoogleCloudPrivateServerFlow(events utils.PrivateServerEventListener, vpnClient *ipc.Client) error {
+	ctx := context.Background()
+	provisioner := gcp.GetProvisioner(ctx, func(url string) error {
+		return events.OpenBrowser(url)
+	})
+	session := provisioner.Session()
+	if session == nil {
+		slog.Error("Failed to start Google Cloud provisioner")
+		return fmt.Errorf("failed to start Google Cloud provisioner")
+	}
+	ps := &provisionSession{
+		provisioner: provisioner,
+		eventSink:   events,
+		client:      vpnClient,
+	}
+	storeSession(ps)
+	go listenToServerEvents(*ps)
+	return nil
+}
+
+// listenToServerEvents listens for events from the provisioner session and handles them accordingly.
+func listenToServerEvents(ps provisionSession) {
+	provisioner := ps.provisioner
+	session := ps.provisioner.Session()
+	events := ps.eventSink
+	slog.Debug("Listening to private server events")
+	for {
+		select {
+		case e := <-session.Events:
+			switch e.Type {
+			// OAuth events
+			case pcommon.EventTypeOAuthStarted:
+				slog.Debug("OAuth started, waiting for user to complete")
+				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeOAuthStarted", "OAuth started, waiting for user to complete"))
+				continue
+			case pcommon.EventTypeOAuthCancelled:
+				slog.Debug("OAuth cancelled by user")
+				events.OnError(convertErrorToJSON("EventTypeOAuthCancelled", fmt.Errorf("OAuth cancelled by user")))
+				return
+			case pcommon.EventTypeOAuthError:
+				slog.Error("OAuth failed", slog.Any("error", e.Error))
+				events.OnError(convertErrorToJSON("EventTypeOAuthError", e.Error))
+				return
+			// Validation events
+			case pcommon.EventTypeOAuthCompleted:
+				slog.Debug("OAuth completed; starting validation")
+				ps.authToken = e.Message
+				ps.provisioner.Validate(context.Background(), e.Message)
+				continue
+			case pcommon.EventTypeValidationStarted:
+				slog.Debug("Validation started")
+			case pcommon.EventTypeValidationError:
+				slog.Error("Validation failed", slog.Any("error", e.Error), slog.String("message", e.Message))
+				storeSession(&ps)
+				events.OnError(convertErrorToJSON("EventTypeValidationError", e.Error))
+				continue
+			case pcommon.EventTypeValidationCompleted:
+				// at this point we have a list of projects and billing accounts
+				// present them to the user
+				slog.Debug("Provisioning completed successfully", slog.String("message", e.Message))
+				compartments := provisioner.Compartments()
+				if len(compartments) == 0 {
+					slog.Error("No valid projects found, please check your billing account and permissions")
+					events.OnError(convertErrorToJSON("EventTypeNoProjects", errors.New("no valid projects found, please check your billing account and permissions")))
+					return
+				}
+				// if only one compartment, select it by default
+				if len(compartments) == 1 {
+					// Select account by default
+					ps.eventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeOnlyCompartment", "Found only one compartment, selecting by default"))
+					slog.Debug("Only one compartment found, selecting by default account")
+					accountNames := pcommon.CompartmentNames(compartments)
+					name := accountNames[0]
+					userCompartment := pcommon.CompartmentByName(compartments, name)
+					ps.userCompartment = userCompartment
+					// Store the user selected project
+					projectList := pcommon.CompartmentEntryIDs(userCompartment.Entries)
+					if len(projectList) == 0 {
+						err := errors.New("no projects found in the selected compartment")
+						slog.Error("No projects found in the selected compartment", slog.Any("error", err))
+						events.OnPrivateServerEvent(convertStatusToJSON("EventTypeNoProjects", "No projects found in the selected compartment"))
+						return
+					}
+					selectedProject := projectList[0]
+					project := pcommon.CompartmentEntryByID(userCompartment.Entries, selectedProject)
+					ps.userProject = project
+					ps.userProjectString = selectedProject
+					// store session
+					storeSession(&ps)
+					// Send location list to the event sink
+					locationList := pcommon.CompartmentEntryLocations(project)
+					// add delay
+					time.Sleep(1 * time.Second)
+					ps.eventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeLocations", strings.Join(locationList, ", ")))
+
+				} else {
+					ps.CurrentCompartments = compartments
+					// update map
+					storeSession(&ps)
+					slog.Debug("Validation completed, ready to create resources")
+					// Accounts
+					// send account to the client
+					accountNames := pcommon.CompartmentNames(compartments)
+					slog.Debug("Available accounts", slog.Any("accountNames", accountNames))
+					events.OnPrivateServerEvent(convertStatusToJSON("EventTypeAccounts", strings.Join(accountNames, ", ")))
+				}
+				continue
+			case pcommon.EventTypeProvisioningStarted:
+				slog.Debug("Provisioning started")
+				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningStarted", "Provisioning started, please wait..."))
+			case pcommon.EventTypeProvisioningCompleted:
+				slog.Debug("Provisioning completed successfully", slog.String("message", e.Message))
+				// get session
+				provisioner, perr := getSession()
+				if perr != nil {
+					events.OnError(convertErrorToJSON("EventTypeProvisioningError", perr))
+				}
+				// we have the response, now we can add the server manager instance
+				resp := provisionerResponse{}
+				err := json.Unmarshal([]byte(e.Message), &resp)
+				if err != nil {
+					slog.Error("Error unmarshalling provisioner response", slog.Any("error", err))
+					events.OnError(convertErrorToJSON("EventTypeProvisioningError", err))
+					return
+				}
+				resp.Tag = provisioner.serverName
+				resp.Location = provisioner.serverLocation
+				// sgp1 - SG [SG]
+				region, city, country := ParseLocation(provisioner.serverLocation)
+				slog.Debug("Provisioner response", slog.Any("response", resp), slog.String("region", region), slog.String("country", country), slog.String("city", city))
+				ctx := context.Background()
+				mangerErr := provisioner.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, C.ServerLocation{City: city, CountryCode: country}, false)
+				if mangerErr != nil {
+					slog.Error("Error adding server manager instance", slog.Any("error", mangerErr))
+					events.OnError(convertErrorToJSON("EventTypeProvisioningError", mangerErr))
+					return
+				}
+				slog.Debug("Server manager instance added successfully", slog.String("tag", resp.Tag))
+				serverInfo, found, err := ps.client.GetServerByTag(ctx, resp.Tag)
+				if err != nil {
+					slog.Error("Error getting server by tag", slog.Any("error", err))
+					events.OnError(convertErrorToJSON("EventTypeProvisioningError", err))
+					return
+				}
+				// add protocol info if found
+				if found {
+					resp.Protocol = serverInfo.Type
+				}
+				server, err := json.Marshal(resp)
+				if err != nil {
+					slog.Error("Error marshalling server response", slog.Any("error", err))
+					events.OnError(convertErrorToJSON("EventTypeProvisioningError", err))
+				}
+
+				events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", string(server)))
+				return
+			case pcommon.EventTypeProvisioningError:
+				slog.Error("Provisioning failed", slog.Any("error", e.Error))
+				events.OnError(convertErrorToJSON("EventTypeProvisioningError", e.Error))
+				return
+			}
+
+		default:
+			time.Sleep(1 * time.Second)
+		}
+	}
+}
+
+func ValidateSession(ctx context.Context) error {
+	ps, err := getSession()
+	if err != nil {
+		return err
+	}
+	slog.Debug("Validating session")
+	ps.provisioner.Validate(ctx, ps.authToken)
+	return nil
+}
+
+// SelectAccount selects a billing account for the user.
+// It updates the session with the selected account and sends the project list to the event sink.
+func SelectAccount(name string) error {
+	slog.Debug("Selecting account: ", "account", name)
+	ps, err := getSession()
+	if err != nil {
+		return err
+	}
+	// Store the user selected compartment
+	userCompartment := pcommon.CompartmentByName(ps.CurrentCompartments, name)
+	ps.userCompartment = userCompartment
+	storeSession(ps)
+	// Send the user selected compartment to the event sink
+	projectList := pcommon.CompartmentEntryIDs(userCompartment.Entries)
+	ps.eventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeProjects", strings.Join(projectList, ", ")))
+	return nil
+}
+
+// SelectProject selects a project for the user.
+func SelectProject(selectedProject string) error {
+	ps, err := getSession()
+	if err != nil {
+		return err
+	}
+	// Store the user selected project
+	project := pcommon.CompartmentEntryByID(ps.userCompartment.Entries, selectedProject)
+	ps.userProject = project
+	ps.userProjectString = selectedProject
+	storeSession(ps)
+	// Send location list to the event sink
+	locationList := pcommon.CompartmentEntryLocations(project)
+	ps.eventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeLocations", strings.Join(locationList, ", ")))
+	return nil
+}
+
+// StartDeployment starts the deployment process for the selected project and location.
+func StartDeployment(selectedLocation, serverName string) error {
+	ps, err := getSession()
+	if err != nil {
+		return err
+	}
+	slog.Debug("Starting deployment", slog.String("location", selectedLocation), slog.String("serverName", serverName))
+	cloc := pcommon.CompartmentLocationByIdentifier(ps.userProject.Locations, selectedLocation)
+	ps.serverName = serverName
+	ps.serverLocation = selectedLocation
+	storeSession(ps)
+	slog.Debug("Starting provisioning")
+	ps.provisioner.Provision(context.Background(), ps.userProjectString, cloc.GetID())
+	return nil
+}
+
+// StartDepolyment is kept as a compatibility alias for existing callers.
+func StartDepolyment(selectedLocation, serverName string) error {
+	return StartDeployment(selectedLocation, serverName)
+}
+
+// CancelDeployment cancels the current provisioning session.
+func CancelDeployment() error {
+	ps, err := getSession()
+	if err != nil {
+		return err
+	}
+	slog.Debug("Cancelling provisioning")
+	ps.provisioner.Session().Cancel()
+	ps.eventSink.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCancelled", "Provisioning cancelled by user"))
+	return nil
+}
+
+// AddServerManually adds a server manually to the VPN client.
+// It takes the server's IP, port, access token, and tag, along with the VPN client and event listener.
+func AddServerManually(ip, port, accessToken, tag string, joined bool, vpnClient *ipc.Client, events utils.PrivateServerEventListener) error {
+	slog.Debug("Adding server manually", slog.String("ip", ip), slog.String("port", port), slog.String("tag", tag))
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		return fmt.Errorf("invalid port %q: %w", port, err)
+	}
+	resp := provisionerResponse{
+		ExternalIP:  ip,
+		Port:        portInt,
+		AccessToken: accessToken,
+		Tag:         tag,
+	}
+	provisionSession := &provisionSession{
+		client:    vpnClient,
+		eventSink: events,
+	}
+	storeSession(provisionSession)
+	location := getGeoInfo(ip)
+	loc := geoLocation(location)
+	ctx := context.Background()
+	err = provisionSession.client.AddPrivateServer(ctx, resp.Tag, resp.ExternalIP, resp.Port, resp.AccessToken, loc, joined)
+	if err != nil {
+		return err
+	}
+	slog.Debug("Server manager instance added successfully", slog.String("tag", resp.Tag))
+	resp.Tag = tag
+	if events == nil {
+		return nil
+	}
+
+	resp.Location = location
+	server, jerr := json.Marshal(resp)
+	if jerr != nil {
+		slog.Error("Error marshalling server response", slog.Any("error", jerr))
+		return jerr
+	}
+	events.OnPrivateServerEvent(convertStatusToJSON("EventTypeProvisioningCompleted", string(server)))
+	return nil
+}
+
+func convertStatusToJSON(status, data string) string {
+	mapStatus := map[string]string{
+		"status": status,
+		"data":   data,
+	}
+	jsonData, _ := json.Marshal(mapStatus)
+	return string(jsonData)
+}
+
+func convertErrorToJSON(status string, err error) string {
+	if err == nil {
+		return ""
+	}
+	mapError := map[string]string{
+		"status": status,
+		"error":  err.Error(),
+	}
+	jsonData, _ := json.Marshal(mapError)
+	return string(jsonData)
+}
+
+func ParseLocation(s string) (region, city, country string) {
+	match := locationRegex.FindStringSubmatch(s)
+
+	if len(match) != 4 {
+		return "", "", ""
+	}
+
+	region = match[1]
+	rawCity := match[2]
+	country = match[3]
+
+	// Format city
+	words := strings.Split(rawCity, "-")
+	for i, w := range words {
+		if len(w) > 0 {
+			words[i] = strings.ToUpper(w[:1]) + w[1:]
+		}
+	}
+	city = strings.Join(words, " ")
+
+	return
+}
+
+// geoLocation converts getGeoInfo's "<region> - <country> [<code>]" string.
+func geoLocation(s string) C.ServerLocation {
+	match := geoLocationRegex.FindStringSubmatch(s)
+	if len(match) != 4 {
+		return C.ServerLocation{}
+	}
+	return C.ServerLocation{City: match[1], Country: match[2], CountryCode: match[3]}
+}
+
+// Invite is the connection info carried by a private server invite link.
+type Invite struct {
+	IP, Port, Token, Name string
+}
+
+// ParseInviteURL extracts an Invite from links such as
+// lantern//private-server?ip=..&port=..&token=..&name=.. (also the https://lantern.io
+// and lantern:// forms). ok is false for anything that is not an invite.
+func ParseInviteURL(raw string) (inv Invite, ok bool) {
+	u, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || !isInvitePath(u) {
+		return Invite{}, false
+	}
+	q := u.Query()
+	inv = Invite{IP: q.Get("ip"), Port: q.Get("port"), Token: q.Get("token"), Name: q.Get("name")}
+	if inv.IP == "" || inv.Port == "" || inv.Token == "" {
+		return Invite{}, false
+	}
+	if inv.Name == "" {
+		inv.Name = q.Get("alias")
+	}
+	if inv.Name == "" {
+		inv.Name = inv.IP
+	}
+	return inv, true
+}
+
+// isInvitePath matches "private-server" as the host or the last path segment only.
+func isInvitePath(u *url.URL) bool {
+	if u.Host == "private-server" {
+		return true
+	}
+	p := strings.TrimRight(u.Path, "/")
+	return p == "private-server" || strings.HasSuffix(p, "/private-server")
+}

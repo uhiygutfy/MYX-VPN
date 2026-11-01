@@ -1,0 +1,136 @@
+import 'package:badges/badges.dart' as badges;
+import 'package:flutter/material.dart';
+import 'package:lantern/core/extensions/plan.dart';
+import 'package:lantern/core/models/plan_data.dart';
+
+import '../../core/common/common.dart';
+
+class PlanItem extends StatelessWidget {
+  final Plan plan;
+  final bool planSelected;
+  final Function(Plan plans) onPressed;
+  final String referralMessage;
+
+  /// When > 0, an affiliate discount is applied: the discounted price is shown
+  /// alongside the strikethrough original price.
+  final int discountPct;
+
+  const PlanItem({
+    super.key,
+    required this.plan,
+    required this.planSelected,
+    required this.onPressed,
+    this.referralMessage = '',
+    this.discountPct = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final width = MediaQuery.of(context).size.width;
+    final finalSize = (width * 0.5) - (defaultSize * 3);
+    final originalPrice = plan.formatOriginalPrice;
+    final showOriginalPrice = discountPct > 0 && originalPrice.isNotEmpty;
+    final monthlyPrice = plan.displayMonthlyPrice;
+
+    return badges.Badge(
+      // Hide the Best Value badge when an affiliate discount is applied so it
+      // doesn't compete with the discounted strikethrough pricing.
+      showBadge: (plan.bestValue) && discountPct == 0,
+      badgeAnimation: badges.BadgeAnimation.scale(toAnimate: false),
+      position: badges.BadgePosition.custom(start: (finalSize - 10)),
+      // Adjust values as needed
+      badgeStyle: badges.BadgeStyle(
+        shape: badges.BadgeShape.square,
+        borderSide: BorderSide(color: context.statusWarningText, width: 1),
+        borderRadius: BorderRadius.circular(16),
+        badgeColor: context.statusWarningBgDot,
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      ),
+      badgeContent: Text('best_value'.i18n, style: textTheme.labelMedium!),
+      child: GestureDetector(
+        onTap: () {
+          onPressed.call(plan);
+        },
+        child: AnimatedContainer(
+          margin: EdgeInsets.only(top: 14),
+          padding: EdgeInsets.symmetric(horizontal: defaultSize, vertical: 12),
+          duration: Duration(milliseconds: 300),
+          decoration: getPlanDecoration(planSelected, context),
+          child: Row(
+            children: <Widget>[
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    plan.description.toTitleCase(),
+                    style: textTheme.titleMedium!.copyWith(
+                      color: context.textPrimary,
+                    ),
+                  ),
+                  if (referralMessage.isNotEmpty)
+                    Text(referralMessage, style: textTheme.labelMedium),
+                ],
+              ),
+              Spacer(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        plan.displayPrice,
+                        style: textTheme.titleMedium!.copyWith(
+                          color: context.textLink,
+                        ),
+                      ),
+                      if (showOriginalPrice) ...[
+                        SizedBox(width: 6),
+                        Text(
+                          originalPrice,
+                          style: textTheme.labelMedium!.copyWith(
+                            color: context.textTertiary,
+                            decoration: TextDecoration.lineThrough,
+                            decorationColor: context.textTertiary,
+                            decorationThickness: 4,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (monthlyPrice.isNotEmpty)
+                    Text(
+                      '$monthlyPrice/month',
+                      style: textTheme.labelMedium!.copyWith(
+                        color: context.textTertiary,
+                      ),
+                    ),
+                ],
+              ),
+              Radio(
+                value: true,
+                groupValue: planSelected,
+                fillColor: WidgetStatePropertyAll(context.textPrimary),
+                onChanged: (value) {
+                  onPressed.call(plan);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  BoxDecoration getPlanDecoration(bool isSelected, BuildContext context) {
+    return BoxDecoration(
+      color: isSelected ? context.bgHover : context.bgElevated,
+      border: Border.all(
+        color: isSelected ? context.textLink : context.borderInput,
+        width: isSelected ? 3 : 1.5,
+      ),
+      borderRadius: BorderRadius.circular(16),
+    );
+  }
+}

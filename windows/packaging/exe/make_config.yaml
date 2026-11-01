@@ -1,0 +1,20 @@
+# The value of AppId uniquely identifies this application.
+# Do not use the same AppId value in installers for other applications.
+app_id: 8E3C7A51-2F4B-4C1E-9B6D-5A7F0C2E9D41
+display_name: MYX-VPN
+publisher: MYX-VPN
+publisher_url: https://github.com/uhiygutfy/MYX-VPN
+executable_name: lantern.exe
+output_base_file_name: MYX-VPN-setup.exe
+create_desktop_icon: true
+install_dir_name: MYX-VPN
+script_template: inno_setup.iss
+setup_icon_file: ..\windows\runner\resources\app_icon.ico
+# Installer languages (drives LOCALES in inno_setup.iss). en/ru use bundled
+# .isl files; zh/fa use the vendored isl/*.isl that CI copies into Inno's
+# Languages dir.
+locales:
+  - en
+  - zh
+  - ru
+  - fa

@@ -1,0 +1,195 @@
+import 'package:auto_route/annotations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/common/common.dart';
+import 'package:lantern/core/widgets/loading_indicator.dart';
+import 'package:lantern/features/private_server/provider/private_server_notifier.dart';
+import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
+
+@RoutePage(name: 'PrivateServerDeploy')
+class PrivateServerDeploy extends StatefulHookConsumerWidget {
+  final String serverName;
+
+  const PrivateServerDeploy({
+    super.key,
+    required this.serverName,
+  });
+
+  @override
+  ConsumerState<PrivateServerDeploy> createState() =>
+      _PrivateServerDeployState();
+}
+
+class _PrivateServerDeployState extends ConsumerState<PrivateServerDeploy> {
+  TextTheme? textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    textTheme = Theme.of(context).textTheme;
+    final serverState = ref.watch(privateServerProvider);
+    useEffect(() {
+      if (serverState.status == 'EventTypeProvisioningCompleted') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appLogger.info("Private server deployment completed successfully.",
+              serverState.data);
+          ref
+              .read(availableServersProvider.notifier)
+              .forceFetchAvailableServers();
+          showSuccessDialog();
+        });
+      }
+      if (serverState.status == 'EventTypeProvisioningError') {
+        // If the server is ready, open the browser
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appLogger.error(
+              "Private server deployment failed.", serverState.error);
+          showErrorDialog();
+        });
+      }
+      if (serverState.status == 'EventTypeProvisioningCancelled') {
+        appLogger.info("Private server deployment was cancelled.");
+      }
+      return null;
+    }, [serverState.status]);
+
+    return BaseScreen(
+      title: 'Deploying Private Server',
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              'private_server_setup_in_progress'.i18n,
+              style: textTheme!.bodyLarge!.copyWith(
+                color: context.textSecondary,
+              ),
+            ),
+          ),
+          LoadingIndicator(),
+          SecondaryButton(
+            label: 'cancel_server_deployment'.i18n,
+            onPressed: cancelDeployment,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void showSuccessDialog() {
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: 24),
+          Center(
+              child: AppImage(
+            path: AppImagePaths.greenCheck,
+          )),
+          SizedBox(height: 16),
+          Center(
+            child: Text(
+              'private_server_ready'.i18n,
+              style: textTheme!.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          SizedBox(height: 16),
+          Text(
+            'private_server_ready_message'.i18n.fill([widget.serverName]),
+            style:
+                textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
+          ),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: "close".i18n,
+          onPressed: () {
+            appRouter.popUntilRoot();
+          },
+          textColor: context.textDisabled,
+        ),
+        AppTextButton(
+          label: "go_to_server_locations".i18n,
+          textColor: AppColors.blue6,
+          onPressed: () {
+            appRouter.pushAndPopUntil(
+              ServerSelection(),
+              predicate: (route) => route.isFirst,
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  void showErrorDialog() {
+    AppDialog.customDialog(
+      context: context,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(height: 24),
+          Center(child: AppImage(path: AppImagePaths.errorIcon)),
+          SizedBox(height: 16),
+          Text(
+            'server_setup_failed'.i18n,
+            style: textTheme!.titleLarge,
+          ),
+          SizedBox(height: 16),
+          Text(
+            'server_setup_failed_message'.i18n,
+            style:
+                textTheme!.bodyMedium!.copyWith(color: context.textSecondary),
+          ),
+        ],
+      ),
+      action: [
+        AppTextButton(
+          label: "exit".i18n,
+          onPressed: () {
+            appRouter.popUntilRoot();
+          },
+          textColor: context.textDisabled,
+        ),
+        AppTextButton(
+          label: "retry".i18n,
+          textColor: AppColors.blue6,
+          onPressed: () {
+            appRouter.popUntil(
+                (route) => (route.settings.name == 'PrivateServerSetup'));
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> cancelDeployment() async {
+    context.showLoadingDialog();
+    final result =
+        await ref.read(privateServerProvider.notifier).cancelDeployment();
+
+    result.fold(
+      (l) {
+        context.hideLoadingDialog();
+        // Handle failure case, e.g., show an error message
+        appLogger
+            .error("Failed to cancel deployment: ${l.error}");
+        context.showSnackBar(l.localizedErrorMessage);
+      },
+      (r) {
+        // Handle success case, e.g., navigate to the next screen or show a success message
+        context.hideLoadingDialog();
+        appLogger.info("Deployment cancelled successfully.");
+        context.showSnackBar('Deployment cancelled successfully.');
+
+        appRouter.popUntilRoot();
+      },
+    );
+  }
+}

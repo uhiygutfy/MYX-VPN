@@ -1,0 +1,14 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:lantern/core/common/app_build_info.dart';
+
+class AppSecrets {
+  static String get macosAppGroupId => dotenv.env['MACOS_APP_GROUP'] ?? '';
+
+  static String get windowsAppUserModelId =>
+      dotenv.env['WINDOWS_APP_USER_MODEL_ID'] ?? '';
+
+  static String get windowsGuid =>
+      dotenv.env['WINDOWS_GUID'] ?? dotenv.env['WINDOWS_APP_GUID'] ?? '';
+
+  static String get lanternPackageName => AppBuildInfo.stealthPackageName;
+}

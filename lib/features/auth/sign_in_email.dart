@@ -1,0 +1,149 @@
+import 'package:auto_route/annotations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lantern/core/keys/app_keys.dart';
+import 'package:lantern/core/widgets/app_rich_text.dart';
+import 'package:lantern/core/widgets/oauth_login.dart';
+import 'package:lantern/features/auth/provider/auth_notifier.dart';
+import 'package:lantern/features/home/provider/app_setting_notifier.dart';
+import 'package:lantern/features/home/provider/home_notifier.dart';
+
+import '../../core/common/common.dart';
+import '../../core/utils/deeplink_utils.dart';
+
+@RoutePage(name: 'SignInEmail')
+class SignInEmail extends HookConsumerWidget {
+  const SignInEmail({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final emailController = useTextEditingController();
+    useListenable(emailController);
+    return EnterKeyShortcut(
+      onEnter: () {
+        if (emailController.text.isValidEmail()) {
+          appRouter.push(SignInPassword(email: emailController.text.trim()));
+          return;
+        }
+      },
+      child: BaseScreen(
+        title: 'sign_in_to_lantern_pro'.i18n,
+        body: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              SizedBox(height: defaultSize),
+              Text(
+                'enter_your_lantern_pro_account_details'.i18n,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              SizedBox(height: defaultSize),
+              AppTextField(
+                fieldKey: AuthKeys.signInEmailField,
+                hintText: '',
+                prefixIcon: AppImagePaths.email,
+                autofillHints: const [
+                  AutofillHints.email,
+                  AutofillHints.username,
+                ],
+                label: 'email'.i18n,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) =>
+                    signInWithEmail(emailController.text, context),
+                keyboardType: TextInputType.emailAddress,
+                controller: emailController,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return null;
+                  }
+                  if (value.isNotEmpty) {
+                    if (!value.isValidEmail()) {
+                      return 'invalid_email'.i18n;
+                    }
+                  }
+                  return null;
+                },
+                onChanged: (value) {},
+              ),
+              SizedBox(height: 32),
+              PrimaryButton(
+                key: AuthKeys.signInEmailContinueButton,
+                label: 'sign_in_with_email'.i18n,
+                enabled: emailController.text.isValidEmail(),
+                onPressed: () => signInWithEmail(emailController.text, context),
+                isTaller: true,
+              ),
+              SizedBox(height: defaultSize),
+              DividerSpace(),
+              SizedBox(height: defaultSize),
+              OAuthLogin(
+                methodType: SignUpMethodType.google,
+                onResult: (token) =>
+                    onOAuthResult(token, context, ref, SignUpMethodType.google),
+              ),
+              SizedBox(height: defaultSize),
+              OAuthLogin(
+                methodType: SignUpMethodType.apple,
+                onResult: (token) =>
+                    onOAuthResult(token, context, ref, SignUpMethodType.apple),
+              ),
+              SizedBox(height: defaultSize),
+              DividerSpace(),
+              SizedBox(height: 32),
+              AppRichText(
+                texts: '${'new_to_lantern_pro'.i18n} ',
+                boldTexts: 'create_an_account'.i18n,
+                boldUnderline: true,
+                boldOnPressed: () {
+                  appRouter.push(Plans());
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void signInWithEmail(String email, BuildContext context) {
+    final trimmedEmail = email.trim();
+    if (!trimmedEmail.isValidEmail()) {
+      context.showSnackBarError('invalid_email'.i18n);
+      return;
+    }
+    appRouter.push(SignInPassword(email: trimmedEmail));
+  }
+
+  Future<void> onOAuthResult(
+    Map<String, dynamic> oauthResult,
+    BuildContext context,
+    WidgetRef ref,
+    SignUpMethodType type,
+  ) async {
+    final token = oauthResult['token'];
+    if (token != null) {
+      context.showLoadingDialog();
+      final loginResult = await ref
+          .read(authProvider.notifier)
+          .oAuthLoginCallback(token);
+      loginResult.fold(
+        (failure) {
+          context.hideLoadingDialog();
+          context.showSnackBar(failure.localizedErrorMessage);
+        },
+        (response) {
+          context.hideLoadingDialog();
+          ref.read(homeProvider.notifier).updateUserData(response);
+
+          appLogger.info(
+            'OAuth login successful, updating app settings with token and user data provider: ${type.name}',
+          );
+          ref.read(appSettingProvider.notifier).setUserLoggedIn(true);
+          appRouter.popUntilRoot();
+        },
+      );
+    } else {
+      context.showSnackBar(oAuthSignInFailedKey.i18n);
+    }
+  }
+}

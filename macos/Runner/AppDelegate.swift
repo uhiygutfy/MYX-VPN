@@ -1,0 +1,106 @@
+import FlutterMacOS
+import OSLog
+import app_links
+
+class AppDelegate: FlutterAppDelegate {
+
+  private let systemExtensionManager = SystemExtensionManager.shared
+
+  private let vpnManager = VPNManager.shared
+  private var methodHandler: MethodHandler?
+
+  override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+    return false
+  }
+
+  override func applicationShouldHandleReopen(
+    _ sender: NSApplication,
+    hasVisibleWindows flag: Bool
+  ) -> Bool {
+    guard !flag else {
+      return true
+    }
+
+    sender.unhide(nil)
+    if let window = mainFlutterWindow {
+      window.deminiaturize(nil)
+      window.makeKeyAndOrderFront(nil)
+    }
+    sender.activate(ignoringOtherApps: true)
+    return true
+  }
+
+  override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
+    return true
+  }
+
+  override func applicationDidFinishLaunching(_ aNotification: Notification) {
+    FilePath.setupFileSystem()
+
+    guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
+      fatalError("contentViewController is not a FlutterViewController")
+    }
+
+    registerEventHandlers(controller: controller)
+
+    // Setup native method channel
+    setupMethodHandler(controller: controller)
+
+    NSSetUncaughtExceptionHandler { exception in
+      print(exception.reason ?? "Unknown exception reason")
+      print(exception.callStackSymbols)
+    }
+  }
+
+  public override func application(
+    _ application: NSApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([any NSUserActivityRestoring]) -> Void
+  ) -> Bool {
+
+    guard let url = AppLinks.shared.getUniversalLink(userActivity) else {
+      return false
+    }
+
+    AppLinks.shared.handleLink(link: url.absoluteString)
+    return false
+  }
+
+  /// Registers Flutter event channel handlers
+  private func registerEventHandlers(controller: FlutterViewController) {
+    let registry = controller as FlutterPluginRegistry
+
+    let flutterEventRegistrar = registry.registrar(forPlugin: "FlutterEventHandler")
+    FlutterEventHandler.register(with: flutterEventRegistrar)
+
+    let statusRegistrar = registry.registrar(forPlugin: "StatusEventHandler")
+    StatusEventHandler.register(with: statusRegistrar)
+
+    let systemExtensionStatusRegistrar = registry.registrar(
+      forPlugin: "SystemExtensionStatusEventHandler")
+    SystemExtensionStatusEventHandler.register(with: systemExtensionStatusRegistrar)
+
+    let privateStatusRegistrar = registry.registrar(forPlugin: "PrivateServerEventHandler")
+    PrivateServerEventHandler.register(with: privateStatusRegistrar)
+
+    let logsRegistrar = registry.registrar(forPlugin: "LogsEventHandler")
+    LogsEventHandler.register(with: logsRegistrar)
+
+    let appStream = FlutterEventChannel(
+      name: "org.getlantern.lantern/app_stream",
+      binaryMessenger: controller.engine.binaryMessenger,
+      codec: FlutterJSONMethodCodec.sharedInstance()
+    )
+    appStream.setStreamHandler(AppStreamHandler())
+  }
+
+  /// Initializes the native method channel handler
+  private func setupMethodHandler(controller: FlutterViewController) {
+    let nativeChannel = FlutterMethodChannel(
+      name: "org.getlantern.lantern/method",
+      binaryMessenger: controller.engine.binaryMessenger
+    )
+    methodHandler = MethodHandler(channel: nativeChannel, vpnManager: vpnManager)
+  }
+
+}
