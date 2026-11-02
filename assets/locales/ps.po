@@ -2344,3 +2344,108 @@ msgstr "Later"
 
 msgid "myx_whats_new"
 msgstr "What's new"
+
+msgid "myx_home"
+msgstr "Home"
+
+msgid "myx_locations"
+msgstr "Locations"
+
+msgid "myx_settings"
+msgstr "Settings"
+
+msgid "myx_connected"
+msgstr "Connected"
+
+msgid "myx_auto_select"
+msgstr "Auto Select"
+
+msgid "myx_fastest"
+msgstr "Fastest available server"
+
+msgid "myx_server"
+msgstr "Server"
+
+msgid "myx_search_locations"
+msgstr "Search country or city"
+
+msgid "myx_locations_locked"
+msgstr "Choosing a specific location isn't available on this connection right now. Auto Select picks the fastest server for you."
+
+msgid "myx_no_locations"
+msgstr "Loading servers… pull down to refresh."
+
+msgid "myx_no_results"
+msgstr "No matching location"
+
+msgid "myx_cities"
+msgstr "cities"
+
+msgid "myx_refresh"
+msgstr "Refresh"
+
+msgid "myx_section_connection"
+msgstr "Connection"
+
+msgid "myx_section_app"
+msgstr "App"
+
+msgid "myx_section_about"
+msgstr "About"
+
+msgid "myx_routing"
+msgstr "Routing mode"
+
+msgid "myx_split"
+msgstr "Split tunneling"
+
+msgid "myx_vpn_settings"
+msgstr "VPN settings"
+
+msgid "myx_language"
+msgstr "Language"
+
+msgid "myx_check_updates"
+msgstr "Check for updates"
+
+msgid "myx_logs"
+msgstr "Diagnostic logs"
+
+msgid "myx_version"
+msgstr "Version"
+
+msgid "myx_source"
+msgstr "Source code"
+
+msgid "myx_licenses"
+msgstr "Open-source licenses"
+
+msgid "myx_tagline"
+msgstr "Connect • Protect • Explore"
+
+msgid "myx_onb1_title"
+msgstr "Stay Safe Online"
+
+msgid "myx_onb1_body"
+msgstr "Browse freely and securely with myx-VPN."
+
+msgid "myx_onb2_title"
+msgstr "Servers Worldwide"
+
+msgid "myx_onb2_body"
+msgstr "Pick a location yourself, or let myx-VPN choose the fastest one."
+
+msgid "myx_onb3_title"
+msgstr "One Tap, No Sign-up"
+
+msgid "myx_onb3_body"
+msgstr "No account, no login. Just tap the button and you're protected."
+
+msgid "myx_next"
+msgstr "Next"
+
+msgid "myx_skip"
+msgstr "Skip"
+
+msgid "myx_get_started"
+msgstr "Get Started"

@@ -141,4 +141,11 @@ class AppColors {
   static const Color myxRed = Color(0xFFFF2D55);
   static const Color myxRedDeep = Color(0xFFC3123A);
   static const Color myxNight = Color(0xFF070A14);
+  static const Color myxNavy = Color(0xFF13286B);
+  static const Color myxDash1 = Color(0xFF16307A); // dashboard gradient top
+  static const Color myxDash2 = Color(0xFF0B1A4A);
+  static const Color myxDash3 = Color(0xFF081236); // dashboard gradient bottom
+  static const Color myxCard = Color(0x1AFFFFFF);
+  static const Color myxGreen = Color(0xFF22E3A1);
+  static const Color myxTeal = Color(0xFF14B8C4);
 }

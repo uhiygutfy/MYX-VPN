@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/models/feature_flags.dart';
-import 'package:lantern/core/utils/pro_utils.dart';
-import 'package:lantern/features/action_mode/action_mode_widgets.dart';
 import 'package:lantern/features/home/provider/app_event_notifier.dart';
 import 'package:lantern/features/home/provider/app_setting_notifier.dart';
 import 'package:lantern/features/home/provider/country_code_notifier.dart';
@@ -15,12 +13,10 @@ import 'package:lantern/features/helpers/provider/helpers_notifier.dart';
 import 'package:lantern/features/home/provider/home_notifier.dart';
 import 'package:lantern/features/home/pro_renewal_popup.dart';
 import 'package:lantern/features/home/provider/radiance_settings_providers.dart';
-import 'package:lantern/features/home/vpn_tab.dart';
-import 'package:lantern/core/widgets/myx_backdrop.dart';
+import 'package:lantern/features/myx/myx_shell.dart';
 import 'package:lantern/features/setting/referral_reward_dialog.dart';
 import 'package:lantern/features/action_mode/provider/share_notifier.dart';
 import 'package:lantern/features/action_mode/provider/action_mode_tab_visible_notifier.dart';
-import 'package:lantern/features/action_mode/action_mode.dart';
 import 'package:lantern/features/vpn/provider/available_servers_notifier.dart';
 import 'package:lantern/features/vpn/provider/vpn_notifier.dart';
 import 'package:lantern/lantern_app.dart' show userMessageRouteObserver;
@@ -297,94 +293,9 @@ class Home extends HookConsumerWidget {
       ref.read(shareProvider.notifier).retryPendingHelperStart(ref);
     });
 
-    return Scaffold(
-      key: const Key('home.screen'),
-      appBar: AppBar(
-        title: showUnboundedTab && onUnboundedTab.value
-            ? Text(
-                'unbounded'.i18n,
-                style: Theme.of(context).textTheme.titleLarge,
-              )
-            : LanternLogo(isPro: isUserPro, color: context.textPrimary),
-        // bg/elevated (white in light mode) per the Figma spec — the Home
-        // shell's app bar + tab strip render on a white surface, distinct
-        // from every other screen's app bar which uses the app-wide
-        // bg/surface grey from AppTheme.appBarTheme.
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
-          key: const Key('home.menu_button'),
-          tooltip: 'settings'.i18n,
-          onPressed: () {
-            appRouter.push(Setting());
-          },
-          icon: const AppImage(path: AppImagePaths.menu),
-        ),
-        actions: [
-          if (isUserPro)
-            AppIconButton(
-              path: AppImagePaths.accountCircle,
-              onPressed: () async {
-                final localUser = ref.read(homeProvider).value;
-                final userSignedIn = ref.read(appSettingProvider).userLoggedIn;
-                await openAccountOrProAccountSetup(
-                  context: context,
-                  user: localUser,
-                  userLoggedIn: userSignedIn,
-                );
-              },
-            )
-          else if (!userLoggedIn)
-            AppTextButton(
-              label: 'sign_in'.i18n,
-              onPressed: () => appRouter.push(const SignInEmail()),
-            ),
-        ],
-        // Tab strip collapses when Unbounded is unavailable — either the
-        // server flag is off (censored region) or the user hid the tab
-        // in Unbounded Settings. With only one tab left, a strip is just
-        // noise; body falls back to VpnTab directly. On mobile the strip
-        // moves to a bottom nav bar (Scaffold.bottomNavigationBar below)
-        // per the Figma spec, so the AppBar carries no bottom widget there.
-        bottom: !showUnboundedTab || PlatformUtils.isMobile
-            ? null
-            : PreferredSize(
-                preferredSize: Size.fromHeight(
-                  ActionModeNavigation.desktopHeight(context),
-                ),
-                child: ActionModeNavigation(
-                  selectedIndex: onUnboundedTab.value ? 1 : 0,
-                  onSelected: tabController.animateTo,
-                  vpnActive: vpnStatus == VPNStatus.connected,
-                  actionActive: shareActive,
-                  desktop: true,
-                ),
-              ),
-      ),
-      extendBodyBehindAppBar: false,
-      body: MyxBackdrop(
-        child: !showUnboundedTab
-            ? const VpnTab()
-            : TabBarView(
-                controller: tabController,
-                children: const [VpnTab(), ActionModeTab()],
-              ),
-      ),
-      bottomNavigationBar: !showUnboundedTab || !PlatformUtils.isMobile
-          ? null
-          : SafeArea(
-              minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: ActionModeNavigation(
-                selectedIndex: onUnboundedTab.value ? 1 : 0,
-                vpnActive: vpnStatus == VPNStatus.connected,
-                actionActive: shareActive,
-                onSelected: tabController.animateTo,
-                desktop: false,
-              ),
-            ),
-    );
+    // myx-VPN UI (Home / Locations / Settings). The effects above keep
+    // running unchanged.
+    return const MyxShell();
   }
 }
 

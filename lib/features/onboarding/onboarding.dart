@@ -1,14 +1,15 @@
+import 'dart:math' as math;
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lantern/core/common/common.dart';
-import 'package:lantern/core/widgets/info_row.dart';
 
 import '../home/provider/app_setting_notifier.dart';
 import '../home/provider/radiance_settings_providers.dart';
 
+/// myx-VPN first-run walkthrough. No account or sign-in step.
 @RoutePage(name: 'Onboarding')
 class Onboarding extends StatefulHookConsumerWidget {
   const Onboarding({super.key});
@@ -20,378 +21,342 @@ class Onboarding extends StatefulHookConsumerWidget {
 class _OnboardingState extends ConsumerState<Onboarding> {
   @override
   Widget build(BuildContext context) {
-    final textTheme = TextTheme.of(context);
-    final controller = useState(FlutterCarouselController());
-    final pageIndex = useState(0);
-    final selectedRouteMode = useState(RoutingMode.smart);
+    final controller = usePageController();
+    final page = useState(0);
     final appSetting = ref.read(appSettingProvider);
 
-    Future<void> onboardingCompleted() async {
+    final pages = [
+      (_Art.shield, 'myx_onb1_title'.i18n, 'myx_onb1_body'.i18n),
+      (_Art.globe, 'myx_onb2_title'.i18n, 'myx_onb2_body'.i18n),
+      (_Art.bolt, 'myx_onb3_title'.i18n, 'myx_onb3_body'.i18n),
+    ];
+    final last = page.value == pages.length - 1;
+
+    Future<void> finish() async {
       await ref
           .read(radianceSettingsProvider.notifier)
-          .setRoutingMode(selectedRouteMode.value);
+          .setRoutingMode(RoutingMode.smart);
       ref.read(appSettingProvider.notifier).setOnboardingCompleted(true);
-      final shouldShowExtensionDialog =
+      final showExtensionDialog =
           appSetting.showSplashScreen && PlatformUtils.isMacOS;
       appRouter.pop();
-      if (shouldShowExtensionDialog) {
-        appLogger.info("Showing System Extension Dialog");
-        // Defer the push to the next frame to avoid calling setState during build
+      if (showExtensionDialog) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           appRouter.push(const MacOSExtensionDialog());
         });
-        // User has seen dialog, do not show again
-        appLogger.info("Setting showSplashScreen to false");
         ref.read(appSettingProvider.notifier).setSplashScreen(false);
-        return;
       }
     }
 
-    return Scaffold(
-      key: const Key('onboarding.screen'),
-      appBar: AppBar(
-        leading: const SizedBox.shrink(),
-        backgroundColor: context.bgElevated,
-        title: LanternLogo(color: context.textPrimary),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(0),
-          child: DividerSpace(padding: EdgeInsets.zero),
-        ),
-      ),
-      body: Container(
-        color: context.bgElevated,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: FlutterCarousel(
-                  options: FlutterCarouselOptions(
-                    onPageChanged: (index, reason) {
-                      pageIndex.value = index;
-                    },
-                    controller: controller.value,
-                    height: double.infinity,
-                    viewportFraction: 1.0,
-                    showIndicator: true,
-                    pageSnapping: true,
-                    floatingIndicator: true,
-                    slideIndicator: CircularSlideIndicator(
-                      slideIndicatorOptions: SlideIndicatorOptions(
-                        indicatorRadius: 5,
-                        itemSpacing: 15,
-                        indicatorBorderWidth: 0.0,
-                        currentIndicatorColor: AppColors.blue3,
-                        indicatorBackgroundColor: context.borderInput,
-                        enableAnimation: true,
-                        padding: EdgeInsets.only(bottom: 10.0),
-                        alignment: Alignment.bottomCenter,
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        key: const Key('onboarding.screen'),
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            const Positioned.fill(child: CustomPaint(painter: _SoftBackdrop())),
+            SafeArea(
+              child: Column(
+                children: [
+                  const SizedBox(height: 18),
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      MyxShield(size: 34),
+                      SizedBox(width: 8),
+                      MyxWordmark(fontSize: 22, vpnColor: AppColors.myxNavy),
+                    ],
+                  ),
+                  Expanded(
+                    child: PageView.builder(
+                      controller: controller,
+                      itemCount: pages.length,
+                      onPageChanged: (i) => page.value = i,
+                      itemBuilder: (context, i) => _Page(
+                        art: pages[i].$1,
+                        title: pages[i].$2,
+                        body: pages[i].$3,
                       ),
                     ),
                   ),
-                  items: [
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AppImage(
-                          path: AppImagePaths.appIconSVG,
-                          useThemeColor: false,
+                  _Dots(count: pages.length, index: page.value),
+                  const SizedBox(height: 26),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton(
+                        key: const Key('onboarding.primary'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.myxRed,
+                          foregroundColor: Colors.white,
+                          elevation: 6,
+                          shadowColor: AppColors.myxRed.withValues(alpha: 0.5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                        SizedBox(height: 48),
-                        Text(
-                          'welcome_to_lantern'.i18n,
-                          style: textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: context.textSecondary),
+                        onPressed: () {
+                          if (last) {
+                            finish();
+                          } else {
+                            controller.nextPage(
+                              duration: const Duration(milliseconds: 350),
+                              curve: Curves.easeOutCubic,
+                            );
+                          }
+                        },
+                        child: Text(
+                          last ? 'myx_get_started'.i18n : 'myx_next'.i18n,
                         ),
-                        SizedBox(height: 16),
-                        Text('lantern_pro_tagline'.i18n)
-                      ],
+                      ),
                     ),
-                    slide2(context),
-                    if (!PlatformUtils.isIOS)
-                      slide3(context, selectedRouteMode),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    height: 44,
+                    child: last
+                        ? null
+                        : TextButton(
+                            key: const Key('onboarding.skip'),
+                            onPressed: finish,
+                            child: Text(
+                              'myx_skip'.i18n,
+                              style: const TextStyle(
+                                color: AppColors.myxRed,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
               ),
-              PrimaryButton(
-                key: const Key('onboarding.primary'),
-                label:
-                    pageIndex.value == 0 ? 'get_started'.i18n : 'continue'.i18n,
-                isTaller: true,
-                onPressed: () {
-                  if (PlatformUtils.isIOS && pageIndex.value == 1) {
-                    onboardingCompleted();
-                    return;
-                  }
-                  if (pageIndex.value == 2) {
-                    onboardingCompleted();
-                    return;
-                  }
-                  controller.value.nextPage();
-                },
-              ),
-              if (pageIndex.value == 0) ...{
-                SizedBox(height: 12.0),
-                AppTextButton(
-                  key: const Key('onboarding.skip'),
-                  label: 'skip_connect_now'.i18n,
-                  textColor: context.textPrimary,
-                  onPressed: () {
-                    onboardingCompleted();
-                  },
-                )
-              },
-              SizedBox(height: 28.0),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget slide2(BuildContext context) {
-    final textTheme = TextTheme.of(context);
-    return Column(
-      children: <Widget>[
-        SizedBox(height: 24.0),
-        Text(
-          'what_makes_lantern_different'.i18n,
-          style: textTheme.headlineSmall!.copyWith(
-            color: context.textSecondary,
+enum _Art { shield, globe, bolt }
+
+class _Page extends StatelessWidget {
+  const _Page({required this.art, required this.title, required this.body});
+  final _Art art;
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = math.min(MediaQuery.sizeOf(context).width * 0.62, 260.0);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: size,
+            height: size,
+            child: CustomPaint(painter: _ArtPainter(art)),
           ),
-        ),
-        SizedBox(height: 8.0),
-        Text(
-          'built_for_privacy_speed_freedom'.i18n,
-          style: textTheme.bodyLarge!.copyWith(
-            color: context.textSecondary,
-          ),
-        ),
-        SizedBox(height: 24.0),
-        AppTile(
-          icon: Padding(
-            padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(
-              path: AppImagePaths.smartRouteMode,
-              useThemeColor: false,
+          const SizedBox(height: 36),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFF0B1638),
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
             ),
           ),
-          label: '',
-          labelWidget: Text(
-            'smart_routing_mode'.i18n,
-            style: textTheme.titleMedium!.copyWith(
-              color: context.textPrimary,
+          const SizedBox(height: 12),
+          Text(
+            body,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFF5A6380),
+              fontSize: 15.5,
+              height: 1.6,
             ),
           ),
-          subtitle: Text(
-            'region_specific_routing_description'.i18n,
-            style: textTheme.bodyMedium!.copyWith(
-              color: context.textSecondary,
-            ),
-          ),
-        ),
-        SizedBox(height: 24.0),
-        AppTile(
-          icon: Padding(
-            padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(
-                path: AppImagePaths.advanceProtocol, useThemeColor: false),
-          ),
-          label: '',
-          labelWidget: Text(
-            'advanced_protocols'.i18n,
-            style: textTheme.titleMedium!.copyWith(
-              color: context.textPrimary,
-            ),
-          ),
-          subtitle: Text(
-            'advanced_protocols_description'.i18n,
-            style: textTheme.bodyMedium!.copyWith(
-              color: context.textSecondary,
-            ),
-          ),
-        ),
-        SizedBox(height: 24.0),
-        AppTile(
-          icon: Padding(
-            padding: const EdgeInsets.only(top: 5.0),
-            child: AppImage(
-                path: AppImagePaths.privateServerIntro, useThemeColor: false),
-          ),
-          label: '',
-          labelWidget: Text(
-            'private_servers'.i18n,
-            style: textTheme.titleMedium!.copyWith(
-              color: context.textPrimary,
-            ),
-          ),
-          subtitle: Text(
-            'private_servers_description'.i18n,
-            style: textTheme.bodyMedium!.copyWith(
-              color: context.textSecondary,
-            ),
-          ),
-        ),
-        SizedBox(height: 24.0),
-        AppTile(
-          icon: Padding(
-            padding: const EdgeInsets.only(top: 5.0),
-            child:
-                AppImage(path: AppImagePaths.nonProfit, useThemeColor: false),
-          ),
-          label: '',
-          labelWidget: Text(
-            'nonprofit_mission'.i18n,
-            style: textTheme.titleMedium!.copyWith(
-              color: context.textPrimary,
-            ),
-          ),
-          subtitle: Text(
-            'built_by_nonprofit'.i18n,
-            style: textTheme.bodyMedium!.copyWith(
-              color: context.textSecondary,
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
+}
 
-  Widget slide3(
-    BuildContext context,
-    ValueNotifier<RoutingMode> selectedMode,
-  ) {
-    final textTheme = TextTheme.of(context);
+class _Dots extends StatelessWidget {
+  const _Dots({required this.count, required this.index});
+  final int count;
+  final int index;
 
-    return Column(
-      children: <Widget>[
-        SizedBox(height: 24.0),
-        Text(
-          'choose_your_routing_mode'.i18n,
-          style: textTheme.headlineSmall!.copyWith(
-            color: context.textSecondary,
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (var i = 0; i < count; i++)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            width: i == index ? 22 : 8,
+            height: 8,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(99),
+              color: i == index ? AppColors.myxRed : const Color(0xFFC9D3EE),
+            ),
           ),
-        ),
-        SizedBox(height: 24.0),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => selectedMode.value = RoutingMode.smart,
-          child: RouteModeContainer(
-            mode: RoutingMode.smart,
-            isSelected: selectedMode.value == RoutingMode.smart,
-          ),
-        ),
-        SizedBox(height: 16.0),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => selectedMode.value = RoutingMode.full,
-          child: RouteModeContainer(
-            mode: RoutingMode.full,
-            isSelected: selectedMode.value == RoutingMode.full,
-          ),
-        ),
-        Spacer(),
-        InfoRow(
-          minTileHeight: 35,
-          text: 'change_anytime_in_routing_mode_settings'.i18n,
-        ),
-        SizedBox(height: 40),
       ],
     );
   }
 }
 
-class RouteModeContainer extends StatelessWidget {
-  final RoutingMode mode;
-  final bool isSelected;
-
-  const RouteModeContainer({
-    super.key,
-    required this.mode,
-    required this.isSelected,
-  });
+/// Illustrations: a big soft disc with a glyph built from simple shapes.
+class _ArtPainter extends CustomPainter {
+  _ArtPainter(this.art);
+  final _Art art;
 
   @override
-  Widget build(BuildContext context) {
-    final textTheme = TextTheme.of(context);
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 250),
-      padding: EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: isSelected ? context.bgHover : context.bgElevated,
-        borderRadius: BorderRadius.circular(16.0),
-        border: isSelected
-            ? Border.all(color: context.borderInputFocus, width: 3.0)
-            : Border.all(color: context.borderDefault, width: 1.0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: [
-              AppRadioButton<bool>(
-                groupValue: isSelected,
-                value: true,
-              ),
-              SizedBox(width: 16.0),
-              Text(
-                title(),
-                style: textTheme.titleMedium!.copyWith(
-                  color: context.textPrimary,
-                ),
-              ),
-              SizedBox(width: 8.0),
-              Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: context.statusInfoBorder),
-                    color: context.statusInfoBg,
-                  ),
-                  child: Text(
-                    tags(),
-                    style: textTheme.labelMedium!
-                        .copyWith(color: context.statusInfoText),
-                  ))
-            ],
-          ),
-          SizedBox(height: 4.0),
-          Padding(
-            padding: const EdgeInsets.only(left: 38),
-            child: Text(description(),
-                style: textTheme.bodyMedium!
-                    .copyWith(color: context.textSecondary)),
-          )
-        ],
-      ),
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final r = size.shortestSide / 2;
+
+    // Halo + disc
+    canvas.drawCircle(
+      c,
+      r,
+      Paint()
+        ..shader = const RadialGradient(
+          colors: [Color(0x332F6BFF), Color(0x002F6BFF)],
+        ).createShader(Rect.fromCircle(center: c, radius: r)),
+    );
+    canvas.drawCircle(
+      c,
+      r * 0.72,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFEAF0FF), Color(0xFFFFE8EC)],
+        ).createShader(Rect.fromCircle(center: c, radius: r * 0.72)),
+    );
+    // Orbit ring with two satellites
+    final orbit = Rect.fromCircle(center: c, radius: r * 0.88);
+    canvas.drawOval(
+      orbit,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..color = const Color(0x552F6BFF),
+    );
+    canvas.drawCircle(
+      c + Offset(math.cos(-0.9), math.sin(-0.9)) * r * 0.88,
+      r * 0.05,
+      Paint()..color = AppColors.myxRed,
+    );
+    canvas.drawCircle(
+      c + Offset(math.cos(2.3), math.sin(2.3)) * r * 0.88,
+      r * 0.04,
+      Paint()..color = AppColors.myxBlue,
+    );
+
+    switch (art) {
+      case _Art.shield:
+        final s = r * 0.95;
+        canvas.save();
+        canvas.translate(c.dx - s / 2, c.dy - s / 2);
+        MyxShieldPainter().paint(canvas, Size(s, s));
+        canvas.restore();
+      case _Art.globe:
+        final g = r * 0.48;
+        final p = Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = r * 0.05
+          ..color = AppColors.myxBlue;
+        canvas.drawCircle(c, g, p);
+        canvas.drawOval(
+          Rect.fromCenter(center: c, width: g * 1.0, height: g * 2),
+          p,
+        );
+        canvas.drawLine(c - Offset(g, 0), c + Offset(g, 0), p);
+        canvas.drawLine(
+          c - Offset(g * 0.87, g * 0.5),
+          c + Offset(g * 0.87, -g * 0.5),
+          p,
+        );
+        canvas.drawLine(
+          c - Offset(g * 0.87, -g * 0.5),
+          c + Offset(g * 0.87, g * 0.5),
+          p,
+        );
+        // Location pin
+        final pin = c + Offset(g * 0.55, -g * 0.55);
+        canvas.drawCircle(pin, r * 0.13, Paint()..color = AppColors.myxRed);
+        canvas.drawCircle(pin, r * 0.05, Paint()..color = Colors.white);
+      case _Art.bolt:
+        final ring = Rect.fromCircle(center: c, radius: r * 0.45);
+        canvas.drawArc(
+          ring,
+          -math.pi / 2 + 0.5,
+          2 * math.pi - 1.0,
+          false,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = r * 0.07
+            ..strokeCap = StrokeCap.round
+            ..shader = const SweepGradient(
+              colors: [AppColors.myxBlue, Color(0xFF7A5CFF), AppColors.myxRed],
+            ).createShader(ring),
+        );
+        canvas.drawLine(
+          c - Offset(0, r * 0.52),
+          c - Offset(0, r * 0.18),
+          Paint()
+            ..strokeWidth = r * 0.07
+            ..strokeCap = StrokeCap.round
+            ..color = AppColors.myxNavy,
+        );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ArtPainter old) => old.art != art;
+}
+
+class _SoftBackdrop extends CustomPainter {
+  const _SoftBackdrop();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = const RadialGradient(
+          center: Alignment(-1.1, -1.0),
+          radius: 1.0,
+          colors: [Color(0x22FF2D55), Color(0x00FF2D55)],
+        ).createShader(rect),
+    );
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = const RadialGradient(
+          center: Alignment(1.1, 1.0),
+          radius: 1.0,
+          colors: [Color(0x222F6BFF), Color(0x002F6BFF)],
+        ).createShader(rect),
     );
   }
 
-  String title() {
-    if (mode == RoutingMode.smart) {
-      return 'smart_routing'.i18n;
-    } else {
-      return 'full_tunnel'.i18n;
-    }
-  }
-
-  String description() {
-    if (mode == RoutingMode.smart) {
-      return 'smart_routing_description'.i18n;
-    } else {
-      return 'traditional_vpn_mode_description'.i18n;
-    }
-  }
-
-  String tags() {
-    if (mode == RoutingMode.smart) {
-      return 'fastest'.i18n;
-    } else {
-      return 'traditional_vpn_mode'.i18n;
-    }
-  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

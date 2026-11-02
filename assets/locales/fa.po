@@ -2327,3 +2327,108 @@ msgstr "بعداً"
 
 msgid "myx_whats_new"
 msgstr "تغییرات این نسخه"
+
+msgid "myx_home"
+msgstr "خانه"
+
+msgid "myx_locations"
+msgstr "لوکیشن‌ها"
+
+msgid "myx_settings"
+msgstr "تنظیمات"
+
+msgid "myx_connected"
+msgstr "متصل"
+
+msgid "myx_auto_select"
+msgstr "انتخاب خودکار"
+
+msgid "myx_fastest"
+msgstr "سریع‌ترین سرور در دسترس"
+
+msgid "myx_server"
+msgstr "سرور"
+
+msgid "myx_search_locations"
+msgstr "جستجوی کشور یا شهر"
+
+msgid "myx_locations_locked"
+msgstr "انتخاب لوکیشن مشخص فعلاً روی این اتصال در دسترس نیست. انتخاب خودکار سریع‌ترین سرور را برایتان انتخاب می‌کند."
+
+msgid "myx_no_locations"
+msgstr "در حال دریافت سرورها… برای تازه‌سازی صفحه را پایین بکشید."
+
+msgid "myx_no_results"
+msgstr "لوکیشنی پیدا نشد"
+
+msgid "myx_cities"
+msgstr "شهر"
+
+msgid "myx_refresh"
+msgstr "تازه‌سازی"
+
+msgid "myx_section_connection"
+msgstr "اتصال"
+
+msgid "myx_section_app"
+msgstr "برنامه"
+
+msgid "myx_section_about"
+msgstr "درباره"
+
+msgid "myx_routing"
+msgstr "حالت مسیریابی"
+
+msgid "myx_split"
+msgstr "تقسیم تونل"
+
+msgid "myx_vpn_settings"
+msgstr "تنظیمات VPN"
+
+msgid "myx_language"
+msgstr "زبان"
+
+msgid "myx_check_updates"
+msgstr "بررسی به‌روزرسانی"
+
+msgid "myx_logs"
+msgstr "گزارش‌های عیب‌یابی"
+
+msgid "myx_version"
+msgstr "نسخه"
+
+msgid "myx_source"
+msgstr "سورس کد"
+
+msgid "myx_licenses"
+msgstr "مجوزهای متن‌باز"
+
+msgid "myx_tagline"
+msgstr "اتصال • امنیت • آزادی"
+
+msgid "myx_onb1_title"
+msgstr "امن در اینترنت"
+
+msgid "myx_onb1_body"
+msgstr "با myx-VPN آزاد و امن در اینترنت بگردید."
+
+msgid "myx_onb2_title"
+msgstr "سرور در سراسر جهان"
+
+msgid "myx_onb2_body"
+msgstr "خودتان لوکیشن را انتخاب کنید یا بگذارید myx-VPN سریع‌ترین را پیدا کند."
+
+msgid "myx_onb3_title"
+msgstr "یک لمس، بدون ثبت‌نام"
+
+msgid "myx_onb3_body"
+msgstr "بدون حساب کاربری و بدون ورود. فقط دکمه را بزنید و محافظت شوید."
+
+msgid "myx_next"
+msgstr "بعدی"
+
+msgid "myx_skip"
+msgstr "رد شدن"
+
+msgid "myx_get_started"
+msgstr "شروع کنید"

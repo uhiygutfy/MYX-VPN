@@ -29,42 +29,47 @@ function Draw-Shield($g, [float]$x, [float]$y, [float]$s, [bool]$mono) {
   if ($mono) {
     $g.FillPath([System.Drawing.Brushes]::White, $path)
   } else {
-    $br = New-Object System.Drawing.Drawing2D.LinearGradientBrush (New-Object System.Drawing.PointF $x, $y), (New-Object System.Drawing.PointF ($x + $s), ($y + $s)), $Blue, $Red
-    $blend = New-Object System.Drawing.Drawing2D.ColorBlend 3
-    $blend.Colors = @($Blue, $Violet, $Red); $blend.Positions = @(0.0, 0.55, 1.0)
-    $br.InterpolationColors = $blend
-    $g.FillPath($br, $path)
-    # sheen
+    # Left half blue, right half red
     $g.SetClip($path)
-    $sheenRect = New-Object System.Drawing.RectangleF $x, $y, $s, ($s * 0.42)
-    $sheen = New-Object System.Drawing.Drawing2D.LinearGradientBrush $sheenRect, ([System.Drawing.Color]::FromArgb(70, 255, 255, 255)), ([System.Drawing.Color]::FromArgb(0, 255, 255, 255)), 90
+    $lr = New-Object System.Drawing.RectangleF $x, $y, ($s / 2), $s
+    $rr = New-Object System.Drawing.RectangleF ($x + $s / 2), $y, ($s / 2), $s
+    $lb = New-Object System.Drawing.Drawing2D.LinearGradientBrush $lr, ([System.Drawing.Color]::FromArgb(255, 59, 123, 255)), ([System.Drawing.Color]::FromArgb(255, 19, 54, 168)), 90
+    $rb = New-Object System.Drawing.Drawing2D.LinearGradientBrush $rr, ([System.Drawing.Color]::FromArgb(255, 255, 75, 92)), ([System.Drawing.Color]::FromArgb(255, 184, 15, 46)), 90
+    $g.FillRectangle($lb, $lr); $g.FillRectangle($rb, $rr)
+    $sheenRect = New-Object System.Drawing.RectangleF $x, $y, $s, ($s * 0.45)
+    $sheen = New-Object System.Drawing.Drawing2D.LinearGradientBrush $sheenRect, ([System.Drawing.Color]::FromArgb(77, 255, 255, 255)), ([System.Drawing.Color]::FromArgb(0, 255, 255, 255)), 90
     $g.FillRectangle($sheen, $sheenRect)
     $g.ResetClip()
+    # Inner white rim
+    $inner = New-ShieldPath ($x + $s * 0.08) ($y + $s * 0.075) ($s * 0.84) ($s * 0.84)
+    $g.DrawPath((New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(230, 255, 255, 255)), ([Math]::Max(1, $s * 0.035))), $inner)
   }
-  # M chevron
-  $pen = New-Object System.Drawing.Pen ($(if ($mono) { [System.Drawing.Color]::Transparent } else { [System.Drawing.Color]::White })), ($s * 0.1)
-  $pen.StartCap = 'Round'; $pen.EndCap = 'Round'; $pen.LineJoin = 'Round'
-  $pts = @(
-    (New-Object System.Drawing.PointF ($x + $s * 0.27), ($y + $s * 0.66)),
-    (New-Object System.Drawing.PointF ($x + $s * 0.27), ($y + $s * 0.33)),
-    (New-Object System.Drawing.PointF ($x + $s * 0.5), ($y + $s * 0.53)),
-    (New-Object System.Drawing.PointF ($x + $s * 0.73), ($y + $s * 0.33)),
-    (New-Object System.Drawing.PointF ($x + $s * 0.73), ($y + $s * 0.66))
-  )
-  if ($mono) {
-    # Knock the M out of the white shield.
-    $g.CompositingMode = 'SourceCopy'
-    $pen.Color = [System.Drawing.Color]::FromArgb(0, 0, 0, 0)
-    $g.DrawLines($pen, $pts)
-    $g.CompositingMode = 'SourceOver'
-  } else {
-    $g.DrawLines($pen, $pts)
+  # Padlock (knocked out of a mono shield, white on a colour one)
+  $lockColor = if ($mono) { [System.Drawing.Color]::FromArgb(0, 0, 0, 0) } else { [System.Drawing.Color]::White }
+  if ($mono) { $g.CompositingMode = 'SourceCopy' }
+  $pen = New-Object System.Drawing.Pen $lockColor, ($s * 0.055)
+  $pen.StartCap = 'Round'; $pen.EndCap = 'Round'
+  $g.DrawArc($pen, ($x + $s * 0.39), ($y + $s * 0.26), ($s * 0.22), ($s * 0.22), 180, 180)
+  $g.DrawLine($pen, ($x + $s * 0.39), ($y + $s * 0.37), ($x + $s * 0.39), ($y + $s * 0.44))
+  $g.DrawLine($pen, ($x + $s * 0.61), ($y + $s * 0.37), ($x + $s * 0.61), ($y + $s * 0.44))
+  $body = New-Object System.Drawing.Drawing2D.GraphicsPath
+  $bx = $x + $s * 0.33; $by = $y + $s * 0.43; $bw = $s * 0.34; $bh = $s * 0.27; $br = $s * 0.1
+  $body.AddArc($bx, $by, $br, $br, 180, 90); $body.AddArc($bx + $bw - $br, $by, $br, $br, 270, 90)
+  $body.AddArc($bx + $bw - $br, $by + $bh - $br, $br, $br, 0, 90); $body.AddArc($bx, $by + $bh - $br, $br, $br, 90, 90)
+  $body.CloseFigure()
+  $g.FillPath((New-Object System.Drawing.SolidBrush $lockColor), $body)
+  if ($mono) { $g.CompositingMode = 'SourceOver' }
+  else {
+    $navy = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(255, 19, 40, 107))
+    $kc = $s * 0.035
+    $g.FillEllipse($navy, ($x + $s * 0.5 - $kc), ($y + $s * 0.54 - $kc), (2 * $kc), (2 * $kc))
+    $g.FillRectangle($navy, ($x + $s * 0.485), ($y + $s * 0.55), ($s * 0.03), ($s * 0.07))
   }
 }
 
 function Fill-Background($g, [int]$n, [string]$shape) {
   $rect = New-Object System.Drawing.Rectangle 0, 0, $n, $n
-  $bg = New-Object System.Drawing.Drawing2D.LinearGradientBrush $rect, $Navy1, $Navy2, 45
+  $bg = New-Object System.Drawing.Drawing2D.LinearGradientBrush $rect, ([System.Drawing.Color]::FromArgb(255, 255, 255, 255)), ([System.Drawing.Color]::FromArgb(255, 234, 240, 255)), 60
   switch ($shape) {
     'square' { $g.FillRectangle($bg, $rect) }
     'circle' { $g.FillEllipse($bg, $rect) }
@@ -76,16 +81,6 @@ function Fill-Background($g, [int]$n, [string]$shape) {
       $p.CloseFigure(); $g.FillPath($bg, $p)
     }
   }
-  # soft blue glow top-left
-  $glow = New-Object System.Drawing.Drawing2D.GraphicsPath
-  $glow.AddEllipse([int](-$n * 0.3), [int](-$n * 0.3), [int]($n * 1.1), [int]($n * 1.1))
-  $pgb = New-Object System.Drawing.Drawing2D.PathGradientBrush $glow
-  $pgb.CenterColor = [System.Drawing.Color]::FromArgb(60, 47, 107, 255)
-  $pgb.SurroundColors = @([System.Drawing.Color]::FromArgb(0, 47, 107, 255))
-  if ($shape -eq 'circle') { $clip = New-Object System.Drawing.Drawing2D.GraphicsPath; $clip.AddEllipse($rect); $g.SetClip($clip) }
-  elseif ($shape -eq 'rounded') { $g.SetClip($p) }
-  $g.FillPath($pgb, $glow)
-  $g.ResetClip()
 }
 
 # kind: full-square | full-rounded | full-circle | foreground | mono
@@ -95,10 +90,10 @@ function Render([int]$n, [string]$kind) {
   $g.SmoothingMode = 'AntiAlias'; $g.PixelOffsetMode = 'HighQuality'; $g.InterpolationMode = 'HighQualityBicubic'
   $g.Clear([System.Drawing.Color]::Transparent)
   switch ($kind) {
-    'full-square'  { Fill-Background $g $n 'square';  $s = $n * 0.56 }
-    'full-rounded' { Fill-Background $g $n 'rounded'; $s = $n * 0.56 }
+    'full-square'  { Fill-Background $g $n 'square';  $s = $n * 0.62 }
+    'full-rounded' { Fill-Background $g $n 'rounded'; $s = $n * 0.62 }
     'full-circle'  { Fill-Background $g $n 'circle';  $s = $n * 0.52 }
-    'foreground'   { $s = $n * 0.40 }   # adaptive icon safe zone (66% of 108dp)
+    'foreground'   { $s = $n * 0.44 }   # adaptive icon safe zone (66% of 108dp)
     'mono'         { $s = $n * 0.40 }
   }
   $off = ($n - $s) / 2
@@ -135,7 +130,12 @@ Get-ChildItem "$root\android\app\src\main\res\mipmap-*\*.png" | ForEach-Object {
 # Adaptive background colour
 $colors = "$root\android\app\src\main\res\values\ic_launcher_background.xml"
 if (Test-Path $colors) {
-  (Get-Content $colors -Raw) -replace '#[0-9A-Fa-f]{6,8}', '#0B1022' | Set-Content $colors -Encoding utf8
+  [IO.File]::WriteAllText($colors, ((Get-Content $colors -Raw) -replace '#[0-9A-Fa-f]{6,8}', '#FFFFFF'))
+}
+
+# ---- Android launch-screen logo (shield on transparent) ----
+Get-ChildItem "$root\android\app\src\main\res\drawable-*\splash_logo.png" | ForEach-Object {
+  Save-Png (Render (Get-Size $_.FullName) 'foreground') $_.FullName; $count++
 }
 
 # ---- iOS / macOS app icons (opaque, the OS applies its own mask) ----
